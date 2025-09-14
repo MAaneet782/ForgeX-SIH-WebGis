@@ -25,12 +25,13 @@ const formSchema = z.object({
   village: z.string().min(2, { message: "Village name must be at least 2 characters." }),
   area: z.coerce.number().nonnegative({ message: "Area must be a non-negative number." }),
   status: z.enum(["Approved", "Pending", "Rejected"]),
+  document: z.instanceof(FileList).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 type AddClaimFormProps = {
-  onAddClaim: (claim: FormValues) => void;
+  onAddClaim: (claim: Omit<FormValues, 'document'> & { documentName?: string }) => void;
   onClose: () => void;
 };
 
@@ -46,7 +47,9 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
   });
 
   function onSubmit(values: FormValues) {
-    onAddClaim(values);
+    const { document, ...rest } = values;
+    const documentName = document?.[0]?.name;
+    onAddClaim({ ...rest, documentName });
     onClose();
   }
 
@@ -110,6 +113,25 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
                   <SelectItem value="Rejected">Rejected</SelectItem>
                 </SelectContent>
               </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="document"
+          render={({ field: { onChange, onBlur, name, ref } }) => (
+            <FormItem>
+              <FormLabel>Government Document (Optional)</FormLabel>
+              <FormControl>
+                <Input 
+                  type="file" 
+                  onChange={(e) => onChange(e.target.files)}
+                  onBlur={onBlur}
+                  name={name}
+                  ref={ref}
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}

@@ -8,6 +8,7 @@ export type Claim = {
   state: string;
   area: number;
   status: 'Approved' | 'Pending' | 'Rejected';
+  documentName?: string;
 };
 
 export const claims: Claim[] = [
