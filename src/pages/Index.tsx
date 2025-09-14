@@ -1,119 +1,61 @@
-import { useState, useMemo } from "react";
-import ClaimsData from "@/components/ClaimsData";
-import DashboardStats from "@/components/DashboardStats";
-import DataVisualization from "@/components/DataVisualization";
-import GisMap from "@/components/GisMap";
-import DecisionSupportPanel from "@/components/DecisionSupportPanel";
-import {
-  claims as initialClaims,
-  geoJsonData,
-  waterBodiesGeoJson,
-  agriLandGeoJson,
-} from "@/data/mockClaims";
-import type { Claim } from "@/data/mockClaims";
-import { MadeWithDyad } from "@/components/made-with-dyad";
-import { showSuccess } from "@/utils/toast";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { ForestBackground } from "@/components/ForestBackground";
+import { useState } from "react";
+import { claims, geoJsonData, waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
+import ClaimsTable from "@/components/ClaimsTable";
+import MapView from "@/components/MapView";
+import AiAnalysisPanel from "@/components/AiAnalysisPanel";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Index = () => {
-  const [claims, setClaims] = useState<Claim[]>(initialClaims);
-  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
-
-  const handleAddClaim = (newClaimData: Omit<Claim, 'id'>) => {
-    const newClaim: Claim = {
-      id: `C${String(claims.length + 1).padStart(3, '0')}`,
-      ...newClaimData,
-    };
-    setClaims((prevClaims) => [...prevClaims, newClaim]);
-    showSuccess("Successfully added new claim!");
-  };
-
-  const filteredClaims = useMemo(() => {
-    return claims.filter((claim) => {
-      const matchesSearch =
-        claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        claim.village.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus =
-        statusFilter === "All" || claim.status === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [claims, searchTerm, statusFilter]);
-
-  const filteredGeoJsonData = useMemo(() => {
-    const filteredClaimIds = new Set(filteredClaims.map(c => c.id));
-    return {
-      ...geoJsonData,
-      features: geoJsonData.features.filter(feature => 
-        feature.properties && filteredClaimIds.has(feature.properties.claimId)
-      ),
-    };
-  }, [filteredClaims]);
-
-  const selectedClaim = claims.find((c) => c.id === selectedClaimId) || null;
+  const [selectedClaim, setSelectedClaim] = useState(claims[0]);
 
   return (
-    <>
-      <ForestBackground />
-      <div className="relative z-10 min-h-screen bg-transparent text-foreground p-4 sm:p-6 md:p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
-          <header className="flex justify-between items-center pb-4 border-b">
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
-                Forest Rights Act DSS
-              </h1>
-              <p className="mt-2 text-lg text-muted-foreground">
-                An interactive dashboard for visualizing claims, assets, and scheme
-                eligibility.
-              </p>
-            </div>
-            <ThemeToggle />
-          </header>
+    <div className="h-screen w-screen p-4 flex flex-col font-sans">
+      <header className="mb-4">
+        <h1 className="text-3xl font-bold text-primary">Forest Land Claims Dashboard</h1>
+        <p className="text-muted-foreground">Monitoring and Analysis for Madhya Pradesh & Odisha</p>
+      </header>
 
-          <main className="space-y-8">
-            <section>
-              <DashboardStats claims={claims} />
-            </section>
-
-            <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                <div className="rounded-lg overflow-hidden border shadow-sm">
-                  <GisMap
-                    claimsData={filteredGeoJsonData}
-                    waterData={waterBodiesGeoJson}
-                    agriData={agriLandGeoJson}
-                    selectedClaimId={selectedClaimId}
-                    onClaimSelect={setSelectedClaimId}
-                  />
-                </div>
-                <ClaimsData
-                  claims={filteredClaims}
-                  onAddClaim={handleAddClaim}
-                  selectedClaimId={selectedClaimId}
-                  onClaimSelect={setSelectedClaimId}
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  statusFilter={statusFilter}
-                  setStatusFilter={setStatusFilter}
+      <ResizablePanelGroup direction="horizontal" className="flex-grow rounded-lg border">
+        <ResizablePanel defaultSize={60}>
+          <ResizablePanelGroup direction="vertical">
+            <ResizablePanel defaultSize={65}>
+              <div className="h-full p-1">
+                <MapView 
+                  claimsGeoJson={geoJsonData} 
+                  waterBodiesGeoJson={waterBodiesGeoJson}
+                  agriLandGeoJson={agriLandGeoJson}
+                  selectedClaimId={selectedClaim?.id} 
+                  onClaimSelect={(claimId) => {
+                    const claim = claims.find(c => c.id === claimId);
+                    if (claim) setSelectedClaim(claim);
+                  }}
                 />
               </div>
-              <div className="lg:col-span-1">
-                <DecisionSupportPanel claim={selectedClaim} />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={35}>
+              <div className="h-full p-1 overflow-y-auto">
+                <Card className="h-full">
+                  <CardHeader>
+                    <CardTitle>Claims Details</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ClaimsTable claims={claims} onRowSelect={setSelectedClaim} selectedClaimId={selectedClaim?.id} />
+                  </CardContent>
+                </Card>
               </div>
-            </section>
-
-            <section>
-              <DataVisualization claims={claims} />
-            </section>
-          </main>
-          <div className="pt-8">
-            <MadeWithDyad />
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={40}>
+          <div className="h-full p-1 overflow-y-auto">
+            {selectedClaim && <AiAnalysisPanel claim={selectedClaim} />}
           </div>
-        </div>
-      </div>
-    </>
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
   );
 };
 
