@@ -37,7 +37,7 @@ const ClaimDetail = () => {
         <Card>
           <CardHeader>
             <CardTitle>Claim Information</CardTitle>
-          </CardHeader>
+          </Header>
           <CardContent className="space-y-2">
             <div className="flex justify-between"><span>Claim ID:</span> <span className="font-mono">{claim.id}</span></div>
             <div className="flex justify-between"><span>Village:</span> <span>{claim.village}</span></div>
