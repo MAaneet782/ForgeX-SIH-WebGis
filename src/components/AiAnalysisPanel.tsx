@@ -1,154 +1,66 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import type { Claim } from "@/data/mockClaims";
-import { Leaf, Sprout, Droplets, Waves, DollarSign, Briefcase, Globe } from "lucide-react";
+import { Leaf, Sprout, Droplets, DollarSign } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { runPredictiveAnalysis, type AnalysisResult } from "@/lib/ai-analysis";
 
 interface AiAnalysisPanelProps {
   claim: Claim;
 }
 
-// --- AI Simulation Logic ---
-
-const getSoilAnalysis = (soilType: Claim['soilType']) => {
-  switch (soilType) {
-    case 'Alluvial':
-      return {
-        description: "Highly fertile and rich in humus. Excellent for a wide variety of crops.",
-        crops: ["Rice", "Wheat", "Sugarcane", "Jute"],
-      };
-    case 'Clay':
-      return {
-        description: "Good water retention, rich in minerals. Can be heavy and requires good drainage.",
-        crops: ["Cotton", "Soybean", "Paddy", "Lentils"],
-      };
-    case 'Loamy':
-      return {
-        description: "Balanced mixture of sand, silt, and clay. Considered ideal for most crops.",
-        crops: ["Maize", "Vegetables", "Pulses", "Oilseeds"],
-      };
-    case 'Laterite':
-      return {
-        description: "Rich in iron and aluminum. Suitable for specific plantation crops with proper management.",
-        crops: ["Cashew", "Tea", "Coffee", "Rubber"],
-      };
-  }
-};
-
-const getWaterAnalysis = (waterAvailability: Claim['waterAvailability']) => {
-  switch (waterAvailability) {
-    case 'High':
-      return {
-        description: "Abundant water resources. Ideal for water-intensive agriculture and aquaculture.",
-        recommendations: ["Consider applying for a borewell permit", "Explore multi-crop cycles", "Potential for fish farming"],
-      };
-    case 'Medium':
-      return {
-        description: "Sufficient water for one or two crop cycles. Conservation is recommended.",
-        recommendations: ["Implement rainwater harvesting", "Use drip irrigation to maximize efficiency", "Choose moderately water-intensive crops"],
-      };
-    case 'Low':
-      return {
-        description: "Water is scarce. Focus on drought-resistant crops and aggressive conservation.",
-        recommendations: ["Prioritize building check dams or ponds", "Cultivate millets and other hardy crops", "Explore dryland farming techniques"],
-      };
-  }
-};
-
-const getEconomicOpportunities = (claim: Claim) => {
-    const opportunities = [];
-    if (claim.waterAvailability === 'High') {
-        opportunities.push({ name: "Aquaculture", description: "High water availability makes fish or prawn farming a viable, high-return business.", icon: Waves });
-    }
-    if (claim.area > 5) {
-        opportunities.push({ name: "Eco-Tourism", description: "Larger plots in scenic areas can be developed for sustainable tourism, offering homestays or guided tours.", icon: Globe });
-    }
-    opportunities.push({ name: "Non-Timber Forest Products", description: "Sustainable harvesting of local products like honey, medicinal herbs, or bamboo.", icon: Briefcase });
-    opportunities.push({ name: "Carbon Credits", description: "By practicing agroforestry, you can sequester carbon and potentially sell carbon credits on the market.", icon: DollarSign });
-    return opportunities;
-}
-
 // --- Skeleton Component ---
-
 const AiAnalysisSkeleton = () => (
   <Card>
     <CardHeader>
       <CardTitle>AI-Powered Predictive Analysis</CardTitle>
-      <CardDescription>Actionable insights to maximize the value of your land asset.</CardDescription>
+      <CardDescription>Generating actionable insights for your land asset...</CardDescription>
     </CardHeader>
     <CardContent className="space-y-6">
       <div>
-        <Skeleton className="h-6 w-1/2 mb-3" />
-        <Skeleton className="h-4 w-full mb-3" />
-        <div className="space-y-2">
-          <Skeleton className="h-5 w-1/3" />
-          <div className="flex flex-wrap gap-2">
-            <Skeleton className="h-8 w-24 rounded-md" />
-            <Skeleton className="h-8 w-24 rounded-md" />
-            <Skeleton className="h-8 w-24 rounded-md" />
-          </div>
+        <Skeleton className="h-6 w-1/2 mb-4" />
+        <div className="space-y-4">
+          <Card><CardContent className="pt-6"><Skeleton className="h-5 w-1/3 mb-2" /><Skeleton className="h-4 w-full" /></CardContent></Card>
+          <Card><CardContent className="pt-6"><Skeleton className="h-5 w-1/3 mb-2" /><Skeleton className="h-4 w-full" /></CardContent></Card>
         </div>
       </div>
       <Separator />
       <div>
-        <Skeleton className="h-6 w-1/2 mb-3" />
-        <Skeleton className="h-4 w-full mb-3" />
-        <div className="space-y-2">
-          <Skeleton className="h-5 w-1/3" />
-          <ul className="list-disc list-inside text-sm space-y-2">
-            <li><Skeleton className="h-4 w-4/5" /></li>
-            <li><Skeleton className="h-4 w-3/5" /></li>
-            <li><Skeleton className="h-4 w-4/5" /></li>
-          </ul>
-        </div>
-      </div>
-      <Separator />
-      <div>
-        <Skeleton className="h-6 w-1/2 mb-3" />
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="flex items-start space-x-3 p-3 rounded-lg">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <div className="w-full space-y-2">
-              <Skeleton className="h-5 w-1/2" />
-              <Skeleton className="h-4 w-full" />
-            </div>
-          </div>
-          <div className="flex items-start space-x-3 p-3 rounded-lg">
-            <Skeleton className="h-8 w-8 rounded-full" />
-            <div className="w-full space-y-2">
-              <Skeleton className="h-5 w-1/2" />
-              <Skeleton className="h-4 w-full" />
-            </div>
-          </div>
-        </div>
+        <Skeleton className="h-6 w-1/2 mb-4" />
+        <Skeleton className="h-5 w-1/4 mb-2" />
+        <Skeleton className="h-6 w-full mb-4" />
+        <ul className="list-disc list-inside text-sm space-y-2">
+          <li><Skeleton className="h-4 w-4/5" /></li>
+          <li><Skeleton className="h-4 w-3/5" /></li>
+        </ul>
       </div>
     </CardContent>
   </Card>
 );
 
-
 // --- Main Component ---
-
 const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
 
   useEffect(() => {
     setIsLoading(true);
     const timer = setTimeout(() => {
+      const results = runPredictiveAnalysis(claim);
+      setAnalysis(results);
       setIsLoading(false);
-    }, 1200); // Simulate AI processing time
+    }, 1500); // Simulate advanced model processing time
 
     return () => clearTimeout(timer);
   }, [claim]);
 
-  if (isLoading) {
+  if (isLoading || !analysis) {
     return <AiAnalysisSkeleton />;
   }
 
-  const soilData = getSoilAnalysis(claim.soilType);
-  const waterData = getWaterAnalysis(claim.waterAvailability);
-  const economicData = getEconomicOpportunities(claim);
+  const { cropAnalysis, waterAnalysis, economicOpportunities } = analysis;
 
   return (
     <Card>
@@ -156,23 +68,23 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
         <CardTitle>AI-Powered Predictive Analysis</CardTitle>
         <CardDescription>Actionable insights to maximize the value of your land asset.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         {/* Soil & Crop Section */}
         <div>
-          <h3 className="font-semibold text-lg mb-3 flex items-center"><Sprout className="mr-2 h-5 w-5 text-green-600" /> Soil & Crop Analysis</h3>
-          <p className="text-sm text-muted-foreground mb-3">
-            <span className="font-medium text-foreground">{claim.soilType} Soil:</span> {soilData.description}
-          </p>
-          <div className="space-y-2">
-            <h4 className="font-medium">Recommended Crops:</h4>
-            <div className="flex flex-wrap gap-2">
-              {soilData.crops.map(crop => (
-                <div key={crop} className="flex items-center bg-muted p-2 rounded-md">
-                  <Leaf className="h-4 w-4 mr-2 text-green-500" />
-                  <span className="text-sm">{crop}</span>
-                </div>
-              ))}
-            </div>
+          <h3 className="font-semibold text-lg mb-4 flex items-center"><Sprout className="mr-2 h-5 w-5 text-green-600" /> Crop Recommendations ({claim.soilType} Soil)</h3>
+          <div className="space-y-4">
+            {cropAnalysis.map(crop => (
+              <Card key={crop.name} className="bg-muted/50">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-base font-medium flex items-center"><Leaf className="mr-2 h-4 w-4 text-green-500" />{crop.name}</CardTitle>
+                  <crop.icon className="h-5 w-5 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm font-semibold">{crop.sowingSeason}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{crop.subsidyInfo}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
 
@@ -180,14 +92,21 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
 
         {/* Water Resource Section */}
         <div>
-          <h3 className="font-semibold text-lg mb-3 flex items-center"><Droplets className="mr-2 h-5 w-5 text-blue-600" /> Water Resource Analysis</h3>
-          <p className="text-sm text-muted-foreground mb-3">
-            <span className="font-medium text-foreground">Water Availability ({claim.waterAvailability}):</span> {waterData.description}
-          </p>
-          <div className="space-y-2">
+          <h3 className="font-semibold text-lg mb-4 flex items-center"><Droplets className="mr-2 h-5 w-5 text-blue-600" /> Water Resource Analysis</h3>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h4 className="font-medium">Borewell Suitability Index:</h4>
+              <span className={`font-bold text-lg ${waterAnalysis.score > 75 ? 'text-green-600' : waterAnalysis.score > 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                {waterAnalysis.score} / 100
+              </span>
+            </div>
+            <Progress value={waterAnalysis.score} className="w-full" />
+            <p className="text-sm text-center font-medium text-muted-foreground">{waterAnalysis.borewellSuitability}</p>
+          </div>
+          <div className="mt-4 space-y-2">
             <h4 className="font-medium">Key Recommendations:</h4>
             <ul className="list-disc list-inside text-sm space-y-1">
-              {waterData.recommendations.map(rec => <li key={rec}>{rec}</li>)}
+              {waterAnalysis.recommendations.map(rec => <li key={rec}>{rec}</li>)}
             </ul>
           </div>
         </div>
@@ -196,9 +115,9 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
 
         {/* Economic Opportunity Section */}
         <div>
-          <h3 className="font-semibold text-lg mb-3 flex items-center"><DollarSign className="mr-2 h-5 w-5 text-yellow-600" /> Economic Opportunity Analysis</h3>
+          <h3 className="font-semibold text-lg mb-4 flex items-center"><DollarSign className="mr-2 h-5 w-5 text-yellow-600" /> Economic Opportunity Analysis</h3>
           <div className="grid md:grid-cols-2 gap-4">
-            {economicData.map(opp => (
+            {economicOpportunities.map(opp => (
               <div key={opp.name} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg">
                 <opp.icon className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
                 <div>
