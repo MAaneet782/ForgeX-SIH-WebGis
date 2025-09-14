@@ -4,7 +4,7 @@ import ClaimsData from "@/components/ClaimsData";
 import { claims as initialClaims, geoJsonData } from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 
 const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
@@ -16,6 +16,20 @@ const Index = () => {
     };
     setClaims(prevClaims => [...prevClaims, newClaim]);
     showSuccess("Successfully added new claim!");
+  };
+
+  const handleEditClaim = (updatedClaim: Claim) => {
+    setClaims(prevClaims =>
+      prevClaims.map(claim =>
+        claim.id === updatedClaim.id ? updatedClaim : claim
+      )
+    );
+    showSuccess("Claim updated successfully!");
+  };
+
+  const handleDeleteClaim = (claimId: string) => {
+    setClaims(prevClaims => prevClaims.filter(claim => claim.id !== claimId));
+    showSuccess("Claim deleted successfully.");
   };
 
   return (
@@ -38,7 +52,12 @@ const Index = () => {
           </section>
 
           <section>
-            <ClaimsData claims={claims} onAddClaim={handleAddClaim} />
+            <ClaimsData
+              claims={claims}
+              onAddClaim={handleAddClaim}
+              onEditClaim={handleEditClaim}
+              onDeleteClaim={handleDeleteClaim}
+            />
           </section>
         </main>
         <div className="pt-8">
