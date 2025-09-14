@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: Omit<Claim, 'id'>) => void;
+  onAddClaim: (claim: Omit<Claim, 'id' | 'district' | 'state'>) => void;
   selectedClaimId: string | null;
   onClaimSelect: (id: string | null) => void;
 }
@@ -81,6 +81,8 @@ const ClaimsData = ({ claims, onAddClaim, selectedClaimId, onClaimSelect }: Clai
                 <TableHead>Claim ID</TableHead>
                 <TableHead>Holder Name</TableHead>
                 <TableHead>Village</TableHead>
+                <TableHead>District</TableHead>
+                <TableHead>State</TableHead>
                 <TableHead className="text-right">Area (acres)</TableHead>
                 <TableHead className="text-center">Status</TableHead>
               </TableRow>
@@ -99,6 +101,8 @@ const ClaimsData = ({ claims, onAddClaim, selectedClaimId, onClaimSelect }: Clai
                   <TableCell className="font-medium">{claim.id}</TableCell>
                   <TableCell>{claim.holderName}</TableCell>
                   <TableCell>{claim.village}</TableCell>
+                  <TableCell>{claim.district}</TableCell>
+                  <TableCell>{claim.state}</TableCell>
                   <TableCell className="text-right">{claim.area.toFixed(2)}</TableCell>
                   <TableCell className="text-center">
                     <Badge variant={getBadgeVariant(claim.status)}>{claim.status}</Badge>

@@ -4,15 +4,17 @@ export type Claim = {
   id: string;
   holderName: string;
   village: string;
+  district: string;
+  state: string;
   area: number;
   status: 'Approved' | 'Pending' | 'Rejected';
 };
 
 export const claims: Claim[] = [
-  { id: 'C001', holderName: 'Aarav Sharma', village: 'Ramgarh', area: 5.2, status: 'Approved' },
-  { id: 'C002', holderName: 'Saanvi Patel', village: 'Krishnanagar', area: 3.1, status: 'Pending' },
-  { id: 'C003', holderName: 'Vivaan Singh', village: 'Devipur', area: 7.8, status: 'Approved' },
-  { id: 'C004', holderName: 'Ananya Gupta', village: 'Sitapur', area: 4.5, status: 'Rejected' },
+  { id: 'C001', holderName: 'Aarav Sharma', village: 'Ramgarh', district: 'Nagpur', state: 'Maharashtra', area: 5.2, status: 'Approved' },
+  { id: 'C002', holderName: 'Saanvi Patel', village: 'Krishnanagar', district: 'Patna', state: 'Bihar', area: 3.1, status: 'Pending' },
+  { id: 'C003', holderName: 'Vivaan Singh', village: 'Devipur', district: 'New Delhi', state: 'Delhi', area: 7.8, status: 'Approved' },
+  { id: 'C004', holderName: 'Ananya Gupta', village: 'Sitapur', district: 'Mumbai', state: 'Maharashtra', area: 4.5, status: 'Rejected' },
 ];
 
 export const geoJsonData: FeatureCollection = {
@@ -83,4 +85,40 @@ export const geoJsonData: FeatureCollection = {
         },
       },
   ],
+};
+
+export const waterBodiesGeoJson: FeatureCollection = {
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        properties: { name: 'Ramgarh Lake' },
+        geometry: {
+          type: "Polygon",
+          coordinates: [
+            [
+              [78.98, 20.61], [78.99, 20.62], [78.98, 20.63], [78.97, 20.62], [78.98, 20.61]
+            ]
+          ]
+        }
+      }
+    ]
+};
+
+export const agriLandGeoJson: FeatureCollection = {
+    type: "FeatureCollection",
+    features: [
+        {
+            type: "Feature",
+            properties: { type: 'Paddy Field' },
+            geometry: {
+              type: "Polygon",
+              coordinates: [
+                [
+                  [85.32, 25.61], [85.33, 25.61], [85.33, 25.62], [85.32, 25.62], [85.32, 25.61]
+                ]
+              ]
+            }
+        }
+    ]
 };

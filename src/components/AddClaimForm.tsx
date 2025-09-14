@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DialogFooter } from "@/components/ui/dialog";
-import type { Claim } from "@/data/mockClaims";
 
 const formSchema = z.object({
   holderName: z.string().min(2, { message: "Holder name must be at least 2 characters." }),
@@ -28,13 +27,15 @@ const formSchema = z.object({
   status: z.enum(["Approved", "Pending", "Rejected"]),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 type AddClaimFormProps = {
-  onAddClaim: (claim: Omit<Claim, 'id'>) => void;
+  onAddClaim: (claim: FormValues) => void;
   onClose: () => void;
 };
 
 const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
-  const form = useForm<Omit<Claim, 'id'>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       holderName: "",
@@ -44,7 +45,7 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
     },
   });
 
-  function onSubmit(values: Omit<Claim, 'id'>) {
+  function onSubmit(values: FormValues) {
     onAddClaim(values);
     onClose();
   }

@@ -1,6 +1,13 @@
 import { useState, lazy, Suspense } from "react";
 import ClaimsData from "@/components/ClaimsData";
-import { claims as initialClaims, geoJsonData } from "@/data/mockClaims";
+import DashboardStats from "@/components/DashboardStats";
+import DecisionSupportPanel from "@/components/DecisionSupportPanel";
+import {
+  claims as initialClaims,
+  geoJsonData,
+  waterBodiesGeoJson,
+  agriLandGeoJson,
+} from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { showSuccess } from "@/utils/toast";
@@ -12,47 +19,61 @@ const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
-  const handleAddClaim = (newClaimData: Omit<Claim, 'id'>) => {
+  const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'district' | 'state'>) => {
     const newClaim: Claim = {
       id: `C${String(claims.length + 1).padStart(3, '0')}`,
+      // Mocking district and state for new claims for simplicity
+      district: "Unknown",
+      state: "Unknown",
       ...newClaimData,
     };
-    setClaims(prevClaims => [...prevClaims, newClaim]);
+    setClaims((prevClaims) => [...prevClaims, newClaim]);
     showSuccess("Successfully added new claim!");
   };
+
+  const selectedClaim = claims.find((c) => c.id === selectedClaimId) || null;
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <header className="text-center">
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Forest Rights Act (FRA) Patta Claims Viewer
+            Forest Rights Act (FRA) Decision Support System
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            An interactive map and database of legacy claim records.
+            An interactive dashboard for visualizing claims, assets, and scheme
+            eligibility.
           </p>
         </header>
 
         <main className="space-y-8">
           <section>
-            <div className="rounded-lg overflow-hidden border shadow-sm">
-              <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
-                <GisMap
-                  data={geoJsonData}
-                  selectedClaimId={selectedClaimId}
-                  onClaimSelect={setSelectedClaimId}
-                />
-              </Suspense>
-            </div>
+            <DashboardStats claims={claims} />
           </section>
 
-          <section>
-            <ClaimsData
-              claims={claims}
-              onAddClaim={handleAddClaim}
-              selectedClaimId={selectedClaimId}
-              onClaimSelect={setSelectedClaimId}
-            />
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="rounded-lg overflow-hidden border shadow-sm">
+                <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
+                  <GisMap
+                    claimsData={geoJsonData}
+                    waterData={waterBodiesGeoJson}
+                    agriData={agriLandGeoJson}
+                    selectedClaimId={selectedClaimId}
+                    onClaimSelect={setSelectedClaimId}
+                  />
+                </Suspense>
+              </div>
+              <ClaimsData
+                claims={claims}
+                onAddClaim={handleAddClaim}
+                selectedClaimId={selectedClaimId}
+                onClaimSelect={setSelectedClaimId}
+              />
+            </div>
+            <div className="lg:col-span-1">
+              <DecisionSupportPanel claim={selectedClaim} />
+            </div>
           </section>
         </main>
         <div className="pt-8">

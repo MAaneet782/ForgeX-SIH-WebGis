@@ -1,11 +1,13 @@
-import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from 'react-leaflet';
 import { FeatureCollection, Feature, Geometry } from 'geojson';
 import { Layer, LatLngExpression, PathOptions } from 'leaflet';
 import { useEffect } from 'react';
 import L from 'leaflet';
 
 interface GisMapProps {
-  data: FeatureCollection;
+  claimsData: FeatureCollection;
+  waterData: FeatureCollection;
+  agriData: FeatureCollection;
   selectedClaimId: string | null;
   onClaimSelect: (id: string | null) => void;
 }
@@ -32,7 +34,7 @@ const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | nu
   return null;
 };
 
-const GisMap = ({ data, selectedClaimId, onClaimSelect }: GisMapProps) => {
+const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelect }: GisMapProps) => {
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
   const onEachFeature = (feature: Feature<Geometry, any>, layer: Layer) => {
@@ -51,7 +53,7 @@ const GisMap = ({ data, selectedClaimId, onClaimSelect }: GisMapProps) => {
     }
   };
 
-  const styleFeature = (feature?: Feature): PathOptions => {
+  const styleClaimFeature = (feature?: Feature): PathOptions => {
     if (feature?.properties?.claimId === selectedClaimId) {
       return {
         color: '#fb923c', // Orange
@@ -68,19 +70,43 @@ const GisMap = ({ data, selectedClaimId, onClaimSelect }: GisMapProps) => {
     };
   };
 
+  const waterStyle: PathOptions = { color: 'blue', weight: 1, fillColor: 'blue', fillOpacity: 0.5 };
+  const agriStyle: PathOptions = { color: 'green', weight: 1, fillColor: 'green', fillOpacity: 0.4 };
+
   return (
     <MapContainer center={center} zoom={5} className="h-[500px] w-full rounded-md">
-      <TileLayer
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-      />
-      <GeoJSON 
-        data={data} 
-        onEachFeature={onEachFeature} 
-        style={styleFeature}
-        key={selectedClaimId || 'default'} // Force re-render on selection change
-      />
-      <MapController selectedClaimId={selectedClaimId} data={data} />
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="Street Map">
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Satellite View">
+            <TileLayer
+                url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
+                maxZoom={20}
+                subdomains={['mt1','mt2','mt3']}
+                attribution='&copy; Google'
+            />
+        </LayersControl.BaseLayer>
+        
+        <LayersControl.Overlay checked name="FRA Claims">
+          <GeoJSON 
+            data={claimsData} 
+            onEachFeature={onEachFeature} 
+            style={styleClaimFeature}
+            key={selectedClaimId || 'default'} // Force re-render on selection change
+          />
+        </LayersControl.Overlay>
+        <LayersControl.Overlay name="Water Bodies">
+          <GeoJSON data={waterData} style={waterStyle} />
+        </LayersControl.Overlay>
+        <LayersControl.Overlay name="Agricultural Land">
+          <GeoJSON data={agriData} style={agriStyle} />
+        </LayersControl.Overlay>
+      </LayersControl>
+      <MapController selectedClaimId={selectedClaimId} data={claimsData} />
     </MapContainer>
   );
 };
