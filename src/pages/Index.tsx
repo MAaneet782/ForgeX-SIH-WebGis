@@ -40,6 +40,16 @@ const Index = () => {
     });
   }, [claims, searchTerm, statusFilter]);
 
+  const filteredGeoJsonData = useMemo(() => {
+    const filteredClaimIds = new Set(filteredClaims.map(c => c.id));
+    return {
+      ...geoJsonData,
+      features: geoJsonData.features.filter(feature => 
+        feature.properties && filteredClaimIds.has(feature.properties.claimId)
+      ),
+    };
+  }, [filteredClaims]);
+
   const selectedClaim = claims.find((c) => c.id === selectedClaimId) || null;
 
   return (
@@ -64,7 +74,7 @@ const Index = () => {
             <div className="lg:col-span-2 space-y-8">
               <div className="rounded-lg overflow-hidden border shadow-sm">
                 <GisMap
-                  claimsData={geoJsonData}
+                  claimsData={filteredGeoJsonData}
                   waterData={waterBodiesGeoJson}
                   agriData={agriLandGeoJson}
                   selectedClaimId={selectedClaimId}
