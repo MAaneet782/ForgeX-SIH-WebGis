@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -99,7 +100,11 @@ const ClaimsData = ({ claims, onAddClaim, selectedClaimId, onClaimSelect }: Clai
                   )}
                 >
                   <TableCell className="font-medium">{claim.id}</TableCell>
-                  <TableCell>{claim.holderName}</TableCell>
+                  <TableCell>
+                    <Link to={`/claim/${claim.id}`} className="hover:underline text-primary">
+                      {claim.holderName}
+                    </Link>
+                  </TableCell>
                   <TableCell>{claim.village}</TableCell>
                   <TableCell>{claim.district}</TableCell>
                   <TableCell>{claim.state}</TableCell>
