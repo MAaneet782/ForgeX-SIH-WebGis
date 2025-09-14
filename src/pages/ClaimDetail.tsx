@@ -47,7 +47,11 @@ const ClaimDetail = () => {
             <div className="flex justify-between items-center"><span>Status:</span> <Badge variant={claim.status === 'Approved' ? 'default' : claim.status === 'Pending' ? 'secondary' : 'destructive'}>{claim.status}</Badge></div>
           </CardContent>
         </Card>
-        <SchemeEligibility claim={claim} />
+        <Card>
+          <CardContent className="pt-6">
+            <SchemeEligibility claim={claim} />
+          </CardContent>
+        </Card>
       </div>
 
       <AiAnalysisPanel claim={claim} />
