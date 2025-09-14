@@ -37,7 +37,11 @@ const Index = () => {
           <section>
             <div className="rounded-lg overflow-hidden border shadow-sm">
               <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
-                <GisMap data={geoJsonData} selectedClaimId={selectedClaimId} />
+                <GisMap
+                  data={geoJsonData}
+                  selectedClaimId={selectedClaimId}
+                  onClaimSelect={setSelectedClaimId}
+                />
               </Suspense>
             </div>
           </section>

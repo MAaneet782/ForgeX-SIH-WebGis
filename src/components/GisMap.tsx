@@ -7,6 +7,7 @@ import L from 'leaflet';
 interface GisMapProps {
   data: GeoJsonObject;
   selectedClaimId: string | null;
+  onClaimSelect: (id: string | null) => void;
 }
 
 const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | null, data: GeoJsonObject }) => {
@@ -31,7 +32,7 @@ const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | nu
   return null;
 };
 
-const GisMap = ({ data, selectedClaimId }: GisMapProps) => {
+const GisMap = ({ data, selectedClaimId, onClaimSelect }: GisMapProps) => {
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
   const onEachFeature = (feature: Feature<Geometry, any>, layer: Layer) => {
@@ -41,6 +42,12 @@ const GisMap = ({ data, selectedClaimId }: GisMapProps) => {
         <b>Claim ID:</b> ${feature.properties.claimId}
       `;
       layer.bindPopup(popupContent);
+
+      layer.on({
+        click: () => {
+          onClaimSelect(feature.properties.claimId);
+        },
+      });
     }
   };
 
