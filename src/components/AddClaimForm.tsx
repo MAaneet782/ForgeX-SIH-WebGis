@@ -34,7 +34,7 @@ type AddClaimFormProps = {
 };
 
 const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<Omit<Claim, 'id'>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       holderName: "",
@@ -44,7 +44,7 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: Omit<Claim, 'id'>) {
     onAddClaim(values);
     onClose();
   }
