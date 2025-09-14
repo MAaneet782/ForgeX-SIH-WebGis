@@ -1,7 +1,8 @@
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import ClaimsData from "@/components/ClaimsData";
 import DashboardStats from "@/components/DashboardStats";
 import DecisionSupportPanel from "@/components/DecisionSupportPanel";
+import GisMap from "@/components/GisMap";
 import {
   claims as initialClaims,
   geoJsonData,
@@ -11,9 +12,6 @@ import {
 import type { Claim } from "@/data/mockClaims";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { showSuccess } from "@/utils/toast";
-import { Skeleton } from "@/components/ui/skeleton";
-
-const GisMap = lazy(() => import("@/components/GisMap"));
 
 const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
@@ -54,15 +52,13 @@ const Index = () => {
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
               <div className="rounded-lg overflow-hidden border shadow-sm">
-                <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
-                  <GisMap
-                    claimsData={geoJsonData}
-                    waterData={waterBodiesGeoJson}
-                    agriData={agriLandGeoJson}
-                    selectedClaimId={selectedClaimId}
-                    onClaimSelect={setSelectedClaimId}
-                  />
-                </Suspense>
+                <GisMap
+                  claimsData={geoJsonData}
+                  waterData={waterBodiesGeoJson}
+                  agriData={agriLandGeoJson}
+                  selectedClaimId={selectedClaimId}
+                  onClaimSelect={setSelectedClaimId}
+                />
               </div>
               <ClaimsData
                 claims={claims}
