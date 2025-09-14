@@ -9,26 +9,28 @@ export type Claim = {
   area: number;
   status: 'Approved' | 'Pending' | 'Rejected';
   documentName?: string;
+  soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite';
+  waterAvailability: 'High' | 'Medium' | 'Low';
 };
 
 export const claims: Claim[] = [
-  { id: 'C001', holderName: 'Aarav Sharma', village: 'Ramgarh', district: 'Nagpur', state: 'Maharashtra', area: 5.2, status: 'Approved' },
-  { id: 'C002', holderName: 'Saanvi Patel', village: 'Krishnanagar', district: 'Patna', state: 'Bihar', area: 3.1, status: 'Pending' },
-  { id: 'C003', holderName: 'Vivaan Singh', village: 'Devipur', district: 'New Delhi', state: 'Delhi', area: 7.8, status: 'Approved' },
-  { id: 'C004', holderName: 'Ananya Gupta', village: 'Sitapur', district: 'Mumbai', state: 'Maharashtra', area: 4.5, status: 'Rejected' },
+  { id: 'C001', holderName: 'Aarav Sharma', village: 'Ramgarh', district: 'Nagpur', state: 'Maharashtra', area: 5.2, status: 'Approved', soilType: 'Clay', waterAvailability: 'Medium' },
+  { id: 'C002', holderName: 'Saanvi Patel', village: 'Krishnanagar', district: 'Patna', state: 'Bihar', area: 3.1, status: 'Pending', soilType: 'Alluvial', waterAvailability: 'High' },
+  { id: 'C003', holderName: 'Vivaan Singh', village: 'Devipur', district: 'New Delhi', state: 'Delhi', area: 7.8, status: 'Approved', soilType: 'Loamy', waterAvailability: 'Low' },
+  { id: 'C004', holderName: 'Ananya Gupta', village: 'Sitapur', district: 'Mumbai', state: 'Maharashtra', area: 4.5, status: 'Rejected', soilType: 'Laterite', waterAvailability: 'Medium' },
   // Madhya Pradesh
-  { id: 'C005', holderName: 'Rakesh Gond', village: 'Patan', district: 'Mandla', state: 'Madhya Pradesh', area: 6.1, status: 'Approved' },
-  { id: 'C006', holderName: 'Sunita Baiga', village: 'Dindori', district: 'Dindori', state: 'Madhya Pradesh', area: 4.9, status: 'Pending' },
-  { id: 'C007', holderName: 'Mohan Korku', village: 'Chicholi', district: 'Betul', state: 'Madhya Pradesh', area: 8.0, status: 'Approved' },
-  { id: 'C008', holderName: 'Gita Pardhan', village: 'Seoni', district: 'Seoni', state: 'Madhya Pradesh', area: 3.5, status: 'Rejected' },
+  { id: 'C005', holderName: 'Rakesh Gond', village: 'Patan', district: 'Mandla', state: 'Madhya Pradesh', area: 6.1, status: 'Approved', soilType: 'Clay', waterAvailability: 'Medium' },
+  { id: 'C006', holderName: 'Sunita Baiga', village: 'Dindori', district: 'Dindori', state: 'Madhya Pradesh', area: 4.9, status: 'Pending', soilType: 'Loamy', waterAvailability: 'Low' },
+  { id: 'C007', holderName: 'Mohan Korku', village: 'Chicholi', district: 'Betul', state: 'Madhya Pradesh', area: 8.0, status: 'Approved', soilType: 'Clay', waterAvailability: 'Medium' },
+  { id: 'C008', holderName: 'Gita Pardhan', village: 'Seoni', district: 'Seoni', state: 'Madhya Pradesh', area: 3.5, status: 'Rejected', soilType: 'Laterite', waterAvailability: 'Low' },
   // Telangana
-  { id: 'C009', holderName: 'Laxmi Koya', village: 'Utnoor', district: 'Adilabad', state: 'Telangana', area: 5.5, status: 'Approved' },
-  { id: 'C010', holderName: 'Ramulu Chenchu', village: 'Bhadrachalam', district: 'Khammam', state: 'Telangana', area: 7.2, status: 'Pending' },
-  { id: 'C011', holderName: 'Padma Naik', village: 'Jannaram', district: 'Mancherial', state: 'Telangana', area: 4.3, status: 'Approved' },
+  { id: 'C009', holderName: 'Laxmi Koya', village: 'Utnoor', district: 'Adilabad', state: 'Telangana', area: 5.5, status: 'Approved', soilType: 'Clay', waterAvailability: 'Medium' },
+  { id: 'C010', holderName: 'Ramulu Chenchu', village: 'Bhadrachalam', district: 'Khammam', state: 'Telangana', area: 7.2, status: 'Pending', soilType: 'Alluvial', waterAvailability: 'High' },
+  { id: 'C011', holderName: 'Padma Naik', village: 'Jannaram', district: 'Mancherial', state: 'Telangana', area: 4.3, status: 'Approved', soilType: 'Loamy', waterAvailability: 'Medium' },
   // Odisha
-  { id: 'C012', holderName: 'Jaga Saura', village: 'Gunupur', district: 'Rayagada', state: 'Odisha', area: 6.8, status: 'Pending' },
-  { id: 'C013', holderName: 'Sania Juang', village: 'Keonjhar', district: 'Keonjhar', state: 'Odisha', area: 5.1, status: 'Approved' },
-  { id: 'C014', holderName: 'Bhima Kondh', village: 'Baliguda', district: 'Kandhamal', state: 'Odisha', area: 9.2, status: 'Rejected' },
+  { id: 'C012', holderName: 'Jaga Saura', village: 'Gunupur', district: 'Rayagada', state: 'Odisha', area: 6.8, status: 'Pending', soilType: 'Laterite', waterAvailability: 'High' },
+  { id: 'C013', holderName: 'Sania Juang', village: 'Keonjhar', district: 'Keonjhar', state: 'Odisha', area: 5.1, status: 'Approved', soilType: 'Alluvial', waterAvailability: 'High' },
+  { id: 'C014', holderName: 'Bhima Kondh', village: 'Baliguda', district: 'Kandhamal', state: 'Odisha', area: 9.2, status: 'Rejected', soilType: 'Loamy', waterAvailability: 'Medium' },
 ];
 
 export const geoJsonData: FeatureCollection = {

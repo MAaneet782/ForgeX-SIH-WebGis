@@ -1,68 +1,12 @@
 import { useParams, Link } from "react-router-dom";
-import { claims, waterBodiesGeoJson } from "@/data/mockClaims";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { claims } from "@/data/mockClaims";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Leaf, Fish, Briefcase, Trees, Droplets, Recycle } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { CheckCircle, XCircle } from "lucide-react";
 import type { Claim } from "@/data/mockClaims";
-
-// --- AI Recommendation Engine (Enhanced Rule-Based Simulation) ---
-
-const isNearWater = waterBodiesGeoJson.features.length > 0; // Simple mock check
-
-const getCropRecommendations = (claim: Claim) => {
-  const recommendations = [];
-  switch (claim.state) {
-    case "Maharashtra":
-      recommendations.push({ name: "Cotton", reason: "Well-suited for the climate of Maharashtra." });
-      recommendations.push({ name: "Sugarcane", reason: "High-yield crop if water is available." });
-      break;
-    case "Madhya Pradesh":
-      recommendations.push({ name: "Soybean", reason: "A major crop in Madhya Pradesh." });
-      recommendations.push({ name: "Wheat", reason: "Suitable for the region's soil." });
-      break;
-    case "Telangana":
-      recommendations.push({ name: "Rice", reason: "Commonly grown in the region, especially with irrigation." });
-      recommendations.push({ name: "Turmeric", reason: "A profitable spice crop for Telangana's climate." });
-      break;
-    case "Odisha":
-        recommendations.push({ name: "Jute", reason: "Ideal for the alluvial soil and climate." });
-        recommendations.push({ name: "Pulses (e.g., Mung)", reason: "Important for crop rotation and soil health." });
-        break;
-    default:
-      recommendations.push({ name: "Millets", reason: "Drought-resistant and suitable for varied climates." });
-  }
-  if (claim.area < 2) {
-    recommendations.push({ name: "Vegetable Farming", reason: "High-value crops for small land holdings." });
-  }
-  return recommendations;
-};
-
-const getBusinessRecommendations = (claim: Claim) => {
-  const recommendations = [];
-  if (isNearWater) {
-    recommendations.push({ name: "Aquaculture/Fish Farming", reason: "Leverages proximity to water bodies.", icon: Fish });
-  }
-  recommendations.push({ name: "Beekeeping (Apiculture)", reason: "Low investment, high return from honey and wax.", icon: Briefcase });
-  recommendations.push({ name: "Non-Timber Forest Products", reason: "Sustainable harvesting of products like medicinal herbs or tendu leaves.", icon: Leaf });
-  
-  return recommendations;
-};
-
-const getResourceManagementRecommendations = (claim: Claim) => {
-    const recommendations = [];
-    if (claim.area > 7) {
-        recommendations.push({ name: "Agroforestry", reason: "Integrate trees and shrubs into crop systems to improve biodiversity and soil health.", icon: Trees });
-    }
-    if (isNearWater) {
-        recommendations.push({ name: "Rainwater Harvesting", reason: "Create systems to capture and store rainwater for irrigation during dry seasons.", icon: Droplets });
-    }
-    recommendations.push({ name: "Organic Farming Practices", reason: "Improve soil fertility and reduce costs by using natural compost and pest control methods.", icon: Recycle });
-    return recommendations;
-};
-
+import AiAnalysisPanel from "@/components/AiAnalysisPanel";
 
 // --- Components ---
 
@@ -89,72 +33,6 @@ const SchemeEligibility = ({ claim }: { claim: Claim }) => {
     </Card>
   );
 };
-
-const AiRecommendations = ({ claim }: { claim: Claim }) => {
-  const cropRecs = getCropRecommendations(claim);
-  const businessRecs = getBusinessRecommendations(claim);
-  const resourceRecs = getResourceManagementRecommendations(claim);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>AI-Powered Recommendations</CardTitle>
-        <CardDescription>Suggestions based on your claim's data and location.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <h4 className="font-semibold mb-3 text-lg">Livelihood Suggestions</h4>
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <h5 className="font-medium mb-2">Suggested Crops</h5>
-              <div className="space-y-3">
-                {cropRecs.map(rec => (
-                  <div key={rec.name} className="flex items-start space-x-3">
-                    <Leaf className="h-5 w-5 text-green-600 mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium">{rec.name}</p>
-                      <p className="text-sm text-muted-foreground">{rec.reason}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h5 className="font-medium mb-2">Potential Businesses</h5>
-              <div className="space-y-3">
-                {businessRecs.map(rec => (
-                  <div key={rec.name} className="flex items-start space-x-3">
-                    <rec.icon className="h-5 w-5 text-blue-600 mt-1 flex-shrink-0" />
-                    <div>
-                      <p className="font-medium">{rec.name}</p>
-                      <p className="text-sm text-muted-foreground">{rec.reason}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-        <Separator />
-        <div>
-          <h4 className="font-semibold mb-3 text-lg">Land & Resource Management</h4>
-          <div className="space-y-3">
-            {resourceRecs.map(rec => (
-              <div key={rec.name} className="flex items-start space-x-3">
-                <rec.icon className="h-5 w-5 text-emerald-600 mt-1 flex-shrink-0" />
-                <div>
-                  <p className="font-medium">{rec.name}</p>
-                  <p className="text-sm text-muted-foreground">{rec.reason}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 
 const ClaimDetail = () => {
   const { claimId } = useParams();
@@ -186,7 +64,7 @@ const ClaimDetail = () => {
         <Card>
           <CardHeader>
             <CardTitle>Claim Information</CardTitle>
-          </CardHeader>
+          </Header>
           <CardContent className="space-y-2">
             <div className="flex justify-between"><span>Claim ID:</span> <span className="font-mono">{claim.id}</span></div>
             <div className="flex justify-between"><span>Village:</span> <span>{claim.village}</span></div>
@@ -199,7 +77,7 @@ const ClaimDetail = () => {
         <SchemeEligibility claim={claim} />
       </div>
 
-      <AiRecommendations claim={claim} />
+      <AiAnalysisPanel claim={claim} />
     </div>
   );
 };
