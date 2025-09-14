@@ -1,9 +1,23 @@
+import { useState } from "react";
 import GisMap from "@/components/GisMap";
 import ClaimsData from "@/components/ClaimsData";
-import { claims, geoJsonData } from "@/data/mockClaims";
+import { claims as initialClaims, geoJsonData } from "@/data/mockClaims";
+import type { Claim } from "@/data/mockClaims";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import { showSuccess } from "@/utils/toast";
 
 const Index = () => {
+  const [claims, setClaims] = useState<Claim[]>(initialClaims);
+
+  const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'status'> & { status: 'Approved' | 'Pending' | 'Rejected' }) => {
+    const newClaim: Claim = {
+      id: `C${String(claims.length + 1).padStart(3, '0')}`,
+      ...newClaimData,
+    };
+    setClaims(prevClaims => [...prevClaims, newClaim]);
+    showSuccess("Successfully added new claim!");
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -24,7 +38,7 @@ const Index = () => {
           </section>
 
           <section>
-            <ClaimsData claims={claims} />
+            <ClaimsData claims={claims} onAddClaim={handleAddClaim} />
           </section>
         </main>
         <div className="pt-8">

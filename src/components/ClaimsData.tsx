@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -9,13 +10,24 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 
 interface ClaimsDataProps {
   claims: Claim[];
+  onAddClaim: (claim: Omit<Claim, 'id' | 'status'> & { status: 'Approved' | 'Pending' | 'Rejected' }) => void;
 }
 
-const ClaimsData = ({ claims }: ClaimsDataProps) => {
+const ClaimsData = ({ claims, onAddClaim }: ClaimsDataProps) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const getBadgeVariant = (status: Claim['status']) => {
     switch (status) {
       case 'Approved':
@@ -33,7 +45,17 @@ const ClaimsData = ({ claims }: ClaimsDataProps) => {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Claim Records</CardTitle>
-        <Button>Add New Claim</Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>Add New Claim</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Add New Claim</DialogTitle>
+            </DialogHeader>
+            <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent>
         <Table>
