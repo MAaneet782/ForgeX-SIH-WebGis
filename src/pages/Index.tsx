@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import ClaimsData from "@/components/ClaimsData";
 import DashboardStats from "@/components/DashboardStats";
 import DataVisualization from "@/components/DataVisualization";
@@ -17,11 +17,12 @@ import { showSuccess } from "@/utils/toast";
 const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("All");
 
   const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'district' | 'state'>) => {
     const newClaim: Claim = {
       id: `C${String(claims.length + 1).padStart(3, '0')}`,
-      // Mocking district and state for new claims for simplicity
       district: "Unknown",
       state: "Unknown",
       ...newClaimData,
@@ -29,6 +30,17 @@ const Index = () => {
     setClaims((prevClaims) => [...prevClaims, newClaim]);
     showSuccess("Successfully added new claim!");
   };
+
+  const filteredClaims = useMemo(() => {
+    return claims.filter((claim) => {
+      const matchesSearch =
+        claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        claim.village.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "All" || claim.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    });
+  }, [claims, searchTerm, statusFilter]);
 
   const selectedClaim = claims.find((c) => c.id === selectedClaimId) || null;
 
@@ -62,10 +74,14 @@ const Index = () => {
                 />
               </div>
               <ClaimsData
-                claims={claims}
+                claims={filteredClaims}
                 onAddClaim={handleAddClaim}
                 selectedClaimId={selectedClaimId}
                 onClaimSelect={setSelectedClaimId}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
               />
             </div>
             <div className="lg:col-span-1">

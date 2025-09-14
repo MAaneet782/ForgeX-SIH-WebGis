@@ -11,6 +11,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -27,9 +35,22 @@ interface ClaimsDataProps {
   onAddClaim: (claim: Omit<Claim, 'id' | 'district' | 'state'>) => void;
   selectedClaimId: string | null;
   onClaimSelect: (id: string | null) => void;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  statusFilter: string;
+  setStatusFilter: (status: string) => void;
 }
 
-const ClaimsData = ({ claims, onAddClaim, selectedClaimId, onClaimSelect }: ClaimsDataProps) => {
+const ClaimsData = ({ 
+  claims, 
+  onAddClaim, 
+  selectedClaimId, 
+  onClaimSelect,
+  searchTerm,
+  setSearchTerm,
+  statusFilter,
+  setStatusFilter
+}: ClaimsDataProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const rowRefs = useRef<Map<string, HTMLTableRowElement | null>>(new Map());
 
@@ -60,19 +81,40 @@ const ClaimsData = ({ claims, onAddClaim, selectedClaimId, onClaimSelect }: Clai
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Claim Records</CardTitle>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Add New Claim</Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New Claim</DialogTitle>
-            </DialogHeader>
-            <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsDialogOpen(false)} />
-          </DialogContent>
-        </Dialog>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <CardTitle>Claim Records</CardTitle>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Input
+              placeholder="Search by name or village..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full sm:w-48"
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All</SelectItem>
+                <SelectItem value="Approved">Approved</SelectItem>
+                <SelectItem value="Pending">Pending</SelectItem>
+                <SelectItem value="Rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>Add Claim</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Claim</DialogTitle>
+                </DialogHeader>
+                <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsDialogOpen(false)} />
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="max-h-[500px] overflow-y-auto">
