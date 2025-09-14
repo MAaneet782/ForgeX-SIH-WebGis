@@ -28,23 +28,27 @@ const formSchema = z.object({
   status: z.enum(["Approved", "Pending", "Rejected"]),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 type AddClaimFormProps = {
   onAddClaim: (claim: Omit<Claim, 'id'>) => void;
   onClose: () => void;
 };
 
+const defaultFormValues: FormValues = {
+  holderName: "",
+  village: "",
+  area: 0,
+  status: "Pending",
+};
+
 const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      holderName: "",
-      village: "",
-      area: 0,
-      status: "Pending",
-    },
+    defaultValues: defaultFormValues,
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: FormValues) {
     onAddClaim(values);
     onClose();
   }
