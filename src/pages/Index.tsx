@@ -8,6 +8,7 @@ import { showSuccess } from "@/utils/toast";
 
 const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
   const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'status'> & { status: 'Approved' | 'Pending' | 'Rejected' }) => {
     const newClaim: Claim = {
@@ -33,12 +34,17 @@ const Index = () => {
         <main className="space-y-8">
           <section>
             <div className="rounded-lg overflow-hidden border shadow-sm">
-              <GisMap data={geoJsonData} />
+              <GisMap data={geoJsonData} selectedClaimId={selectedClaimId} />
             </div>
           </section>
 
           <section>
-            <ClaimsData claims={claims} onAddClaim={handleAddClaim} />
+            <ClaimsData
+              claims={claims}
+              onAddClaim={handleAddClaim}
+              selectedClaimId={selectedClaimId}
+              onClaimSelect={setSelectedClaimId}
+            />
           </section>
         </main>
         <div className="pt-8">

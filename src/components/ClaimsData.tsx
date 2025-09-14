@@ -19,13 +19,16 @@ import {
 } from "@/components/ui/dialog";
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
+import { cn } from "@/lib/utils";
 
 interface ClaimsDataProps {
   claims: Claim[];
   onAddClaim: (claim: Omit<Claim, 'id' | 'status'> & { status: 'Approved' | 'Pending' | 'Rejected' }) => void;
+  selectedClaimId: string | null;
+  onClaimSelect: (id: string | null) => void;
 }
 
-const ClaimsData = ({ claims, onAddClaim }: ClaimsDataProps) => {
+const ClaimsData = ({ claims, onAddClaim, selectedClaimId, onClaimSelect }: ClaimsDataProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const getBadgeVariant = (status: Claim['status']) => {
@@ -70,7 +73,14 @@ const ClaimsData = ({ claims, onAddClaim }: ClaimsDataProps) => {
           </TableHeader>
           <TableBody>
             {claims.map((claim) => (
-              <TableRow key={claim.id}>
+              <TableRow
+                key={claim.id}
+                onClick={() => onClaimSelect(claim.id === selectedClaimId ? null : claim.id)}
+                className={cn(
+                  "cursor-pointer hover:bg-muted/50",
+                  { "bg-muted": selectedClaimId === claim.id }
+                )}
+              >
                 <TableCell className="font-medium">{claim.id}</TableCell>
                 <TableCell>{claim.holderName}</TableCell>
                 <TableCell>{claim.village}</TableCell>
