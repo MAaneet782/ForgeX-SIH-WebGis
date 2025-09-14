@@ -1,16 +1,16 @@
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
-import { GeoJsonObject, Feature, Geometry } from 'geojson';
+import { FeatureCollection, Feature, Geometry } from 'geojson';
 import { Layer, LatLngExpression, PathOptions } from 'leaflet';
 import { useEffect } from 'react';
 import L from 'leaflet';
 
 interface GisMapProps {
-  data: GeoJsonObject;
+  data: FeatureCollection;
   selectedClaimId: string | null;
   onClaimSelect: (id: string | null) => void;
 }
 
-const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | null, data: GeoJsonObject }) => {
+const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | null, data: FeatureCollection }) => {
   const map = useMap();
 
   useEffect(() => {

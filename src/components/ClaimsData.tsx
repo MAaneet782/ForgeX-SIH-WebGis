@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: Omit<Claim, 'id' | 'status'> & { status: 'Approved' | 'Pending' | 'Rejected' }) => void;
+  onAddClaim: (claim: Omit<Claim, 'id'>) => void;
   selectedClaimId: string | null;
   onClaimSelect: (id: string | null) => void;
 }

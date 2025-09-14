@@ -1,4 +1,4 @@
-import { GeoJsonObject } from 'geojson';
+import { FeatureCollection } from 'geojson';
 
 export type Claim = {
   id: string;
@@ -15,7 +15,7 @@ export const claims: Claim[] = [
   { id: 'C004', holderName: 'Ananya Gupta', village: 'Sitapur', area: 4.5, status: 'Rejected' },
 ];
 
-export const geoJsonData: GeoJsonObject = {
+export const geoJsonData: FeatureCollection = {
   type: "FeatureCollection",
   features: [
     {

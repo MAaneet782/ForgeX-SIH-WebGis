@@ -12,7 +12,7 @@ const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
-  const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'status'> & { status: 'Approved' | 'Pending' | 'Rejected' }) => {
+  const handleAddClaim = (newClaimData: Omit<Claim, 'id'>) => {
     const newClaim: Claim = {
       id: `C${String(claims.length + 1).padStart(3, '0')}`,
       ...newClaimData,

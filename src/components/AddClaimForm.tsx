@@ -29,7 +29,7 @@ const formSchema = z.object({
 });
 
 type AddClaimFormProps = {
-  onAddClaim: (claim: Omit<Claim, 'id' | 'status'> & { status: 'Approved' | 'Pending' | 'Rejected' }) => void;
+  onAddClaim: (claim: Omit<Claim, 'id'>) => void;
   onClose: () => void;
 };
 
