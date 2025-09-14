@@ -1,7 +1,7 @@
 import { useState } from "react";
 import ClaimsData from "@/components/ClaimsData";
 import DashboardStats from "@/components/DashboardStats";
-import DecisionSupportPanel from "@/components/DecisionSupportPanel";
+import DataVisualization from "@/components/DataVisualization";
 import GisMap from "@/components/GisMap";
 import {
   claims as initialClaims,
@@ -29,8 +29,6 @@ const Index = () => {
     showSuccess("Successfully added new claim!");
   };
 
-  const selectedClaim = claims.find((c) => c.id === selectedClaimId) || null;
-
   return (
     <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -49,27 +47,27 @@ const Index = () => {
             <DashboardStats claims={claims} />
           </section>
 
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <div className="rounded-lg overflow-hidden border shadow-sm">
-                <GisMap
-                  claimsData={geoJsonData}
-                  waterData={waterBodiesGeoJson}
-                  agriData={agriLandGeoJson}
-                  selectedClaimId={selectedClaimId}
-                  onClaimSelect={setSelectedClaimId}
-                />
-              </div>
-              <ClaimsData
-                claims={claims}
-                onAddClaim={handleAddClaim}
-                selectedClaimId={selectedClaimId}
-                onClaimSelect={setSelectedClaimId}
-              />
-            </div>
-            <div className="lg:col-span-1">
-              <DecisionSupportPanel claim={selectedClaim} />
-            </div>
+          <section className="rounded-lg overflow-hidden border shadow-sm">
+            <GisMap
+              claimsData={geoJsonData}
+              waterData={waterBodiesGeoJson}
+              agriData={agriLandGeoJson}
+              selectedClaimId={selectedClaimId}
+              onClaimSelect={setSelectedClaimId}
+            />
+          </section>
+
+          <section>
+            <DataVisualization claims={claims} />
+          </section>
+
+          <section>
+            <ClaimsData
+              claims={claims}
+              onAddClaim={handleAddClaim}
+              selectedClaimId={selectedClaimId}
+              onClaimSelect={setSelectedClaimId}
+            />
           </section>
         </main>
         <div className="pt-8">

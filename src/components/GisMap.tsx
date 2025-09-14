@@ -70,8 +70,8 @@ const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelec
     };
   };
 
-  const waterStyle: PathOptions = { color: 'blue', weight: 1, fillColor: 'blue', fillOpacity: 0.5 };
-  const agriStyle: PathOptions = { color: 'green', weight: 1, fillColor: 'green', fillOpacity: 0.4 };
+  const waterStyle: PathOptions = { color: '#0ea5e9', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.5 };
+  const agriStyle: PathOptions = { color: '#16a34a', weight: 2, fillColor: '#4ade80', fillOpacity: 0.4 };
 
   return (
     <MapContainer center={center} zoom={5} className="h-[500px] w-full rounded-md">
@@ -90,13 +90,6 @@ const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelec
                 attribution='&copy; Google'
             />
         </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Terrain View">
-            <TileLayer
-                url='https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png'
-                maxZoom={17}
-                attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-            />
-        </LayersControl.BaseLayer>
         
         <LayersControl.Overlay checked name="FRA Claims">
           <GeoJSON 
@@ -106,10 +99,10 @@ const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelec
             key={selectedClaimId || 'default'} // Force re-render on selection change
           />
         </LayersControl.Overlay>
-        <LayersControl.Overlay name="Water Bodies">
+        <LayersControl.Overlay checked name="Water Bodies">
           <GeoJSON data={waterData} style={waterStyle} />
         </LayersControl.Overlay>
-        <LayersControl.Overlay name="Agricultural Land">
+        <LayersControl.Overlay checked name="Agricultural Land">
           <GeoJSON data={agriData} style={agriStyle} />
         </LayersControl.Overlay>
       </LayersControl>

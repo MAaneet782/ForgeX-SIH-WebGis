@@ -1,0 +1,93 @@
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Claim } from "@/data/mockClaims";
+import { useMemo } from 'react';
+
+interface DataVisualizationProps {
+  claims: Claim[];
+}
+
+const COLORS = ['#22c55e', '#facc15', '#ef4444']; // Green, Yellow, Red for statuses
+const STATE_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
+
+const DataVisualization = ({ claims }: DataVisualizationProps) => {
+  const claimsByStatus = useMemo(() => {
+    const statusCounts = claims.reduce((acc, claim) => {
+      acc[claim.status] = (acc[claim.status] || 0) + 1;
+      return acc;
+    }, {} as Record<Claim['status'], number>);
+
+    return [
+      { name: 'Approved', count: statusCounts.Approved || 0 },
+      { name: 'Pending', count: statusCounts.Pending || 0 },
+      { name: 'Rejected', count: statusCounts.Rejected || 0 },
+    ];
+  }, [claims]);
+
+  const claimsByState = useMemo(() => {
+    const stateCounts = claims.reduce((acc, claim) => {
+      if (claim.state !== 'Unknown') {
+        acc[claim.state] = (acc[claim.state] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(stateCounts).map(([name, value]) => ({ name, value }));
+  }, [claims]);
+
+  return (
+    <section className="grid gap-8 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Claims by Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={claimsByStatus}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip wrapperClassName="rounded-lg border bg-background p-2 shadow-sm" />
+              <Legend />
+              <Bar dataKey="count" name="Number of Claims">
+                {claimsByStatus.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Claims by State</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={claimsByState}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {claimsByState.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={STATE_COLORS[index % STATE_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip wrapperClassName="rounded-lg border bg-background p-2 shadow-sm" />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </section>
+  );
+};
+
+export default DataVisualization;
