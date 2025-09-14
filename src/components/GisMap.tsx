@@ -39,11 +39,11 @@ const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelec
 
   const onEachFeature = (feature: Feature<Geometry, any>, layer: Layer) => {
     if (feature.properties && feature.properties.holderName) {
-      const popupContent = `
-        <b>Claim Holder:</b> ${feature.properties.holderName}<br/>
+      const tooltipContent = `
+        <b>Holder:</b> ${feature.properties.holderName}<br/>
         <b>Claim ID:</b> ${feature.properties.claimId}
       `;
-      layer.bindPopup(popupContent);
+      layer.bindTooltip(tooltipContent, { sticky: true });
 
       layer.on({
         click: () => {
@@ -56,17 +56,17 @@ const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelec
   const styleClaimFeature = (feature?: Feature): PathOptions => {
     if (feature?.properties?.claimId === selectedClaimId) {
       return {
-        color: '#fb923c', // Orange
+        color: '#d97706', // Amber 600
         weight: 3,
-        fillColor: '#fdba74', // Lighter Orange
+        fillColor: '#f59e0b', // Amber 500
         fillOpacity: 0.6,
       };
     }
     // Default style
     return {
-      color: '#3b82f6', // Blue
+      color: '#166534', // Green 800
       weight: 2,
-      fillOpacity: 0.2,
+      fillOpacity: 0.3,
     };
   };
 
