@@ -20,11 +20,9 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
 
-  const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'district' | 'state'>) => {
+  const handleAddClaim = (newClaimData: Omit<Claim, 'id'>) => {
     const newClaim: Claim = {
       id: `C${String(claims.length + 1).padStart(3, '0')}`,
-      district: "Unknown",
-      state: "Unknown",
       ...newClaimData,
     };
     setClaims((prevClaims) => [...prevClaims, newClaim]);

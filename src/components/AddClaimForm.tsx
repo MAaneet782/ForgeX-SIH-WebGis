@@ -23,6 +23,8 @@ import { DialogFooter } from "@/components/ui/dialog";
 const formSchema = z.object({
   holderName: z.string().min(2, { message: "Holder name must be at least 2 characters." }),
   village: z.string().min(2, { message: "Village name must be at least 2 characters." }),
+  district: z.string().min(2, { message: "District name must be at least 2 characters." }),
+  state: z.string().min(2, { message: "State name must be at least 2 characters." }),
   area: z.coerce.number().nonnegative({ message: "Area must be a non-negative number." }),
   status: z.enum(["Approved", "Pending", "Rejected"]),
   document: z.instanceof(FileList).optional(),
@@ -41,6 +43,8 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
     defaultValues: {
       holderName: "",
       village: "",
+      district: "",
+      state: "",
       area: 0,
       status: "Pending",
     },
@@ -77,6 +81,32 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
               <FormLabel>Village</FormLabel>
               <FormControl>
                 <Input placeholder="Enter village name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="district"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>District</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter district name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="state"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>State</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter state name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
