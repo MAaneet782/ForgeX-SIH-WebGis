@@ -14,6 +14,7 @@ import type { Claim } from "@/data/mockClaims";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { showSuccess } from "@/utils/toast";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { ForestBackground } from "@/components/ForestBackground";
 
 const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
@@ -54,62 +55,65 @@ const Index = () => {
   const selectedClaim = claims.find((c) => c.id === selectedClaimId) || null;
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-4 sm:p-6 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <header className="flex justify-between items-center pb-4 border-b">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
-              Forest Rights Act DSS
-            </h1>
-            <p className="mt-2 text-lg text-muted-foreground">
-              An interactive dashboard for visualizing claims, assets, and scheme
-              eligibility.
-            </p>
-          </div>
-          <ThemeToggle />
-        </header>
+    <>
+      <ForestBackground />
+      <div className="relative z-10 min-h-screen bg-transparent text-foreground p-4 sm:p-6 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <header className="flex justify-between items-center pb-4 border-b">
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-primary">
+                Forest Rights Act DSS
+              </h1>
+              <p className="mt-2 text-lg text-muted-foreground">
+                An interactive dashboard for visualizing claims, assets, and scheme
+                eligibility.
+              </p>
+            </div>
+            <ThemeToggle />
+          </header>
 
-        <main className="space-y-8">
-          <section>
-            <DashboardStats claims={claims} />
-          </section>
+          <main className="space-y-8">
+            <section>
+              <DashboardStats claims={claims} />
+            </section>
 
-          <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <div className="rounded-lg overflow-hidden border shadow-sm">
-                <GisMap
-                  claimsData={filteredGeoJsonData}
-                  waterData={waterBodiesGeoJson}
-                  agriData={agriLandGeoJson}
+            <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <div className="rounded-lg overflow-hidden border shadow-sm">
+                  <GisMap
+                    claimsData={filteredGeoJsonData}
+                    waterData={waterBodiesGeoJson}
+                    agriData={agriLandGeoJson}
+                    selectedClaimId={selectedClaimId}
+                    onClaimSelect={setSelectedClaimId}
+                  />
+                </div>
+                <ClaimsData
+                  claims={filteredClaims}
+                  onAddClaim={handleAddClaim}
                   selectedClaimId={selectedClaimId}
                   onClaimSelect={setSelectedClaimId}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  statusFilter={statusFilter}
+                  setStatusFilter={setStatusFilter}
                 />
               </div>
-              <ClaimsData
-                claims={filteredClaims}
-                onAddClaim={handleAddClaim}
-                selectedClaimId={selectedClaimId}
-                onClaimSelect={setSelectedClaimId}
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-              />
-            </div>
-            <div className="lg:col-span-1">
-              <DecisionSupportPanel claim={selectedClaim} />
-            </div>
-          </section>
+              <div className="lg:col-span-1">
+                <DecisionSupportPanel claim={selectedClaim} />
+              </div>
+            </section>
 
-          <section>
-            <DataVisualization claims={claims} />
-          </section>
-        </main>
-        <div className="pt-8">
-          <MadeWithDyad />
+            <section>
+              <DataVisualization claims={claims} />
+            </section>
+          </main>
+          <div className="pt-8">
+            <MadeWithDyad />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
