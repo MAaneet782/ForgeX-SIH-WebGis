@@ -24,7 +24,7 @@ import type { Claim } from "@/data/mockClaims";
 const formSchema = z.object({
   holderName: z.string().min(2, { message: "Holder name must be at least 2 characters." }),
   village: z.string().min(2, { message: "Village name must be at least 2 characters." }),
-  area: z.coerce.number().positive({ message: "Area must be a positive number." }),
+  area: z.coerce.number().nonnegative({ message: "Area must be a non-negative number." }),
   status: z.enum(["Approved", "Pending", "Rejected"]),
 });
 
