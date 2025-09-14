@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import { GeoJsonObject, Feature, Geometry } from 'geojson';
 import { Layer, LatLngExpression } from 'leaflet';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import L from 'leaflet';
 
 interface GisMapProps {
@@ -32,12 +32,6 @@ const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | nu
 };
 
 const GisMap = ({ data, selectedClaimId }: GisMapProps) => {
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
   const onEachFeature = (feature: Feature<Geometry, any>, layer: Layer) => {
@@ -49,10 +43,6 @@ const GisMap = ({ data, selectedClaimId }: GisMapProps) => {
       layer.bindPopup(popupContent);
     }
   };
-
-  if (!isMounted) {
-    return null;
-  }
 
   return (
     <MapContainer center={center} zoom={5} className="h-[500px] w-full rounded-md">

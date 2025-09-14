@@ -1,10 +1,12 @@
-import { useState } from "react";
-import GisMap from "@/components/GisMap";
+import { useState, lazy, Suspense } from "react";
 import ClaimsData from "@/components/ClaimsData";
 import { claims as initialClaims, geoJsonData } from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { showSuccess } from "@/utils/toast";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const GisMap = lazy(() => import("@/components/GisMap"));
 
 const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
@@ -34,7 +36,9 @@ const Index = () => {
         <main className="space-y-8">
           <section>
             <div className="rounded-lg overflow-hidden border shadow-sm">
-              <GisMap data={geoJsonData} selectedClaimId={selectedClaimId} />
+              <Suspense fallback={<Skeleton className="h-[500px] w-full" />}>
+                <GisMap data={geoJsonData} selectedClaimId={selectedClaimId} />
+              </Suspense>
             </div>
           </section>
 
