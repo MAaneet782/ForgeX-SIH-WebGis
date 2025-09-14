@@ -4,32 +4,32 @@
 
 @layer base {
   :root {
-    --background: 25 35% 95%; /* Light warm beige */
-    --foreground: 20 14% 11%; /* Dark brown */
+    --background: 130 30% 96%; /* Very light, cool green */
+    --foreground: 130 20% 15%; /* Dark, desaturated green */
 
-    --card: 25 35% 98%;
-    --card-foreground: 20 14% 11%;
+    --card: 130 30% 98%;
+    --card-foreground: 130 20% 15%;
 
-    --popover: 25 35% 98%;
-    --popover-foreground: 20 14% 11%;
+    --popover: 130 30% 98%;
+    --popover-foreground: 130 20% 15%;
 
     --primary: 140 40% 30%; /* Forest green */
     --primary-foreground: 140 20% 95%;
 
-    --secondary: 120 10% 80%; /* Sage green */
-    --secondary-foreground: 140 40% 20%;
+    --secondary: 130 20% 85%; /* Muted, grayish green */
+    --secondary-foreground: 130 20% 15%;
 
-    --muted: 40 15% 90%;
-    --muted-foreground: 20 10% 40%;
+    --muted: 130 25% 92%;
+    --muted-foreground: 130 20% 40%;
 
-    --accent: 30 60% 60%; /* Earthy orange */
-    --accent-foreground: 20 14% 11%;
+    --accent: 90 40% 55%; /* Brighter, lime-ish green */
+    --accent-foreground: 130 20% 15%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 15% 85%;
-    --input: 40 15% 85%;
+    --border: 130 20% 88%;
+    --input: 130 20% 88%;
     --ring: 140 40% 30%;
 
     --radius: 0.5rem;
@@ -38,32 +38,32 @@
   }
 
   .dark {
-    --background: 20 14% 8%; /* Dark brown/charcoal */
-    --foreground: 30 20% 92%; /* Light beige */
+    --background: 140 25% 10%; /* Very dark forest green */
+    --foreground: 140 20% 92%; /* Light, soft green text */
 
-    --card: 20 14% 10%;
-    --card-foreground: 30 20% 92%;
+    --card: 140 25% 12%;
+    --card-foreground: 140 20% 92%;
 
-    --popover: 20 14% 8%;
-    --popover-foreground: 30 20% 92%;
+    --popover: 140 25% 10%;
+    --popover-foreground: 140 20% 92%;
 
-    --primary: 130 40% 70%; /* Lighter forest green */
+    --primary: 130 40% 70%; /* Lighter green for primary actions */
     --primary-foreground: 130 40% 10%;
 
-    --secondary: 120 10% 20%; /* Dark sage green */
-    --secondary-foreground: 30 20% 92%;
+    --secondary: 140 20% 20%; /* Dark, muted green */
+    --secondary-foreground: 140 20% 92%;
 
-    --muted: 20 14% 15%;
-    --muted-foreground: 30 20% 65%;
+    --muted: 140 25% 15%;
+    --muted-foreground: 140 20% 65%;
 
-    --accent: 35 65% 65%; /* Muted earthy orange */
-    --accent-foreground: 20 14% 8%;
+    --accent: 100 50% 70%; /* Vibrant light green for accents */
+    --accent-foreground: 140 25% 10%;
 
     --destructive: 0 63% 31%;
-    --destructive-foreground: 30 20% 92%;
+    --destructive-foreground: 140 20% 92%;
 
-    --border: 20 14% 15%;
-    --input: 20 14% 15%;
+    --border: 140 20% 20%;
+    --input: 140 20% 20%;
     --ring: 130 40% 70%;
 
     --background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%232c3e2d' fill-opacity='0.4'%3E%3Cpath fill-rule='evenodd' d='M11 0l5 20-5-5-5 5L11 0zM21 10l5 20-5-5-5 5L21 10zM31 0l5 20-5-5-5 5L31 0zM41 10l5 20-5-5-5 5L41 10zM51 0l5 20-5-5-5 5L51 0zM61 10l5 20-5-5-5 5L61 10zM71 0l5 20-5-5-5 5L71 0zM0 11l20 5-5-5-5 5-5-5zM10 21l20 5-5-5-5 5-5-5zM0 31l20 5-5-5-5 5-5-5zM10 41l20 5-5-5-5 5-5-5zM0 51l20 5-5-5-5 5-5-5zM10 61l20 5-5-5-5 5-5-5zM0 71l20 5-5-5-5 5-5-5zM30 11l20 5-5-5-5 5-5-5zM40 21l20 5-5-5-5 5-5-5zM30 31l20 5-5-5-5 5-5-5zM40 41l20 5-5-5-5 5-5-5zM30 51l20 5-5-5-5 5-5-5zM40 61l20 5-5-5-5 5-5-5zM30 71l20 5-5-5-5 5-5-5zM60 11l20 5-5-5-5 5-5-5zM70 21l20 5-5-5-5 5-5-5zM60 31l20 5-5-5-5 5-5-5zM70 41l20 5-5-5-5 5-5-5zM60 51l20 5-5-5-5 5-5-5zM70 61l20 5-5-5-5 5-5-5zM60 71l20 5-5-5-5 5-5-5z'/%3E%3C/g%3E%3C/svg%3E");
