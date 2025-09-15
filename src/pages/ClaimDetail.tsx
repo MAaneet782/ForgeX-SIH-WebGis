@@ -1,14 +1,15 @@
 import { useParams, Link } from "react-router-dom";
-import { claims } from "@/data/mockClaims";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import AiAnalysisPanel from "@/components/AiAnalysisPanel";
 import SchemeEligibility from "@/components/SchemeEligibility";
+import { useClaims } from "@/context/ClaimsContext";
 
 const ClaimDetail = () => {
   const { claimId } = useParams();
+  const { claims } = useClaims();
   const claim = claims.find((c) => c.id === claimId);
 
   if (!claim) {

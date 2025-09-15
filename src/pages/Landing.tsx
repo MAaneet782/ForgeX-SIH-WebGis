@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useClaims } from "@/context/ClaimsContext";
+import { useMemo } from "react";
 
 const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
   <Card>
@@ -20,6 +22,27 @@ const StatCard = ({ icon: Icon, title, value, description }: { icon: React.Eleme
 );
 
 const LandingPage = () => {
+  const { claims } = useClaims();
+
+  const stats = useMemo(() => {
+    const totalRecords = claims.length;
+    const totalAreaAcres = claims.reduce((acc, claim) => acc + claim.area, 0);
+    const totalAreaSqKm = totalAreaAcres * 0.00404686;
+    const beneficiaries = claims.filter(c => c.status === 'Approved').length;
+
+    const formatNumber = (num: number) => {
+      if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(1)} M`;
+      if (num >= 1_000) return `${(num / 1_000).toFixed(1)} K`;
+      return num.toString();
+    };
+
+    return {
+      records: formatNumber(totalRecords),
+      area: totalAreaSqKm.toLocaleString('en-US', { maximumFractionDigits: 0 }),
+      beneficiaries: formatNumber(beneficiaries),
+    };
+  }, [claims]);
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
       {/* Sidebar */}
@@ -122,9 +145,9 @@ const LandingPage = () => {
           </div>
 
           <div className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard icon={FileDigit} title="Records Digitized" value="1.2 M" description="+20.1% from last month" />
-            <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" description="+180.1 from last month" />
-            <StatCard icon={Users} title="Beneficiaries Served" value="850 K" description="+12% from last month" />
+            <StatCard icon={FileDigit} title="Records Digitized" value={stats.records} description="Total claims in the system" />
+            <StatCard icon={Map} title="Area Mapped (SQ KM)" value={stats.area} description="Total area of all claims" />
+            <StatCard icon={Users} title="Beneficiaries Served" value={stats.beneficiaries} description="Total approved claims" />
           </div>
         </main>
       </div>

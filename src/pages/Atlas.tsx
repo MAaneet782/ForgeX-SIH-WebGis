@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef } from "react";
-import { claims as initialClaims, geoJsonData, waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
+import { geoJsonData, waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
 import ClaimsData from "@/components/ClaimsData";
 import GisMap from "@/components/GisMap";
@@ -15,9 +15,10 @@ import DecisionSupportPanel from "@/components/DecisionSupportPanel";
 import { Map, LayoutGrid, Table } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
+import { useClaims } from "@/context/ClaimsContext";
 
 const IndexPageContent = () => {
-  const [claims, setClaims] = useState<Claim[]>(initialClaims);
+  const { claims, addClaim } = useClaims();
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
@@ -39,13 +40,7 @@ const IndexPageContent = () => {
 
   const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'soilType' | 'waterAvailability'>) => {
     try {
-      const newClaim: Claim = {
-        ...newClaimData,
-        id: `C${String(claims.length + 1).padStart(3, '0')}`,
-        soilType: 'Loamy', 
-        waterAvailability: 'Medium',
-      };
-      setClaims(prevClaims => [...prevClaims, newClaim]);
+      addClaim(newClaimData);
       showSuccess("Claim added successfully!");
     } catch (error) {
       showError("Failed to add claim.");
@@ -148,10 +143,10 @@ const IndexPageContent = () => {
   );
 };
 
-const Index = () => (
+const Atlas = () => (
   <DashboardStateProvider>
     <IndexPageContent />
   </DashboardStateProvider>
 );
 
-export default Index;
+export default Atlas;
