@@ -123,7 +123,7 @@ const ClaimsData = ({
                 >
                   <TableCell className="font-medium">{claim.id}</TableCell>
                   <TableCell>
-                    <Link to={`/claim/${claim.id}`} className="hover:underline text-primary">
+                    <Link to={`/atlas/claim/${claim.id}`} className="hover:underline text-primary">
                       {claim.holderName}
                     </Link>
                   </TableCell>
