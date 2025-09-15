@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { claims } from "@/data/mockClaims";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabaseClient";
+import type { Claim } from "@/data/mockClaims";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, IndianRupee, Map, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Skeleton } from "@/components/ui/skeleton";
 
 const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
   <Card>
@@ -19,8 +22,41 @@ const StatCard = ({ icon: Icon, title, value, description }: { icon: React.Eleme
   </Card>
 );
 
+const fetchClaims = async (): Promise<Claim[]> => {
+  const { data, error } = await supabase.from('claims').select('*');
+  if (error) throw new Error(error.message);
+  return data.map(item => ({
+    id: item.claim_id,
+    holderName: item.holder_name,
+    village: item.village,
+    district: item.district,
+    state: item.state,
+    area: item.area,
+    status: item.status,
+    documentName: item.document_name,
+    soilType: item.soil_type,
+    waterAvailability: item.water_availability,
+    estimatedCropValue: item.estimated_crop_value,
+  }));
+};
+
 const Analytics = () => {
+  const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
+    queryKey: ['claims'],
+    queryFn: fetchClaims,
+  });
+
   const analyticsData = useMemo(() => {
+    if (!claims || claims.length === 0) {
+      return {
+        totalValue: 0,
+        totalArea: 0,
+        totalClaims: 0,
+        valueByDistrict: [],
+        valueBySoilType: [],
+      };
+    }
+
     const totalValue = claims.reduce((sum, claim) => sum + claim.estimatedCropValue, 0);
     const totalArea = claims.reduce((sum, claim) => sum + claim.area, 0);
 
@@ -41,9 +77,31 @@ const Analytics = () => {
       valueByDistrict: Object.entries(valueByDistrict).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
       valueBySoilType: Object.entries(valueBySoilType).map(([name, value]) => ({ name, value })),
     };
-  }, []);
+  }, [claims]);
 
   const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
+        <Skeleton className="h-10 w-48 mb-4" />
+        <Skeleton className="h-8 w-1/2" />
+        <div className="grid gap-4 md:grid-cols-3">
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
+        </div>
+        <div className="grid md:grid-cols-5 gap-6">
+          <Skeleton className="md:col-span-3 h-96 w-full" />
+          <Skeleton className="md:col-span-2 h-96 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return <div className="text-red-500 text-center p-8">Error loading analytics data.</div>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
