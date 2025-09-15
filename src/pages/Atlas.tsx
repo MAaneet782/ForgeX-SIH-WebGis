@@ -104,7 +104,7 @@ const IndexPageContent = () => {
   }, [claims, selectedClaimId]);
 
   const geoJsonData = useMemo((): FeatureCollection => {
-    const features = claims.map(claim => {
+    const features = claims.map((claim): Feature => {
       // We need to fetch the geometry for this part. For now, let's assume it's part of the claim object.
       // This will require modifying the fetch function and Supabase table.
       // Let's assume a placeholder geometry for now.
