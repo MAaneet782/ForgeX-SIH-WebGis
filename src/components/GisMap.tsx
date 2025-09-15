@@ -79,7 +79,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
   const agriStyle: PathOptions = { color: '#16a34a', weight: 2, fillColor: '#4ade80', fillOpacity: 0.4 };
 
   return (
-    <MapContainer center={center} zoom={5} className="h-[500px] w-full rounded-md">
+    <MapContainer center={center} zoom={5} className="h-full w-full">
       <LayersControl position="topright">
         <LayersControl.BaseLayer checked name="Street Map">
           <TileLayer

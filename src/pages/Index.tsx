@@ -8,28 +8,30 @@ import Header from "@/components/Header";
 import LayersPanel from "@/components/LayersPanel";
 import { DashboardStateProvider } from "@/context/DashboardStateContext";
 import { showError, showSuccess } from "@/utils/toast";
-import { Home, ChevronRight, SlidersHorizontal, Layers, Map, LayoutGrid, Table, List } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import DashboardStats from "@/components/DashboardStats";
+import DataVisualization from "@/components/DataVisualization";
+import DecisionSupportPanel from "@/components/DecisionSupportPanel";
 
 const IndexPageContent = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(initialClaims[0]?.id || null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [viewMode, setViewMode] = useState("map");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
 
   const filteredClaims = useMemo(() => {
     return claims
-      .filter((claim) =>
-        statusFilter === "All" ? true : claim.status === statusFilter
-      )
+      .filter((claim) => statusFilter === "All" ? true : claim.status === statusFilter)
       .filter((claim) =>
         claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         claim.village.toLowerCase().includes(searchTerm.toLowerCase())
       );
   }, [claims, searchTerm, statusFilter]);
+
+  const selectedClaim = useMemo(() => {
+    return claims.find(c => c.id === selectedClaimId) || null;
+  }, [claims, selectedClaimId]);
 
   const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'soilType' | 'waterAvailability'>) => {
     try {
@@ -72,64 +74,53 @@ const IndexPageContent = () => {
 
   return (
     <div className="grid grid-cols-[280px_1fr] grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
-      <div className="col-span-2">
-        <Header />
-      </div>
+      <div className="col-span-2"><Header /></div>
+      <div className="row-start-2"><Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} /></div>
       
-      <div className="row-start-2">
-        <Sidebar 
-          onToggleLayersPanel={() => setIsLayersPanelOpen(true)}
-          onGenerateReport={handleGenerateReport}
-        />
-      </div>
-
-      <main className="row-start-2 flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b bg-card">
-          <div className="flex items-center text-sm text-muted-foreground">
-            <Home className="h-4 w-4 mr-2" />
-            <span className="font-medium">Home</span>
-            <ChevronRight className="h-4 w-4 mx-1" />
-            <span>Atlas</span>
-            <ChevronRight className="h-4 w-4 mx-1" />
-            <span className="text-foreground font-semibold">WebGIS</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm"><SlidersHorizontal className="mr-2 h-4 w-4" /> Filters</Button>
-            <Button variant="outline" size="sm" onClick={() => setIsLayersPanelOpen(true)}><Layers className="mr-2 h-4 w-4" /> Layers</Button>
-            <Button variant="outline" size="sm"><Map className="mr-2 h-4 w-4" /> Basemap</Button>
-            <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
-              <ToggleGroupItem value="map" aria-label="Map view"><LayoutGrid className="h-4 w-4 mr-2" /> Map</ToggleGroupItem>
-              <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4 mr-2" /> Table</ToggleGroupItem>
-              <ToggleGroupItem value="tiles" aria-label="Tiles view"><List className="h-4 w-4 mr-2" /> Tiles</ToggleGroupItem>
-            </ToggleGroup>
-          </div>
-        </div>
-
-        <div className="flex-grow p-4 overflow-y-auto space-y-4">
-          <div className="h-[50vh] min-h-[400px]">
-            <GisMap 
-              claims={claims}
-              claimsData={geoJsonData} 
-              waterData={waterBodiesGeoJson}
-              agriData={agriLandGeoJson}
-              selectedClaimId={selectedClaimId} 
-              onClaimSelect={handleSelectClaim}
-            />
-          </div>
-          <div>
-            <ClaimsData 
-              claims={filteredClaims}
-              onAddClaim={handleAddClaim}
-              selectedClaimId={selectedClaimId}
-              onClaimSelect={handleSelectClaim}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-            />
-          </div>
-        </div>
+      <main className="row-start-2 overflow-hidden">
+        <ResizablePanelGroup direction="horizontal">
+          <ResizablePanel defaultSize={65} minSize={40}>
+            <div className="h-full overflow-y-auto p-6 space-y-8">
+              <header>
+                <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
+                <p className="text-muted-foreground">Analytics and Management for Forest Rights Act Claims</p>
+              </header>
+              <DashboardStats claims={claims} />
+              <DataVisualization claims={claims} />
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Claims Explorer</h2>
+                <div className="h-[50vh] min-h-[450px] rounded-lg overflow-hidden border">
+                  <GisMap 
+                    claims={claims}
+                    claimsData={geoJsonData} 
+                    waterData={waterBodiesGeoJson}
+                    agriData={agriLandGeoJson}
+                    selectedClaimId={selectedClaimId} 
+                    onClaimSelect={handleSelectClaim}
+                  />
+                </div>
+                <ClaimsData 
+                  claims={filteredClaims}
+                  onAddClaim={handleAddClaim}
+                  selectedClaimId={selectedClaimId}
+                  onClaimSelect={handleSelectClaim}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  statusFilter={statusFilter}
+                  setStatusFilter={setStatusFilter}
+                />
+              </div>
+            </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={35} minSize={25}>
+            <div className="h-full overflow-y-auto p-6">
+              <DecisionSupportPanel claim={selectedClaim} />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </main>
+      
       <LayersPanel isOpen={isLayersPanelOpen} onOpenChange={setIsLayersPanelOpen} />
     </div>
   );
