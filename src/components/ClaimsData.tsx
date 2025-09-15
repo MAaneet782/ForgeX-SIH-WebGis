@@ -28,21 +28,17 @@ import { useDashboardState } from "@/context/DashboardStateContext";
 interface ClaimsDataProps {
   claims: Claim[];
   onAddClaim: (claim: Omit<Claim, 'id'>) => void;
+  onGenerateReport: () => void;
   selectedClaimId: string | null;
   onClaimSelect: (id: string | null) => void;
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  statusFilter: string;
-  setStatusFilter: (status: string) => void;
 }
 
 const ClaimsData = ({ 
   claims, 
   onAddClaim, 
+  onGenerateReport,
   selectedClaimId, 
   onClaimSelect,
-  searchTerm,
-  setSearchTerm,
 }: ClaimsDataProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { isLowWaterClaim } = useDashboardState();
@@ -79,15 +75,6 @@ const ClaimsData = ({
         <div className="flex items-center justify-between">
           <CardTitle>Search Results: FRA Parcels</CardTitle>
           <div className="flex items-center gap-2">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Filter by holder, village or type"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8 w-full sm:w-64"
-              />
-            </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>Add Claim</Button>
@@ -99,7 +86,7 @@ const ClaimsData = ({
                 <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsDialogOpen(false)} />
               </DialogContent>
             </Dialog>
-            <Button variant="outline">
+            <Button variant="outline" onClick={onGenerateReport}>
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
