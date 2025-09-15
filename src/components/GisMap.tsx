@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from 'react-leaflet';
+import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl, LayerGroup } from 'react-leaflet';
 import { FeatureCollection, Feature, Geometry } from 'geojson';
 import { Layer, LatLngExpression, PathOptions } from 'leaflet';
 import { useEffect } from 'react';
@@ -95,13 +95,25 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           />
         </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Satellite View">
+        <LayersControl.BaseLayer name="Satellite">
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution="Tiles &copy; Esri"
+            maxZoom={18}
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Satellite + Labels">
+          <LayerGroup>
             <TileLayer
-                url='https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}'
-                maxZoom={20}
-                subdomains={['mt1','mt2','mt3']}
-                attribution='&copy; Google'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              attribution="Tiles &copy; Esri"
+              maxZoom={18}
             />
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={18}
+            />
+          </LayerGroup>
         </LayersControl.BaseLayer>
         
         {state.visibleLayers.claims && (
