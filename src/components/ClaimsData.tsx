@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -22,51 +21,43 @@ import {
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
-import { Download } from "lucide-react";
-import { useDashboardState } from "@/context/DashboardStateContext";
+import { Download, Search, Info } from "lucide-react";
+import { useState } from "react";
 
 interface ClaimsDataProps {
   claims: Claim[];
   onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => void;
   onGenerateReport: () => void;
-  selectedClaimId: string | null;
-  onClaimSelect: (id: string | null) => void;
+  onZoomToClaim: (id: string) => void;
 }
 
 const ClaimsData = ({ 
   claims, 
   onAddClaim, 
   onGenerateReport,
-  selectedClaimId, 
-  onClaimSelect,
+  onZoomToClaim,
 }: ClaimsDataProps) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState();
-  const rowRefs = useRef<Map<string, HTMLTableRowElement | null>>(new Map());
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (selectedClaimId) {
-      const node = rowRefs.current.get(selectedClaimId);
-      if (node) {
-        node.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-        });
-      }
-    }
-  }, [selectedClaimId]);
-
-  const getBadgeVariant = (status: Claim['status']) => {
+  const getRightType = (status: Claim['status']) => {
     switch (status) {
       case 'Approved':
-        return 'default';
+        return { text: 'IFR', className: 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300' };
       case 'Pending':
-        return 'secondary';
+        return { text: 'CR', className: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300' };
       case 'Rejected':
-        return 'destructive';
+        return { text: 'CFR', className: 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300' };
       default:
-        return 'outline';
+        return { text: 'N/A', className: 'bg-gray-100 text-gray-800' };
     }
+  };
+
+  const getMockDate = (claimId: string) => {
+    const d = new Date();
+    const dayOffset = parseInt(claimId.replace('C', ''), 10) % 28;
+    d.setDate(d.getDate() - dayOffset);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -103,45 +94,43 @@ const ClaimsData = ({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Claim ID</TableHead>
-                <TableHead>Holder Name</TableHead>
+                <TableHead>Parcel ID</TableHead>
+                <TableHead>Patta Holder</TableHead>
                 <TableHead>Village</TableHead>
-                <TableHead>District</TableHead>
-                <TableHead>State</TableHead>
-                <TableHead className="text-right">Area (acres)</TableHead>
-                <TableHead className="text-center">Status</TableHead>
+                <TableHead className="text-right">Area (ha)</TableHead>
+                <TableHead className="text-center">Type of Right</TableHead>
+                <TableHead>Updated</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {claims.map((claim) => (
-                <TableRow
-                  key={claim.id}
-                  ref={(el) => rowRefs.current.set(claim.id, el)}
-                  onClick={() => onClaimSelect(claim.id === selectedClaimId ? null : claim.id)}
-                  className={cn(
-                    "cursor-pointer transition-colors",
-                    { "bg-muted": selectedClaimId === claim.id },
-                    { "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/50 dark:hover:bg-yellow-900/60": isLowWaterClaim(claim) },
-                    { "outline outline-2 outline-blue-400": isPendingClaim(claim) },
-                    { "outline outline-2 outline-purple-400": isMgnregaEligible(claim) },
-                    { "hover:bg-muted/50": !isLowWaterClaim(claim) && !isPendingClaim(claim) && !isMgnregaEligible(claim) }
-                  )}
-                >
-                  <TableCell className="font-medium">{claim.id}</TableCell>
-                  <TableCell>
-                    <Link to={`/atlas/claim/${claim.id}`} className="hover:underline text-primary">
-                      {claim.holderName}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{claim.village}</TableCell>
-                  <TableCell>{claim.district}</TableCell>
-                  <TableCell>{claim.state}</TableCell>
-                  <TableCell className="text-right">{claim.area.toFixed(2)}</TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant={getBadgeVariant(claim.status)}>{claim.status}</Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {claims.map((claim) => {
+                const rightType = getRightType(claim.status);
+                return (
+                  <TableRow key={claim.id}>
+                    <TableCell className="font-medium">{claim.id}</TableCell>
+                    <TableCell>{claim.holderName}</TableCell>
+                    <TableCell>{claim.village}</TableCell>
+                    <TableCell className="text-right">{(claim.area * 0.404686).toFixed(2)}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="outline" className={cn("border-transparent font-semibold", rightType.className)}>{rightType.text}</Badge>
+                    </TableCell>
+                    <TableCell>{getMockDate(claim.id)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-2">
+                        <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onZoomToClaim(claim.id)}>
+                          <Search className="h-4 w-4" />
+                          <span className="sr-only">Zoom to parcel</span>
+                        </Button>
+                        <Button size="sm" className="bg-[#004d40] hover:bg-[#00382e]" onClick={() => navigate(`/atlas/claim/${claim.id}`)}>
+                          <Info className="mr-2 h-4 w-4" />
+                          Details
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </div>

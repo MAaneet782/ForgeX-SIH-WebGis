@@ -72,6 +72,11 @@ const IndexPageContent = () => {
     setSelectedClaimId(claimId);
   };
 
+  const handleZoomToClaim = (claimId: string) => {
+    setSelectedClaimId(claimId);
+    setViewMode('map');
+  };
+
   const handleGenerateReport = () => {
     const headers = ["id", "holderName", "village", "district", "state", "area", "status", "soilType", "waterAvailability", "estimatedCropValue"];
     const csvRows = [
@@ -138,8 +143,7 @@ const IndexPageContent = () => {
                     claims={filteredClaims}
                     onAddClaim={handleAddClaim}
                     onGenerateReport={handleGenerateReport}
-                    selectedClaimId={selectedClaimId}
-                    onClaimSelect={handleSelectClaim}
+                    onZoomToClaim={handleZoomToClaim}
                   />
                 </div>
               </div>
