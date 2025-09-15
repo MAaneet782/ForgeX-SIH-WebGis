@@ -36,23 +36,23 @@ export const claims: Claim[] = [
 export const geoJsonData: FeatureCollection = {
   type: "FeatureCollection",
   features: [
-    // --- Madhya Pradesh ---
-    { type: "Feature", properties: { claimId: 'C005', holderName: 'Rakesh Gond' }, geometry: { type: "Polygon", coordinates: [[[80.38, 22.6], [80.48, 22.6], [80.48, 22.7], [80.38, 22.7], [80.38, 22.6]]] } },
-    { type: "Feature", properties: { claimId: 'C006', holderName: 'Sunita Baiga' }, geometry: { type: "Polygon", coordinates: [[[81.08, 22.95], [81.18, 22.95], [81.18, 23.05], [81.08, 23.05], [81.08, 22.95]]] } },
-    { type: "Feature", properties: { claimId: 'C007', holderName: 'Mohan Korku' }, geometry: { type: "Polygon", coordinates: [[[77.9, 21.9], [78.0, 21.9], [78.0, 22.0], [77.9, 22.0], [77.9, 21.9]]] } },
-    { type: "Feature", properties: { claimId: 'C008', holderName: 'Gita Pardhan' }, geometry: { type: "Polygon", coordinates: [[[79.53, 22.08], [79.63, 22.08], [79.63, 22.18], [79.53, 22.18], [79.53, 22.08]]] } },
-    { type: "Feature", properties: { claimId: 'C015', holderName: 'Anil Bhil' }, geometry: { type: "Polygon", coordinates: [[[74.35, 22.3], [74.45, 22.3], [74.45, 22.4], [74.35, 22.4], [74.35, 22.3]]] } },
-    { type: "Feature", properties: { claimId: 'C016', holderName: 'Meera Kol' }, geometry: { type: "Polygon", coordinates: [[[81.36, 23.19], [81.46, 23.19], [81.46, 23.29], [81.36, 23.29], [81.36, 23.19]]] } },
-    { type: "Feature", properties: { claimId: 'C017', holderName: 'Suresh Sahariya' }, geometry: { type: "Polygon", coordinates: [[[77.21, 25.43], [77.31, 25.43], [77.31, 25.53], [77.21, 25.53], [77.21, 25.43]]] } },
+    // --- Madhya Pradesh (More organic shapes) ---
+    { type: "Feature", properties: { claimId: 'C005', holderName: 'Rakesh Gond' }, geometry: { type: "Polygon", coordinates: [[[80.38, 22.6], [80.45, 22.61], [80.48, 22.68], [80.42, 22.7], [80.38, 22.65], [80.38, 22.6]]] } },
+    { type: "Feature", properties: { claimId: 'C006', holderName: 'Sunita Baiga' }, geometry: { type: "Polygon", coordinates: [[[81.08, 22.95], [81.15, 22.95], [81.18, 23.02], [81.11, 23.05], [81.08, 22.99], [81.08, 22.95]]] } },
+    { type: "Feature", properties: { claimId: 'C007', holderName: 'Mohan Korku' }, geometry: { type: "Polygon", coordinates: [[[77.9, 21.9], [77.98, 21.91], [78.0, 21.97], [77.95, 22.0], [77.9, 21.98], [77.9, 21.9]]] } },
+    { type: "Feature", properties: { claimId: 'C008', holderName: 'Gita Pardhan' }, geometry: { type: "Polygon", coordinates: [[[79.53, 22.08], [79.6, 22.08], [79.63, 22.15], [79.57, 22.18], [79.53, 22.12], [79.53, 22.08]]] } },
+    { type: "Feature", properties: { claimId: 'C015', holderName: 'Anil Bhil' }, geometry: { type: "Polygon", coordinates: [[[74.35, 22.3], [74.42, 22.31], [74.45, 22.37], [74.38, 22.4], [74.35, 22.36], [74.35, 22.3]]] } },
+    { type: "Feature", properties: { claimId: 'C016', holderName: 'Meera Kol' }, geometry: { type: "Polygon", coordinates: [[[81.36, 23.19], [81.43, 23.19], [81.46, 23.26], [81.39, 23.29], [81.36, 23.23], [81.36, 23.19]]] } },
+    { type: "Feature", properties: { claimId: 'C017', holderName: 'Suresh Sahariya' }, geometry: { type: "Polygon", coordinates: [[[77.21, 25.43], [77.28, 25.44], [77.31, 25.5], [77.24, 25.53], [77.21, 25.47], [77.21, 25.43]]] } },
 
-    // --- Odisha ---
-    { type: "Feature", properties: { claimId: 'C012', holderName: 'Jaga Saura' }, geometry: { type: "Polygon", coordinates: [[[83.42, 19.17], [83.52, 19.17], [83.52, 19.27], [83.42, 19.27], [83.42, 19.17]]] } },
-    { type: "Feature", properties: { claimId: 'C013', holderName: 'Sania Juang' }, geometry: { type: "Polygon", coordinates: [[[85.59, 21.63], [85.69, 21.63], [85.69, 21.73], [85.59, 21.73], [85.59, 21.63]]] } },
-    { type: "Feature", properties: { claimId: 'C014', holderName: 'Bhima Kondh' }, geometry: { type: "Polygon", coordinates: [[[84.25, 20.5], [84.35, 20.5], [84.35, 20.6], [84.25, 20.6], [84.25, 20.5]]] } },
-    { type: "Feature", properties: { claimId: 'C018', holderName: 'Laxman Munda' }, geometry: { type: "Polygon", coordinates: [[[86.17, 21.84], [86.27, 21.84], [86.27, 21.94], [86.17, 21.94], [86.17, 21.84]]] } },
-    { type: "Feature", properties: { claimId: 'C019', holderName: 'Tulasi Paraja' }, geometry: { type: "Polygon", coordinates: [[[82.51, 18.35], [82.61, 18.35], [82.61, 18.45], [82.51, 18.45], [82.51, 18.35]]] } },
-    { type: "Feature", properties: { claimId: 'C020', holderName: 'Ramesh Bonda' }, geometry: { type: "Polygon", coordinates: [[[82.05, 18.18], [82.15, 18.18], [82.15, 18.28], [82.05, 18.28], [82.05, 18.18]]] } },
-    { type: "Feature", properties: { claimId: 'C021', holderName: 'Sarita Santal' }, geometry: { type: "Polygon", coordinates: [[[86.73, 21.72], [86.83, 21.72], [86.83, 21.82], [86.73, 21.82], [86.73, 21.72]]] } },
+    // --- Odisha (More organic shapes) ---
+    { type: "Feature", properties: { claimId: 'C012', holderName: 'Jaga Saura' }, geometry: { type: "Polygon", coordinates: [[[83.42, 19.17], [83.49, 19.18], [83.52, 19.24], [83.45, 19.27], [83.42, 19.21], [83.42, 19.17]]] } },
+    { type: "Feature", properties: { claimId: 'C013', holderName: 'Sania Juang' }, geometry: { type: "Polygon", coordinates: [[[85.59, 21.63], [85.66, 21.64], [85.69, 21.7], [85.62, 21.73], [85.59, 21.67], [85.59, 21.63]]] } },
+    { type: "Feature", properties: { claimId: 'C014', holderName: 'Bhima Kondh' }, geometry: { type: "Polygon", coordinates: [[[84.25, 20.5], [84.32, 20.51], [84.35, 20.57], [84.28, 20.6], [84.25, 20.54], [84.25, 20.5]]] } },
+    { type: "Feature", properties: { claimId: 'C018', holderName: 'Laxman Munda' }, geometry: { type: "Polygon", coordinates: [[[86.17, 21.84], [86.24, 21.85], [86.27, 21.91], [86.2, 21.94], [86.17, 21.88], [86.17, 21.84]]] } },
+    { type: "Feature", properties: { claimId: 'C019', holderName: 'Tulasi Paraja' }, geometry: { type: "Polygon", coordinates: [[[82.51, 18.35], [82.58, 18.36], [82.61, 18.42], [82.54, 18.45], [82.51, 18.39], [82.51, 18.35]]] } },
+    { type: "Feature", properties: { claimId: 'C020', holderName: 'Ramesh Bonda' }, geometry: { type: "Polygon", coordinates: [[[82.05, 18.18], [82.12, 18.19], [82.15, 18.25], [82.08, 18.28], [82.05, 18.22], [82.05, 18.18]]] } },
+    { type: "Feature", properties: { claimId: 'C021', holderName: 'Sarita Santal' }, geometry: { type: "Polygon", coordinates: [[[86.73, 21.72], [86.8, 21.73], [86.83, 21.79], [86.76, 21.82], [86.73, 21.76], [86.73, 21.72]]] } },
   ],
 };
 
@@ -66,7 +66,7 @@ export const waterBodiesGeoJson: FeatureCollection = {
           type: "Polygon",
           coordinates: [
             [
-              [77.95, 22.55], [78.05, 22.50], [78.00, 22.60], [77.90, 22.60], [77.95, 22.55]
+              [77.95, 22.55], [78.05, 22.50], [78.02, 22.58], [78.00, 22.60], [77.92, 22.61], [77.90, 22.60], [77.95, 22.55]
             ]
           ]
         }
@@ -77,7 +77,7 @@ export const waterBodiesGeoJson: FeatureCollection = {
         geometry: {
           type: "LineString",
           coordinates: [
-             [82.20, 19.05], [82.35, 19.10], [82.50, 19.08]
+             [82.20, 19.05], [82.25, 19.06], [82.35, 19.10], [82.40, 19.09], [82.50, 19.08], [82.55, 19.12]
           ]
         }
       }
@@ -94,7 +94,7 @@ export const agriLandGeoJson: FeatureCollection = {
               type: "Polygon",
               coordinates: [
                 [
-                  [85.60, 21.65], [85.62, 21.65], [85.62, 21.67], [85.60, 21.67], [85.60, 21.65]
+                  [85.60, 21.65], [85.62, 21.65], [85.63, 21.66], [85.62, 21.67], [85.60, 21.67], [85.60, 21.65]
                 ]
               ]
             }
@@ -106,7 +106,7 @@ export const agriLandGeoJson: FeatureCollection = {
               type: "Polygon",
               coordinates: [
                 [
-                  [79.55, 22.10], [79.58, 22.10], [79.58, 22.13], [79.55, 22.13], [79.55, 22.10]
+                  [79.55, 22.10], [79.58, 22.10], [79.59, 22.11], [79.58, 22.13], [79.55, 22.13], [79.55, 22.10]
                 ]
               ]
             }
