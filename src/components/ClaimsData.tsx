@@ -13,13 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -29,6 +22,7 @@ import {
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
+import { Search, Download } from "lucide-react";
 
 interface ClaimsDataProps {
   claims: Claim[];
@@ -48,8 +42,6 @@ const ClaimsData = ({
   onClaimSelect,
   searchTerm,
   setSearchTerm,
-  statusFilter,
-  setStatusFilter
 }: ClaimsDataProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const rowRefs = useRef<Map<string, HTMLTableRowElement | null>>(new Map());
@@ -82,26 +74,18 @@ const ClaimsData = ({
   return (
     <Card>
       <CardHeader>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <CardTitle>Claim Records</CardTitle>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Input
-              placeholder="Search by name or village..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full sm:w-48"
-            />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="All">All</SelectItem>
-                <SelectItem value="Approved">Approved</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+        <div className="flex items-center justify-between">
+          <CardTitle>Search Results: FRA Parcels</CardTitle>
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Filter by holder, village or type"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 w-full sm:w-64"
+              />
+            </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>Add Claim</Button>
@@ -113,6 +97,10 @@ const ClaimsData = ({
                 <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsDialogOpen(false)} />
               </DialogContent>
             </Dialog>
+            <Button variant="outline">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
           </div>
         </div>
       </CardHeader>

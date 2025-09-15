@@ -3,15 +3,19 @@ import { claims as initialClaims, geoJsonData, waterBodiesGeoJson, agriLandGeoJs
 import type { Claim } from "@/data/mockClaims";
 import ClaimsData from "@/components/ClaimsData";
 import GisMap from "@/components/GisMap";
-import AiAnalysisPanel from "@/components/AiAnalysisPanel";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 import { showError, showSuccess } from "@/utils/toast";
+import { Home, ChevronRight, SlidersHorizontal, Layers, Map, LayoutGrid, Table, List } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 const Index = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(initialClaims[0]?.id || null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [viewMode, setViewMode] = useState("map");
 
   const filteredClaims = useMemo(() => {
     return claims
@@ -24,16 +28,11 @@ const Index = () => {
       );
   }, [claims, searchTerm, statusFilter]);
 
-  const selectedClaim = useMemo(() => {
-    return claims.find(c => c.id === selectedClaimId) || null;
-  }, [claims, selectedClaimId]);
-
   const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'soilType' | 'waterAvailability'>) => {
     try {
       const newClaim: Claim = {
         ...newClaimData,
         id: `C${String(claims.length + 1).padStart(3, '0')}`,
-        // The form doesn't specify these, so we'll add defaults
         soilType: 'Loamy', 
         waterAvailability: 'Medium',
       };
@@ -50,56 +49,61 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen w-screen p-4 flex flex-col font-sans">
-      <header className="mb-4">
-        <h1 className="text-3xl font-bold text-primary">Forest Land Claims Dashboard</h1>
-        <p className="text-muted-foreground">Monitoring and Analysis for Madhya Pradesh & Odisha</p>
-      </header>
+    <div className="grid grid-cols-[280px_1fr] grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
+      <div className="col-span-2">
+        <Header />
+      </div>
+      
+      <div className="row-start-2">
+        <Sidebar />
+      </div>
 
-      <ResizablePanelGroup direction="horizontal" className="flex-grow rounded-lg border">
-        <ResizablePanel defaultSize={60}>
-          <ResizablePanelGroup direction="vertical">
-            <ResizablePanel defaultSize={65}>
-              <div className="h-full p-1">
-                <GisMap 
-                  claimsData={geoJsonData} 
-                  waterData={waterBodiesGeoJson}
-                  agriData={agriLandGeoJson}
-                  selectedClaimId={selectedClaimId} 
-                  onClaimSelect={handleSelectClaim}
-                />
-              </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={35}>
-              <div className="h-full p-1 overflow-y-auto">
-                <ClaimsData 
-                  claims={filteredClaims}
-                  onAddClaim={handleAddClaim}
-                  selectedClaimId={selectedClaimId}
-                  onClaimSelect={handleSelectClaim}
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  statusFilter={statusFilter}
-                  setStatusFilter={setStatusFilter}
-                />
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={40}>
-          <div className="h-full p-1 overflow-y-auto">
-            {selectedClaim ? (
-              <AiAnalysisPanel claim={selectedClaim} />
-            ) : (
-              <div className="flex h-full items-center justify-center rounded-lg border bg-card p-4 text-muted-foreground">
-                <p>Select a claim to see AI-powered analysis</p>
-              </div>
-            )}
+      <main className="row-start-2 flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-4 border-b bg-card">
+          <div className="flex items-center text-sm text-muted-foreground">
+            <Home className="h-4 w-4 mr-2" />
+            <span className="font-medium">Home</span>
+            <ChevronRight className="h-4 w-4 mx-1" />
+            <span>Atlas</span>
+            <ChevronRight className="h-4 w-4 mx-1" />
+            <span className="text-foreground font-semibold">WebGIS</span>
           </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm"><SlidersHorizontal className="mr-2 h-4 w-4" /> Filters</Button>
+            <Button variant="outline" size="sm"><Layers className="mr-2 h-4 w-4" /> Layers</Button>
+            <Button variant="outline" size="sm"><Map className="mr-2 h-4 w-4" /> Basemap</Button>
+            <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
+              <ToggleGroupItem value="map" aria-label="Map view"><LayoutGrid className="h-4 w-4 mr-2" /> Map</ToggleGroupItem>
+              <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4 mr-2" /> Table</ToggleGroupItem>
+              <ToggleGroupItem value="tiles" aria-label="Tiles view"><List className="h-4 w-4 mr-2" /> Tiles</ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+        </div>
+
+        <div className="flex-grow p-4 overflow-y-auto space-y-4">
+          <div className="h-[50vh] min-h-[400px]">
+            <GisMap 
+              claimsData={geoJsonData} 
+              waterData={waterBodiesGeoJson}
+              agriData={agriLandGeoJson}
+              selectedClaimId={selectedClaimId} 
+              onClaimSelect={handleSelectClaim}
+            />
+          </div>
+          <div>
+            <ClaimsData 
+              claims={filteredClaims}
+              onAddClaim={handleAddClaim}
+              selectedClaimId={selectedClaimId}
+              onClaimSelect={handleSelectClaim}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+            />
+          </div>
+        </div>
+      </main>
     </div>
   );
 };

@@ -4,69 +4,57 @@
 
 @layer base {
   :root {
-    --background: 130 30% 96%; /* Very light, cool green */
-    --foreground: 130 20% 15%; /* Dark, desaturated green */
+    --background: 240 5% 96%; /* Light gray */
+    --foreground: 240 4% 16%;
 
-    --card: 130 30% 98%;
-    --card-foreground: 130 20% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 4% 16%;
 
-    --popover: 130 30% 98%;
-    --popover-foreground: 130 20% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 4% 16%;
 
-    --primary: 140 40% 30%; /* Forest green */
-    --primary-foreground: 140 20% 95%;
+    --primary: 173 80% 30%; /* Teal */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 130 20% 85%; /* Muted, grayish green */
-    --secondary-foreground: 130 20% 15%;
+    --secondary: 240 5% 90%;
+    --secondary-foreground: 240 4% 16%;
 
-    --muted: 130 25% 92%;
-    --muted-foreground: 130 20% 40%;
+    --muted: 240 5% 90%;
+    --muted-foreground: 240 4% 46%;
 
-    --accent: 90 40% 55%; /* Brighter, lime-ish green */
-    --accent-foreground: 130 20% 15%;
+    --accent: 240 5% 90%;
+    --accent-foreground: 240 4% 16%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 130 20% 88%;
-    --input: 130 20% 88%;
-    --ring: 140 40% 30%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 173 80% 30%;
 
     --radius: 0.5rem;
-
-    --background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23d4e0d5' fill-opacity='0.4'%3E%3Cpath fill-rule='evenodd' d='M11 0l5 20-5-5-5 5L11 0zM21 10l5 20-5-5-5 5L21 10zM31 0l5 20-5-5-5 5L31 0zM41 10l5 20-5-5-5 5L41 10zM51 0l5 20-5-5-5 5L51 0zM61 10l5 20-5-5-5 5L61 10zM71 0l5 20-5-5-5 5L71 0zM0 11l20 5-5-5-5 5-5-5zM10 21l20 5-5-5-5 5-5-5zM0 31l20 5-5-5-5 5-5-5zM10 41l20 5-5-5-5 5-5-5zM0 51l20 5-5-5-5 5-5-5zM10 61l20 5-5-5-5 5-5-5zM0 71l20 5-5-5-5 5-5-5zM30 11l20 5-5-5-5 5-5-5zM40 21l20 5-5-5-5 5-5-5zM30 31l20 5-5-5-5 5-5-5zM40 41l20 5-5-5-5 5-5-5zM30 51l20 5-5-5-5 5-5-5zM40 61l20 5-5-5-5 5-5-5zM30 71l20 5-5-5-5 5-5-5zM60 11l20 5-5-5-5 5-5-5zM70 21l20 5-5-5-5 5-5-5zM60 31l20 5-5-5-5 5-5-5zM70 41l20 5-5-5-5 5-5-5zM60 51l20 5-5-5-5 5-5-5zM70 61l20 5-5-5-5 5-5-5zM60 71l20 5-5-5-5 5-5-5z'/%3E%3C/g%3E%3C/svg%3E");
   }
 
   .dark {
-    --background: 140 25% 10%; /* Very dark forest green */
-    --foreground: 140 20% 92%; /* Light, soft green text */
-
-    --card: 140 25% 12%;
-    --card-foreground: 140 20% 92%;
-
-    --popover: 140 25% 10%;
-    --popover-foreground: 140 20% 92%;
-
-    --primary: 130 40% 70%; /* Lighter green for primary actions */
-    --primary-foreground: 130 40% 10%;
-
-    --secondary: 140 20% 20%; /* Dark, muted green */
-    --secondary-foreground: 140 20% 92%;
-
-    --muted: 140 25% 15%;
-    --muted-foreground: 140 20% 65%;
-
-    --accent: 100 50% 70%; /* Vibrant light green for accents */
-    --accent-foreground: 140 25% 10%;
-
+    --background: 240 4% 10%;
+    --foreground: 0 0% 98%;
+    --card: 240 4% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 4% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 173 70% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 15%;
+    --muted-foreground: 240 4% 65%;
+    --accent: 240 4% 15%;
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 63% 31%;
-    --destructive-foreground: 140 20% 92%;
-
-    --border: 140 20% 20%;
-    --input: 140 20% 20%;
-    --ring: 130 40% 70%;
-
-    --background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%232c3e2d' fill-opacity='0.4'%3E%3Cpath fill-rule='evenodd' d='M11 0l5 20-5-5-5 5L11 0zM21 10l5 20-5-5-5 5L21 10zM31 0l5 20-5-5-5 5L31 0zM41 10l5 20-5-5-5 5L41 10zM51 0l5 20-5-5-5 5L51 0zM61 10l5 20-5-5-5 5L61 10zM71 0l5 20-5-5-5 5L71 0zM0 11l20 5-5-5-5 5-5-5zM10 21l20 5-5-5-5 5-5-5zM0 31l20 5-5-5-5 5-5-5zM10 41l20 5-5-5-5 5-5-5zM0 51l20 5-5-5-5 5-5-5zM10 61l20 5-5-5-5 5-5-5zM0 71l20 5-5-5-5 5-5-5zM30 11l20 5-5-5-5 5-5-5zM40 21l20 5-5-5-5 5-5-5zM30 31l20 5-5-5-5 5-5-5zM40 41l20 5-5-5-5 5-5-5zM30 51l20 5-5-5-5 5-5-5zM40 61l20 5-5-5-5 5-5-5zM30 71l20 5-5-5-5 5-5-5zM60 11l20 5-5-5-5 5-5-5zM70 21l20 5-5-5-5 5-5-5zM60 31l20 5-5-5-5 5-5-5zM70 41l20 5-5-5-5 5-5-5zM60 51l20 5-5-5-5 5-5-5zM70 61l20 5-5-5-5 5-5-5zM60 71l20 5-5-5-5 5-5-5z'/%3E%3C/g%3E%3C/svg%3E");
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 20%;
+    --input: 240 4% 20%;
+    --ring: 173 70% 40%;
   }
 }
 
@@ -74,10 +62,7 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
-    background-image: var(--background-image);
-    background-attachment: fixed;
   }
 }
