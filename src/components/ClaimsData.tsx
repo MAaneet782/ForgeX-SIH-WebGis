@@ -11,7 +11,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -22,12 +21,12 @@ import {
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
-import { Search, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { useDashboardState } from "@/context/DashboardStateContext";
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: Omit<Claim, 'id'>) => void;
+  onAddClaim: (claim: Omit<Claim, 'id' | 'soilType' | 'waterAvailability'>) => void;
   onGenerateReport: () => void;
   selectedClaimId: string | null;
   onClaimSelect: (id: string | null) => void;
@@ -41,7 +40,7 @@ const ClaimsData = ({
   onClaimSelect,
 }: ClaimsDataProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const { isLowWaterClaim } = useDashboardState();
+  const { isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState();
   const rowRefs = useRef<Map<string, HTMLTableRowElement | null>>(new Map());
 
   useEffect(() => {
@@ -117,7 +116,9 @@ const ClaimsData = ({
                     "cursor-pointer transition-colors",
                     { "bg-muted": selectedClaimId === claim.id },
                     { "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/50 dark:hover:bg-yellow-900/60": isLowWaterClaim(claim) },
-                    { "hover:bg-muted/50": !isLowWaterClaim(claim) }
+                    { "outline outline-2 outline-blue-400": isPendingClaim(claim) },
+                    { "outline outline-2 outline-purple-400": isMgnregaEligible(claim) },
+                    { "hover:bg-muted/50": !isLowWaterClaim(claim) && !isPendingClaim(claim) && !isMgnregaEligible(claim) }
                   )}
                 >
                   <TableCell className="font-medium">{claim.id}</TableCell>

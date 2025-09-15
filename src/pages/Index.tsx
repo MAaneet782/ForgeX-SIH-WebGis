@@ -12,8 +12,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import DashboardStats from "@/components/DashboardStats";
 import DataVisualization from "@/components/DataVisualization";
 import DecisionSupportPanel from "@/components/DecisionSupportPanel";
-import { Home, ChevronRight, SlidersHorizontal, Layers, Map, LayoutGrid, Table, List } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Map, LayoutGrid, Table } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
@@ -90,7 +89,7 @@ const IndexPageContent = () => {
   return (
     <div className="grid grid-cols-[280px_1fr] grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
       <div className="col-span-2 z-10"><Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFindMyParcel={handleFindMyParcel} onOpenAnalytics={handleOpenAnalytics} /></div>
-      <div className="row-start-2"><Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} /></div>
+      <div className="row-start-2"><Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} /></div>
       
       <main className="row-start-2 overflow-hidden">
         <ResizablePanelGroup direction="horizontal">

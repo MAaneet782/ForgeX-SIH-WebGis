@@ -38,7 +38,7 @@ const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | nu
 };
 
 const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onClaimSelect }: GisMapProps) => {
-  const { state, isLowWaterClaim } = useDashboardState();
+  const { state, isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState();
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
   const onEachFeature = (feature: Feature<Geometry, any>, layer: Layer) => {
@@ -61,18 +61,26 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
     const claimId = feature?.properties?.claimId;
     const claim = claims.find(c => c.id === claimId);
     
-    // Highlight for low water index filter
-    if (claim && isLowWaterClaim(claim)) {
-      return { color: '#f59e0b', weight: 3, fillColor: '#fcd34d', fillOpacity: 0.7 };
+    let style: PathOptions = { color: '#166534', weight: 2, fillOpacity: 0.3 }; // Default
+
+    if (claim) {
+      if (isMgnregaEligible(claim)) {
+        style = { ...style, color: '#8b5cf6', fillColor: '#c4b5fd', fillOpacity: 0.7 };
+      }
+      if (isPendingClaim(claim)) {
+        style = { ...style, color: '#3b82f6', fillColor: '#93c5fd', fillOpacity: 0.7 };
+      }
+      if (isLowWaterClaim(claim)) {
+        style = { ...style, color: '#f59e0b', fillColor: '#fcd34d', fillOpacity: 0.7 };
+      }
     }
 
-    // Highlight for selection
+    // Highlight for selection (overrides other styles)
     if (claimId === selectedClaimId) {
-      return { color: '#d97706', weight: 3, fillColor: '#f59e0b', fillOpacity: 0.6 };
+      style = { color: '#d97706', weight: 3, fillColor: '#f59e0b', fillOpacity: 0.6 };
     }
     
-    // Default style
-    return { color: '#166534', weight: 2, fillOpacity: 0.3 };
+    return style;
   };
 
   const waterStyle: PathOptions = { color: '#0ea5e9', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.5 };
@@ -102,7 +110,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
               data={claimsData} 
               onEachFeature={onEachFeature} 
               style={styleClaimFeature}
-              key={selectedClaimId + state.activeFilter || 'default'} // Force re-render on selection/filter change
+              key={selectedClaimId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
             />
           </LayersControl.Overlay>
         )}

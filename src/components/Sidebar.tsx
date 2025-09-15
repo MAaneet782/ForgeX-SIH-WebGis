@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Layers, Map, Filter, Compass, DollarSign, Droplets, BarChart, FileText, Users, Leaf } from "lucide-react";
+import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf } from "lucide-react";
 import { useDashboardState } from "@/context/DashboardStateContext";
 import { showInfo } from "@/utils/toast";
 import { cn } from "@/lib/utils";
@@ -10,10 +10,10 @@ import SchemeInfoModal from "./SchemeInfoModal";
 interface SidebarProps {
   onToggleLayersPanel: () => void;
   onGenerateReport: () => void;
+  onFindMyParcel: () => void;
 }
 
-const Sidebar = ({ onToggleLayersPanel, onGenerateReport }: SidebarProps) => {
-  const { state, dispatch } = useDashboardState();
+const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: SidebarProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: '', content: <></> });
 
@@ -77,17 +77,15 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport }: SidebarProps) => {
     "MAP TOOLS": [
       { icon: Layers, label: "Layers Panel", action: onToggleLayersPanel },
       { icon: Map, label: "Basemap Switcher", action: () => showInfo("Use the control on the map to switch basemaps.") },
-      { icon: Filter, label: "Saved Filters", action: () => showInfo("Feature coming soon!") },
+      { icon: Filter, label: "Advanced Filters", action: () => showInfo("Use the 'Apply Filters' button in the header.") },
     ],
     "PATTA HOLDER": [
-      { icon: Compass, label: "Find My Parcel", action: () => showInfo("Feature coming soon!") },
+      { icon: Compass, label: "Find My Parcel", action: onFindMyParcel },
       { icon: DollarSign, label: "Schemes", action: () => openModal("Key Government Schemes", schemesContent) },
       { icon: Leaf, label: "Agriculture", action: () => openModal("Agriculture Schemes", agricultureContent) },
       { icon: Droplets, label: "Water Resources", action: () => openModal("Water Resource Schemes", waterResourcesContent) },
     ],
     "OFFICIALS": [
-      { icon: BarChart, label: "Low Water Index", action: () => dispatch({ type: 'TOGGLE_LOW_WATER_FILTER' }), active: state.activeFilter === 'low-water-index' },
-      { icon: Users, label: "MGNREGA: Eligible not Availing", action: () => showInfo("Feature coming soon!") },
       { icon: FileText, label: "Generate Reports", action: onGenerateReport },
     ],
   };
@@ -118,10 +116,7 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport }: SidebarProps) => {
                     <Button 
                       variant="ghost" 
                       onClick={item.action}
-                      className={cn(
-                        "w-full justify-start text-white hover:bg-white/10 hover:text-white",
-                        item.active && "bg-white/20"
-                      )}
+                      className="w-full justify-start text-white hover:bg-white/10 hover:text-white"
                     >
                       <item.icon className="mr-3 h-5 w-5" />
                       {item.label}

@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Search, MapPin, BarChart2, Bell, Mail, ChevronDown, User, Settings, LogOut } from "lucide-react";
+import { Search, MapPin, BarChart2, Bell, Mail, ChevronDown, User, Settings, LogOut, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "./theme-toggle";
 import { showInfo } from "@/utils/toast";
+import FiltersPanel from "./FiltersPanel";
 
 interface HeaderProps {
   searchTerm: string;
@@ -33,9 +34,16 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel, onOpenAnalytics }: 
         <Button variant="outline" onClick={onFindMyParcel}>
           <MapPin className="mr-2 h-4 w-4" /> My Parcel
         </Button>
-        <Button variant="outline" onClick={() => showInfo("Advanced filters coming soon!")}>
-          Apply Filters
-        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline">
+              <Filter className="mr-2 h-4 w-4" /> Apply Filters
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <FiltersPanel />
+          </PopoverContent>
+        </Popover>
         <Button variant="outline" onClick={onOpenAnalytics}>
           <BarChart2 className="mr-2 h-4 w-4" /> Open Analytics
         </Button>
