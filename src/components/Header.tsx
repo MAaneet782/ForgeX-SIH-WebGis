@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,10 +14,9 @@ interface HeaderProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   onFindMyParcel: () => void;
-  onOpenAnalytics: () => void;
 }
 
-const Header = ({ searchTerm, setSearchTerm, onFindMyParcel, onOpenAnalytics }: HeaderProps) => {
+const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
   return (
     <header className="bg-card border-b p-2 flex items-center justify-between gap-4">
       <div className="flex items-center gap-4 flex-grow">
@@ -44,8 +44,10 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel, onOpenAnalytics }: 
             <FiltersPanel />
           </PopoverContent>
         </Popover>
-        <Button variant="outline" onClick={onOpenAnalytics}>
-          <BarChart2 className="mr-2 h-4 w-4" /> Open Analytics
+        <Button variant="outline" asChild>
+          <Link to="/atlas/analytics">
+            <BarChart2 className="mr-2 h-4 w-4" /> Open Analytics
+          </Link>
         </Button>
         <ThemeToggle />
         

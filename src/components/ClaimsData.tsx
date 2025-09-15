@@ -12,12 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,7 @@ import { useDashboardState } from "@/context/DashboardStateContext";
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: Omit<Claim, 'id' | 'soilType' | 'waterAvailability'>) => void;
+  onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => void;
   onGenerateReport: () => void;
   selectedClaimId: string | null;
   onClaimSelect: (id: string | null) => void;
@@ -39,7 +40,7 @@ const ClaimsData = ({
   selectedClaimId, 
   onClaimSelect,
 }: ClaimsDataProps) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState();
   const rowRefs = useRef<Map<string, HTMLTableRowElement | null>>(new Map());
 
@@ -74,17 +75,22 @@ const ClaimsData = ({
         <div className="flex items-center justify-between">
           <CardTitle>Search Results: FRA Parcels</CardTitle>
           <div className="flex items-center gap-2">
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
+            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+              <SheetTrigger asChild>
                 <Button>Add Claim</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Claim</DialogTitle>
-                </DialogHeader>
-                <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsDialogOpen(false)} />
-              </DialogContent>
-            </Dialog>
+              </SheetTrigger>
+              <SheetContent className="sm:max-w-2xl w-full">
+                <SheetHeader>
+                  <SheetTitle>Add New Claim</SheetTitle>
+                  <SheetDescription>
+                    Enter the details for the new land claim. Ensure GeoJSON coordinates are accurate.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="py-4">
+                  <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsSheetOpen(false)} />
+                </div>
+              </SheetContent>
+            </Sheet>
             <Button variant="outline" onClick={onGenerateReport}>
               <Download className="mr-2 h-4 w-4" />
               Export

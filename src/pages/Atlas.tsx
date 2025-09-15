@@ -1,6 +1,7 @@
-import { useState, useMemo, useRef } from "react";
-import { claims as initialClaims, geoJsonData, waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
+import { useState, useMemo } from "react";
+import { claims as initialClaims, geoJsonData as initialGeoJsonData, waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
+import type { Feature, FeatureCollection } from "geojson";
 import ClaimsData from "@/components/ClaimsData";
 import GisMap from "@/components/GisMap";
 import Sidebar from "@/components/Sidebar";
@@ -18,11 +19,11 @@ import { cn } from "@/lib/utils";
 
 const IndexPageContent = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
+  const [geoJsonData, setGeoJsonData] = useState<FeatureCollection>(initialGeoJsonData);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
   const [viewMode, setViewMode] = useState("default"); // default, table, map
-  const analyticsRef = useRef<HTMLDivElement>(null);
 
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) =>
@@ -37,18 +38,32 @@ const IndexPageContent = () => {
     return claims.find(c => c.id === selectedClaimId) || null;
   }, [claims, selectedClaimId]);
 
-  const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'soilType' | 'waterAvailability'>) => {
+  const handleAddClaim = (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => {
     try {
+      const newId = `C${String(claims.length + 1).padStart(3, '0')}`;
+      const { coordinates, ...rest } = newClaimData;
+      
       const newClaim: Claim = {
-        ...newClaimData,
-        id: `C${String(claims.length + 1).padStart(3, '0')}`,
-        soilType: 'Loamy', 
-        waterAvailability: 'Medium',
+        ...rest,
+        id: newId,
+        estimatedCropValue: Math.floor(Math.random() * (25000 - 5000 + 1)) + 5000,
       };
+      
+      const newFeature: Feature = {
+        type: "Feature",
+        properties: { claimId: newId, holderName: newClaim.holderName },
+        geometry: JSON.parse(coordinates),
+      };
+
       setClaims(prevClaims => [...prevClaims, newClaim]);
-      showSuccess("Claim added successfully!");
+      setGeoJsonData(prevGeoJson => ({
+        ...prevGeoJson,
+        features: [...prevGeoJson.features, newFeature],
+      }));
+
+      showSuccess("Claim added successfully and updated on map!");
     } catch (error) {
-      showError("Failed to add claim.");
+      showError("Failed to add claim. Please check the GeoJSON coordinates format.");
       console.error(error);
     }
   };
@@ -58,7 +73,7 @@ const IndexPageContent = () => {
   };
 
   const handleGenerateReport = () => {
-    const headers = ["id", "holderName", "village", "district", "state", "area", "status", "soilType", "waterAvailability"];
+    const headers = ["id", "holderName", "village", "district", "state", "area", "status", "soilType", "waterAvailability", "estimatedCropValue"];
     const csvRows = [
       headers.join(','),
       ...filteredClaims.map(claim => headers.map(header => `"${claim[header as keyof Claim]}"`).join(','))
@@ -82,13 +97,9 @@ const IndexPageContent = () => {
     showInfo(`Locating parcel for Suresh Sahariya (ID: ${parcelId})`);
   };
 
-  const handleOpenAnalytics = () => {
-    analyticsRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <div className="grid grid-cols-[280px_1fr] grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
-      <div className="col-span-2 z-10"><Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFindMyParcel={handleFindMyParcel} onOpenAnalytics={handleOpenAnalytics} /></div>
+      <div className="col-span-2 z-10"><Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFindMyParcel={handleFindMyParcel} /></div>
       <div className="row-start-2"><Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} /></div>
       
       <main className="row-start-2 overflow-hidden">
@@ -107,7 +118,7 @@ const IndexPageContent = () => {
                 </ToggleGroup>
               </header>
               
-              <div ref={analyticsRef}><DashboardStats claims={claims} /></div>
+              <DashboardStats claims={claims} />
               <DataVisualization claims={claims} />
               
               <div className="space-y-4">

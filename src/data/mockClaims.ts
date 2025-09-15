@@ -11,26 +11,27 @@ export type Claim = {
   documentName?: string;
   soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite';
   waterAvailability: 'High' | 'Medium' | 'Low';
+  estimatedCropValue: number; // in INR
 };
 
 export const claims: Claim[] = [
   // --- Madhya Pradesh ---
-  { id: 'C005', holderName: 'Rakesh Gond', village: 'Patan', district: 'Mandla', state: 'Madhya Pradesh', area: 6.1, status: 'Approved', soilType: 'Clay', waterAvailability: 'Medium' },
-  { id: 'C006', holderName: 'Sunita Baiga', village: 'Bajag', district: 'Dindori', state: 'Madhya Pradesh', area: 4.9, status: 'Pending', soilType: 'Loamy', waterAvailability: 'Low' },
-  { id: 'C007', holderName: 'Mohan Korku', village: 'Chicholi', district: 'Betul', state: 'Madhya Pradesh', area: 8.0, status: 'Approved', soilType: 'Clay', waterAvailability: 'Medium' },
-  { id: 'C008', holderName: 'Gita Pardhan', village: 'Kurai', district: 'Seoni', state: 'Madhya Pradesh', area: 3.5, status: 'Rejected', soilType: 'Laterite', waterAvailability: 'Low' },
-  { id: 'C015', holderName: 'Anil Bhil', village: 'Katthiwada', district: 'Alirajpur', state: 'Madhya Pradesh', area: 5.8, status: 'Approved', soilType: 'Loamy', waterAvailability: 'Medium' },
-  { id: 'C016', holderName: 'Meera Kol', village: 'Jaisinghnagar', district: 'Shahdol', state: 'Madhya Pradesh', area: 4.2, status: 'Pending', soilType: 'Clay', waterAvailability: 'High' },
-  { id: 'C017', holderName: 'Suresh Sahariya', village: 'Pohri', district: 'Shivpuri', state: 'Madhya Pradesh', area: 7.5, status: 'Approved', soilType: 'Alluvial', waterAvailability: 'Medium' },
+  { id: 'C005', holderName: 'Rakesh Gond', village: 'Patan', district: 'Mandla', state: 'Madhya Pradesh', area: 6.1, status: 'Approved', soilType: 'Clay', waterAvailability: 'Medium', estimatedCropValue: 18500 },
+  { id: 'C006', holderName: 'Sunita Baiga', village: 'Bajag', district: 'Dindori', state: 'Madhya Pradesh', area: 4.9, status: 'Pending', soilType: 'Loamy', waterAvailability: 'Low', estimatedCropValue: 12000 },
+  { id: 'C007', holderName: 'Mohan Korku', village: 'Chicholi', district: 'Betul', state: 'Madhya Pradesh', area: 8.0, status: 'Approved', soilType: 'Clay', waterAvailability: 'Medium', estimatedCropValue: 22000 },
+  { id: 'C008', holderName: 'Gita Pardhan', village: 'Kurai', district: 'Seoni', state: 'Madhya Pradesh', area: 3.5, status: 'Rejected', soilType: 'Laterite', waterAvailability: 'Low', estimatedCropValue: 8000 },
+  { id: 'C015', holderName: 'Anil Bhil', village: 'Katthiwada', district: 'Alirajpur', state: 'Madhya Pradesh', area: 5.8, status: 'Approved', soilType: 'Loamy', waterAvailability: 'Medium', estimatedCropValue: 16000 },
+  { id: 'C016', holderName: 'Meera Kol', village: 'Jaisinghnagar', district: 'Shahdol', state: 'Madhya Pradesh', area: 4.2, status: 'Pending', soilType: 'Clay', waterAvailability: 'High', estimatedCropValue: 15500 },
+  { id: 'C017', holderName: 'Suresh Sahariya', village: 'Pohri', district: 'Shivpuri', state: 'Madhya Pradesh', area: 7.5, status: 'Approved', soilType: 'Alluvial', waterAvailability: 'Medium', estimatedCropValue: 25000 },
 
   // --- Odisha ---
-  { id: 'C012', holderName: 'Jaga Saura', village: 'Gunupur', district: 'Rayagada', state: 'Odisha', area: 6.8, status: 'Pending', soilType: 'Laterite', waterAvailability: 'High' },
-  { id: 'C013', holderName: 'Sania Juang', village: 'Harichandanpur', district: 'Keonjhar', state: 'Odisha', area: 5.1, status: 'Approved', soilType: 'Alluvial', waterAvailability: 'High' },
-  { id: 'C014', holderName: 'Bhima Kondh', village: 'Baliguda', district: 'Kandhamal', state: 'Odisha', area: 9.2, status: 'Rejected', soilType: 'Loamy', waterAvailability: 'Medium' },
-  { id: 'C018', holderName: 'Laxman Munda', village: 'Jashipur', district: 'Mayurbhanj', state: 'Odisha', area: 4.7, status: 'Approved', soilType: 'Laterite', waterAvailability: 'Medium' },
-  { id: 'C019', holderName: 'Tulasi Paraja', village: 'Lamtaput', district: 'Koraput', state: 'Odisha', area: 3.9, status: 'Pending', soilType: 'Clay', waterAvailability: 'High' },
-  { id: 'C020', holderName: 'Ramesh Bonda', village: 'Khairput', district: 'Malkangiri', state: 'Odisha', area: 6.5, status: 'Approved', soilType: 'Loamy', waterAvailability: 'Low' },
-  { id: 'C021', holderName: 'Sarita Santal', village: 'Thakurmunda', district: 'Mayurbhanj', state: 'Odisha', area: 5.5, status: 'Rejected', soilType: 'Alluvial', waterAvailability: 'High' },
+  { id: 'C012', holderName: 'Jaga Saura', village: 'Gunupur', district: 'Rayagada', state: 'Odisha', area: 6.8, status: 'Pending', soilType: 'Laterite', waterAvailability: 'High', estimatedCropValue: 19000 },
+  { id: 'C013', holderName: 'Sania Juang', village: 'Harichandanpur', district: 'Keonjhar', state: 'Odisha', area: 5.1, status: 'Approved', soilType: 'Alluvial', waterAvailability: 'High', estimatedCropValue: 21000 },
+  { id: 'C014', holderName: 'Bhima Kondh', village: 'Baliguda', district: 'Kandhamal', state: 'Odisha', area: 9.2, status: 'Rejected', soilType: 'Loamy', waterAvailability: 'Medium', estimatedCropValue: 17000 },
+  { id: 'C018', holderName: 'Laxman Munda', village: 'Jashipur', district: 'Mayurbhanj', state: 'Odisha', area: 4.7, status: 'Approved', soilType: 'Laterite', waterAvailability: 'Medium', estimatedCropValue: 14000 },
+  { id: 'C019', holderName: 'Tulasi Paraja', village: 'Lamtaput', district: 'Koraput', state: 'Odisha', area: 3.9, status: 'Pending', soilType: 'Clay', waterAvailability: 'High', estimatedCropValue: 13500 },
+  { id: 'C020', holderName: 'Ramesh Bonda', village: 'Khairput', district: 'Malkangiri', state: 'Odisha', area: 6.5, status: 'Approved', soilType: 'Loamy', waterAvailability: 'Low', estimatedCropValue: 15000 },
+  { id: 'C021', holderName: 'Sarita Santal', village: 'Thakurmunda', district: 'Mayurbhanj', state: 'Odisha', area: 5.5, status: 'Rejected', soilType: 'Alluvial', waterAvailability: 'High', estimatedCropValue: 18000 },
 ];
 
 export const geoJsonData: FeatureCollection = {
