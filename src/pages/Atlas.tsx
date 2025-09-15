@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { claims as initialClaims, geoJsonData as initialGeoJsonData, waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
 import type { Feature, FeatureCollection } from "geojson";
@@ -24,6 +25,7 @@ const IndexPageContent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
   const [viewMode, setViewMode] = useState("default"); // default, table, map
+  const navigate = useNavigate();
 
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) =>
@@ -61,7 +63,8 @@ const IndexPageContent = () => {
         features: [...prevGeoJson.features, newFeature],
       }));
 
-      showSuccess("Claim added successfully and updated on map!");
+      showSuccess(`Claim ${newId} added. Redirecting to its dashboard for AI analysis.`);
+      navigate(`/atlas/claim/${newId}`);
     } catch (error) {
       showError("Failed to add claim. Please check the GeoJSON coordinates format.");
       console.error(error);
