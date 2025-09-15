@@ -3,8 +3,11 @@ import { FeatureCollection, Feature, Geometry } from 'geojson';
 import { Layer, LatLngExpression, PathOptions } from 'leaflet';
 import { useEffect } from 'react';
 import L from 'leaflet';
+import { useDashboardState } from '@/context/DashboardStateContext';
+import type { Claim } from '@/data/mockClaims';
 
 interface GisMapProps {
+  claims: Claim[];
   claimsData: FeatureCollection;
   waterData: FeatureCollection;
   agriData: FeatureCollection;
@@ -34,7 +37,8 @@ const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | nu
   return null;
 };
 
-const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelect }: GisMapProps) => {
+const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onClaimSelect }: GisMapProps) => {
+  const { state, isLowWaterClaim } = useDashboardState();
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
   const onEachFeature = (feature: Feature<Geometry, any>, layer: Layer) => {
@@ -54,20 +58,21 @@ const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelec
   };
 
   const styleClaimFeature = (feature?: Feature): PathOptions => {
-    if (feature?.properties?.claimId === selectedClaimId) {
-      return {
-        color: '#d97706', // Amber 600
-        weight: 3,
-        fillColor: '#f59e0b', // Amber 500
-        fillOpacity: 0.6,
-      };
+    const claimId = feature?.properties?.claimId;
+    const claim = claims.find(c => c.id === claimId);
+    
+    // Highlight for low water index filter
+    if (claim && isLowWaterClaim(claim)) {
+      return { color: '#f59e0b', weight: 3, fillColor: '#fcd34d', fillOpacity: 0.7 };
     }
+
+    // Highlight for selection
+    if (claimId === selectedClaimId) {
+      return { color: '#d97706', weight: 3, fillColor: '#f59e0b', fillOpacity: 0.6 };
+    }
+    
     // Default style
-    return {
-      color: '#166534', // Green 800
-      weight: 2,
-      fillOpacity: 0.3,
-    };
+    return { color: '#166534', weight: 2, fillOpacity: 0.3 };
   };
 
   const waterStyle: PathOptions = { color: '#0ea5e9', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.5 };
@@ -91,20 +96,26 @@ const GisMap = ({ claimsData, waterData, agriData, selectedClaimId, onClaimSelec
             />
         </LayersControl.BaseLayer>
         
-        <LayersControl.Overlay checked name="FRA Claims">
-          <GeoJSON 
-            data={claimsData} 
-            onEachFeature={onEachFeature} 
-            style={styleClaimFeature}
-            key={selectedClaimId || 'default'} // Force re-render on selection change
-          />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay checked name="Water Bodies">
-          <GeoJSON data={waterData} style={waterStyle} />
-        </LayersControl.Overlay>
-        <LayersControl.Overlay checked name="Agricultural Land">
-          <GeoJSON data={agriData} style={agriStyle} />
-        </LayersControl.Overlay>
+        {state.visibleLayers.claims && (
+          <LayersControl.Overlay checked name="FRA Claims">
+            <GeoJSON 
+              data={claimsData} 
+              onEachFeature={onEachFeature} 
+              style={styleClaimFeature}
+              key={selectedClaimId + state.activeFilter || 'default'} // Force re-render on selection/filter change
+            />
+          </LayersControl.Overlay>
+        )}
+        {state.visibleLayers.water && (
+          <LayersControl.Overlay checked name="Water Bodies">
+            <GeoJSON data={waterData} style={waterStyle} />
+          </LayersControl.Overlay>
+        )}
+        {state.visibleLayers.agri && (
+          <LayersControl.Overlay checked name="Agricultural Land">
+            <GeoJSON data={agriData} style={agriStyle} />
+          </LayersControl.Overlay>
+        )}
       </LayersControl>
       <MapController selectedClaimId={selectedClaimId} data={claimsData} />
     </MapContainer>

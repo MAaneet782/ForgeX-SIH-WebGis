@@ -5,17 +5,20 @@ import ClaimsData from "@/components/ClaimsData";
 import GisMap from "@/components/GisMap";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import LayersPanel from "@/components/LayersPanel";
+import { DashboardStateProvider } from "@/context/DashboardStateContext";
 import { showError, showSuccess } from "@/utils/toast";
 import { Home, ChevronRight, SlidersHorizontal, Layers, Map, LayoutGrid, Table, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-const Index = () => {
+const IndexPageContent = () => {
   const [claims, setClaims] = useState<Claim[]>(initialClaims);
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(initialClaims[0]?.id || null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [viewMode, setViewMode] = useState("map");
+  const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
 
   const filteredClaims = useMemo(() => {
     return claims
@@ -48,6 +51,25 @@ const Index = () => {
     setSelectedClaimId(claimId);
   };
 
+  const handleGenerateReport = () => {
+    const headers = ["id", "holderName", "village", "district", "state", "area", "status", "soilType", "waterAvailability"];
+    const csvRows = [
+      headers.join(','),
+      ...filteredClaims.map(claim => headers.map(header => `"${claim[header as keyof Claim]}"`).join(','))
+    ];
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'claims_report.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showSuccess("Report generated successfully!");
+  };
+
   return (
     <div className="grid grid-cols-[280px_1fr] grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
       <div className="col-span-2">
@@ -55,7 +77,10 @@ const Index = () => {
       </div>
       
       <div className="row-start-2">
-        <Sidebar />
+        <Sidebar 
+          onToggleLayersPanel={() => setIsLayersPanelOpen(true)}
+          onGenerateReport={handleGenerateReport}
+        />
       </div>
 
       <main className="row-start-2 flex flex-col overflow-hidden">
@@ -70,7 +95,7 @@ const Index = () => {
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm"><SlidersHorizontal className="mr-2 h-4 w-4" /> Filters</Button>
-            <Button variant="outline" size="sm"><Layers className="mr-2 h-4 w-4" /> Layers</Button>
+            <Button variant="outline" size="sm" onClick={() => setIsLayersPanelOpen(true)}><Layers className="mr-2 h-4 w-4" /> Layers</Button>
             <Button variant="outline" size="sm"><Map className="mr-2 h-4 w-4" /> Basemap</Button>
             <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
               <ToggleGroupItem value="map" aria-label="Map view"><LayoutGrid className="h-4 w-4 mr-2" /> Map</ToggleGroupItem>
@@ -83,6 +108,7 @@ const Index = () => {
         <div className="flex-grow p-4 overflow-y-auto space-y-4">
           <div className="h-[50vh] min-h-[400px]">
             <GisMap 
+              claims={claims}
               claimsData={geoJsonData} 
               waterData={waterBodiesGeoJson}
               agriData={agriLandGeoJson}
@@ -104,8 +130,15 @@ const Index = () => {
           </div>
         </div>
       </main>
+      <LayersPanel isOpen={isLayersPanelOpen} onOpenChange={setIsLayersPanelOpen} />
     </div>
   );
 };
+
+const Index = () => (
+  <DashboardStateProvider>
+    <IndexPageContent />
+  </DashboardStateProvider>
+);
 
 export default Index;

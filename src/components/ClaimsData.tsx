@@ -23,6 +23,7 @@ import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
 import { Search, Download } from "lucide-react";
+import { useDashboardState } from "@/context/DashboardStateContext";
 
 interface ClaimsDataProps {
   claims: Claim[];
@@ -44,6 +45,7 @@ const ClaimsData = ({
   setSearchTerm,
 }: ClaimsDataProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { isLowWaterClaim } = useDashboardState();
   const rowRefs = useRef<Map<string, HTMLTableRowElement | null>>(new Map());
 
   useEffect(() => {
@@ -125,8 +127,10 @@ const ClaimsData = ({
                   ref={(el) => rowRefs.current.set(claim.id, el)}
                   onClick={() => onClaimSelect(claim.id === selectedClaimId ? null : claim.id)}
                   className={cn(
-                    "cursor-pointer hover:bg-muted/50",
-                    { "bg-muted": selectedClaimId === claim.id }
+                    "cursor-pointer transition-colors",
+                    { "bg-muted": selectedClaimId === claim.id },
+                    { "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/50 dark:hover:bg-yellow-900/60": isLowWaterClaim(claim) },
+                    { "hover:bg-muted/50": !isLowWaterClaim(claim) }
                   )}
                 >
                   <TableCell className="font-medium">{claim.id}</TableCell>

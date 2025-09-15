@@ -1,24 +1,34 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Layers, Map, Filter, Compass, DollarSign, Droplets, BarChart, FileText, Users, Leaf } from "lucide-react";
+import { useDashboardState } from "@/context/DashboardStateContext";
+import { showInfo } from "@/utils/toast";
+import { cn } from "@/lib/utils";
 
-const Sidebar = () => {
+interface SidebarProps {
+  onToggleLayersPanel: () => void;
+  onGenerateReport: () => void;
+}
+
+const Sidebar = ({ onToggleLayersPanel, onGenerateReport }: SidebarProps) => {
+  const { state, dispatch } = useDashboardState();
+
   const navItems = {
     "MAP TOOLS": [
-      { icon: Layers, label: "Layers Panel" },
-      { icon: Map, label: "Basemap Switcher" },
-      { icon: Filter, label: "Saved Filters" },
+      { icon: Layers, label: "Layers Panel", action: onToggleLayersPanel },
+      { icon: Map, label: "Basemap Switcher", action: () => showInfo("Use the control on the map to switch basemaps.") },
+      { icon: Filter, label: "Saved Filters", action: () => showInfo("Feature coming soon!") },
     ],
     "PATTA HOLDER": [
-      { icon: Compass, label: "Find My Parcel" },
-      { icon: DollarSign, label: "Schemes" },
-      { icon: Leaf, label: "Agriculture" },
-      { icon: Droplets, label: "Water Resources" },
+      { icon: Compass, label: "Find My Parcel", action: () => showInfo("Feature coming soon!") },
+      { icon: DollarSign, label: "Schemes", action: () => showInfo("Feature coming soon!") },
+      { icon: Leaf, label: "Agriculture", action: () => showInfo("Feature coming soon!") },
+      { icon: Droplets, label: "Water Resources", action: () => showInfo("Feature coming soon!") },
     ],
     "OFFICIALS": [
-      { icon: BarChart, label: "Low Water Index" },
-      { icon: Users, label: "MGNREGA: Eligible not Availing" },
-      { icon: FileText, label: "Generate Reports" },
+      { icon: BarChart, label: "Low Water Index", action: () => dispatch({ type: 'TOGGLE_LOW_WATER_FILTER' }), active: state.activeFilter === 'low-water-index' },
+      { icon: Users, label: "MGNREGA: Eligible not Availing", action: () => showInfo("Feature coming soon!") },
+      { icon: FileText, label: "Generate Reports", action: onGenerateReport },
     ],
   };
 
@@ -44,7 +54,14 @@ const Sidebar = () => {
             <ul className="space-y-1">
               {items.map((item) => (
                 <li key={item.label}>
-                  <Button variant="ghost" className="w-full justify-start text-white hover:bg-white/10 hover:text-white">
+                  <Button 
+                    variant="ghost" 
+                    onClick={item.action}
+                    className={cn(
+                      "w-full justify-start text-white hover:bg-white/10 hover:text-white",
+                      item.active && "bg-white/20"
+                    )}
+                  >
                     <item.icon className="mr-3 h-5 w-5" />
                     {item.label}
                   </Button>
