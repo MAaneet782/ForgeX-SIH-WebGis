@@ -1,17 +1,65 @@
 import { useParams, Link } from "react-router-dom";
-import { claims } from "@/data/mockClaims";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import AiAnalysisPanel from "@/components/AiAnalysisPanel";
 import SchemeEligibility from "@/components/SchemeEligibility";
+import { supabase } from "@/lib/supabaseClient";
+import type { Claim } from "@/data/mockClaims";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const fetchClaimById = async (claimId: string): Promise<Claim> => {
+  const { data, error } = await supabase
+    .from('claims')
+    .select('*')
+    .eq('claim_id', claimId)
+    .single();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Claim not found");
+
+  return {
+    id: data.claim_id,
+    holderName: data.holder_name,
+    village: data.village,
+    district: data.district,
+    state: data.state,
+    area: data.area,
+    status: data.status,
+    documentName: data.document_name,
+    soilType: data.soil_type,
+    waterAvailability: data.water_availability,
+    estimatedCropValue: data.estimated_crop_value,
+  };
+};
 
 const ClaimDetail = () => {
-  const { claimId } = useParams();
-  const claim = claims.find((c) => c.id === claimId);
+  const { claimId } = useParams<{ claimId: string }>();
 
-  if (!claim) {
+  const { data: claim, isLoading, isError } = useQuery<Claim>({
+    queryKey: ['claim', claimId],
+    queryFn: () => fetchClaimById(claimId!),
+    enabled: !!claimId,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
+        <Skeleton className="h-10 w-48 mb-4" />
+        <Skeleton className="h-8 w-1/2" />
+        <Skeleton className="h-4 w-1/3" />
+        <div className="grid md:grid-cols-2 gap-6">
+          <Skeleton className="h-48 w-full" />
+          <Skeleton className="h-48 w-full" />
+        </div>
+        <Skeleton className="h-96 w-full" />
+      </div>
+    );
+  }
+
+  if (isError || !claim) {
     return (
       <div className="text-center p-8">
         <h2 className="text-2xl font-bold">Claim not found</h2>
