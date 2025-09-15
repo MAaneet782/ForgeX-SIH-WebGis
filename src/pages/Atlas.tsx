@@ -78,7 +78,7 @@ const IndexPageContent = () => {
       };
 
       const { error } = await supabase.from('claims').insert([newClaimRecord]);
-      dismissToast(toastId);
+      dismissToast(String(toastId));
       if (error) throw new Error(error.message);
       return claim_id;
     },
