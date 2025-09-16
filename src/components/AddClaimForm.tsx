@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -63,7 +64,7 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
       status: "Pending",
       soilType: "Loamy",
       waterAvailability: "Medium",
-      coordinates: '{"type":"Polygon","coordinates":[[[0,0],[0,1],[1,1],[1,0],[0,0]]]}',
+      coordinates: '{"type":"Polygon","coordinates":[[[78.456,22.123],[78.457,22.123],[78.457,22.124],[78.456,22.124],[78.456,22.123]]]}',
     },
   });
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -81,7 +82,7 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
     if (data.district) form.setValue("district", data.district);
     if (data.state) form.setValue("state", data.state);
     if (data.area) form.setValue("area", data.area);
-    if (data.coordinates) form.setValue("coordinates", data.coordinates);
+    if (data.coordinates) form.setValue("coordinates", data.coordinates, { shouldValidate: true });
   };
 
   return (
@@ -109,7 +110,22 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
             <FormField control={form.control} name="soilType" render={({ field }) => ( <FormItem><FormLabel>Soil Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Alluvial">Alluvial</SelectItem><SelectItem value="Clay">Clay</SelectItem><SelectItem value="Loamy">Loamy</SelectItem><SelectItem value="Laterite">Laterite</SelectItem></SelectContent></Select><FormMessage /></FormItem> )} />
             <FormField control={form.control} name="waterAvailability" render={({ field }) => ( <FormItem><FormLabel>Water Availability</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="High">High</SelectItem><SelectItem value="Medium">Medium</SelectItem><SelectItem value="Low">Low</SelectItem></SelectContent></Select><FormMessage /></FormItem> )} />
           </div>
-          <FormField control={form.control} name="coordinates" render={({ field }) => ( <FormItem><FormLabel>GeoJSON Coordinates</FormLabel><FormControl><Textarea placeholder="Enter GeoJSON Polygon coordinates" className="min-h-[100px] font-mono text-xs" {...field} /></FormControl><FormMessage /></FormItem> )} />
+          <FormField 
+            control={form.control} 
+            name="coordinates" 
+            render={({ field }) => ( 
+              <FormItem>
+                <FormLabel>GeoJSON Coordinates</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Enter GeoJSON Polygon coordinates" className="min-h-[100px] font-mono text-xs" {...field} />
+                </FormControl>
+                <FormDescription>
+                  Provide the land boundary as a GeoJSON Polygon. You can use a free online tool like <a href="http://geojson.io/" target="_blank" rel="noopener noreferrer" className="underline">geojson.io</a> to create this.
+                </FormDescription>
+                <FormMessage />
+              </FormItem> 
+            )} 
+          />
           <FormField control={form.control} name="document" render={({ field: { onChange, onBlur, name, ref } }) => ( <FormItem><FormLabel>Govt. Document (Optional)</FormLabel><FormControl><Input type="file" onChange={(e) => onChange(e.target.files)} onBlur={onBlur} name={name} ref={ref} /></FormControl><FormMessage /></FormItem> )} />
           <SheetFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
