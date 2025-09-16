@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart3 } from "lucide-react";
+import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart3, BookCopy } from "lucide-react";
 import { useDashboardState } from "@/context/DashboardStateContext";
 import { showInfo } from "@/utils/toast";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,23 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
   const [modalContent, setModalContent] = useState({ title: '', content: <></> });
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const rightsContent = (
+    <div className="space-y-4 text-sm">
+      <div>
+        <h4 className="font-semibold">Individual Forest Rights (IFR)</h4>
+        <p className="text-muted-foreground">Rights to hold and live in the forest land by the members of a forest dwelling Scheduled Tribe or other traditional forest dwellers.</p>
+      </div>
+      <div>
+        <h4 className="font-semibold">Community Rights (CR)</h4>
+        <p className="text-muted-foreground">Rights of the villagers to use and access resources from the forest which they have been traditionally protecting and conserving for sustainable use.</p>
+      </div>
+      <div>
+        <h4 className="font-semibold">Community Forest Resource (CFR) Rights</h4>
+        <p className="text-muted-foreground">Rights to protect, regenerate or conserve or manage any community forest resource which they have been traditionally protecting and conserving for sustainable use.</p>
+      </div>
+    </div>
+  );
 
   const schemesContent = (
     <div className="space-y-4 text-sm">
@@ -86,6 +103,7 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
     ],
     "PATTA HOLDER": [
       { icon: Compass, label: "Find My Parcel", action: onFindMyParcel },
+      { icon: BookCopy, label: "Types of Rights", action: () => openModal("Understanding Forest Rights", rightsContent) },
       { icon: DollarSign, label: "Schemes", action: () => openModal("Key Government Schemes", schemesContent) },
       { icon: Leaf, label: "Agriculture", action: () => openModal("Agriculture Schemes", agricultureContent) },
       { icon: Droplets, label: "Water Resources", action: () => openModal("Water Resource Schemes", waterResourcesContent) },

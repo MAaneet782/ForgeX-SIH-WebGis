@@ -21,7 +21,7 @@ import {
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
-import { Download, Search, Info, ArrowUpDown, Upload } from "lucide-react";
+import { Download, Info, ArrowUpDown, Upload } from "lucide-react";
 import { useState, useMemo } from "react";
 import ExcelImportDialog from "./ExcelImportDialog";
 
@@ -159,7 +159,7 @@ const ClaimsData = ({
                 {sortedClaims.map((claim) => {
                   const rightType = getRightType(claim.status);
                   return (
-                    <TableRow key={claim.id}>
+                    <TableRow key={claim.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onZoomToClaim(claim.id)}>
                       <TableCell className="font-medium">{claim.id}</TableCell>
                       <TableCell>{claim.holderName}</TableCell>
                       <TableCell>{claim.village}</TableCell>
@@ -170,11 +170,7 @@ const ClaimsData = ({
                       <TableCell>{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
-                          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onZoomToClaim(claim.id)}>
-                            <Search className="h-4 w-4" />
-                            <span className="sr-only">Zoom to parcel</span>
-                          </Button>
-                          <Button size="sm" className="bg-[#004d40] hover:bg-[#00382e]" onClick={() => navigate(`/atlas/claim/${claim.id}`)}>
+                          <Button size="sm" className="bg-[#004d40] hover:bg-[#00382e]" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}>
                             <Info className="mr-2 h-4 w-4" />
                             Details
                           </Button>

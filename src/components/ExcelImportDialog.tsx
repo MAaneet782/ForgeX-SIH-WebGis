@@ -14,9 +14,18 @@ interface ExcelImportDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-// Helper to create a random polygon around a center point
+// Helper to convert Excel serial date to JS Date
+const excelSerialToDate = (serial: number) => {
+  if (isNaN(serial)) return null;
+  const utc_days = Math.floor(serial - 25569);
+  const utc_value = utc_days * 86400;
+  const date_info = new Date(utc_value * 1000);
+  return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
+};
+
+// Helper to create a random polygon around a center point (with reduced size)
 const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) => {
-    const radius = Math.sqrt(areaInAcres * 4046.86) / 111320 / 2; // Rough conversion
+    const radius = (Math.sqrt(areaInAcres * 4046.86) / 111320 / 2) / 2; // Reduced radius by 50%
     const points = 5;
     const coords = [];
     for (let i = 0; i < points; i++) {
@@ -70,6 +79,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
     const newClaims = jsonData.map(row => {
       const [lat, lng] = (row['location coordinates'] || "0,0").split(',').map(Number);
       const areaInAcres = parseFloat(row['area (ha)']) * 2.47105;
+      const updatedDate = excelSerialToDate(row['updated']);
       
       return {
         claim_id: row['parcel id'],
@@ -83,7 +93,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
         water_availability: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)],
         estimated_crop_value: Math.floor(Math.random() * 20000) + 5000,
         geometry: createPolygonFromCenter(lat, lng, isNaN(areaInAcres) ? 1 : areaInAcres),
-        created_at: row['updated'] ? new Date(row['updated']) : new Date(),
+        created_at: updatedDate || new Date(),
       };
     });
 
@@ -107,7 +117,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl z-[9999]">
         <DialogHeader>
           <DialogTitle>Import Claims from Excel</DialogTitle>
           <DialogDescription>
@@ -135,7 +145,11 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
                   <TableBody>
                     {jsonData.slice(0, 5).map((row, i) => (
                       <TableRow key={i}>
-                        {Object.values(row).map((val: any, j: number) => <TableCell key={j}>{String(val)}</TableCell>)}
+                        {Object.entries(row).map(([key, val]: [string, any], j: number) => (
+                          <TableCell key={j}>
+                            {key === 'updated' ? excelSerialToDate(val)?.toLocaleDateString() : String(val)}
+                          </TableCell>
+                        ))}
                       </TableRow>
                     ))}
                   </TableBody>
