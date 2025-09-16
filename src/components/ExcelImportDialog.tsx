@@ -76,26 +76,31 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
       'CFR': 'Rejected',
     };
 
-    const newClaims = jsonData.map(row => {
-      const [lat, lng] = (row['location coordinates'] || "0,0").split(',').map(Number);
-      const areaInAcres = parseFloat(row['area (ha)']) * 2.47105;
-      const updatedDate = excelSerialToDate(row['updated']);
-      
-      return {
-        claim_id: row['parcel id'],
-        holder_name: row['patta holder'],
-        village: row['village'],
-        district: 'Unknown', // Not in Excel
-        state: row['state'],
-        area: isNaN(areaInAcres) ? 0 : areaInAcres,
-        status: statusMap[row['type of right']] || 'Pending',
-        soil_type: ['Alluvial', 'Clay', 'Loamy', 'Laterite'][Math.floor(Math.random() * 4)],
-        water_availability: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)],
-        estimated_crop_value: Math.floor(Math.random() * 20000) + 5000,
-        geometry: createPolygonFromCenter(lat, lng, isNaN(areaInAcres) ? 1 : areaInAcres),
-        created_at: updatedDate || new Date(),
-      };
-    });
+    const newClaims = jsonData
+      .filter(row => row['patta holder']) // Filter out empty rows
+      .map(row => {
+        const [lat, lng] = (row['location coordinates'] || "0,0").split(',').map(Number);
+        const areaInAcres = parseFloat(row['area (ha)']) * 2.47105;
+        const updatedDate = excelSerialToDate(row['updated']);
+        
+        // If 'parcel id' is missing, generate a random one to prevent db error
+        const claimId = row['parcel id'] ? String(row['parcel id']) : `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+
+        return {
+          claim_id: claimId,
+          holder_name: row['patta holder'],
+          village: row['village'],
+          district: 'Unknown', // Not in Excel
+          state: row['state'],
+          area: isNaN(areaInAcres) ? 0 : areaInAcres,
+          status: statusMap[row['type of right']] || 'Pending',
+          soil_type: ['Alluvial', 'Clay', 'Loamy', 'Laterite'][Math.floor(Math.random() * 4)],
+          water_availability: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)],
+          estimated_crop_value: Math.floor(Math.random() * 20000) + 5000,
+          geometry: createPolygonFromCenter(lat, lng, isNaN(areaInAcres) ? 1 : areaInAcres),
+          created_at: updatedDate || new Date(),
+        };
+      });
 
     try {
       const { error } = await supabase.from('claims').insert(newClaims);
