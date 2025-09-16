@@ -153,60 +153,65 @@ const IndexPageContent = () => {
   }
 
   return (
-    <div className="grid grid-cols-[280px_1fr] grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
-      <div className="col-span-2 z-10"><Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFindMyParcel={handleFindMyParcel} /></div>
-      <div className="row-start-2"><Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} /></div>
+    <div className="h-screen w-screen flex flex-col bg-background overflow-hidden">
+      <Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFindMyParcel={handleFindMyParcel} />
       
-      <main className="row-start-2 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={65} minSize={40}>
-            <div className="h-full overflow-y-auto p-6 space-y-6">
-              <header className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
-                  <p className="text-muted-foreground">Live Data from Supabase Database</p>
-                </div>
-                <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
-                  <ToggleGroupItem value="default" aria-label="Default view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
-                  <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4" /></ToggleGroupItem>
-                  <ToggleGroupItem value="map" aria-label="Map view"><Map className="h-4 w-4" /></ToggleGroupItem>
-                </ToggleGroup>
-              </header>
-              
-              <DashboardStats claims={claims} />
-              <DataVisualization claims={claims} />
-              
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Claims Explorer</h2>
-                <div className={cn("rounded-lg overflow-hidden border", viewMode === 'table' ? 'hidden' : 'block', viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
-                  <GisMap 
-                    claims={claims}
-                    claimsData={geoJsonData} 
-                    waterData={waterBodiesGeoJson}
-                    agriData={agriLandGeoJson}
-                    selectedClaimId={selectedClaimId} 
-                    onClaimSelect={handleClaimClickOnMap}
-                  />
-                </div>
-                <div className={cn(viewMode === 'map' ? 'hidden' : 'block')}>
-                  <ClaimsData 
-                    claims={filteredClaims}
-                    onAddClaim={(claim) => addClaimMutation.mutate(claim)}
-                    onGenerateReport={handleGenerateReport}
-                    onZoomToClaim={handleZoomToClaim}
-                  />
+      <ResizablePanelGroup direction="horizontal" className="flex-grow">
+        <ResizablePanel defaultSize={18} minSize={15} maxSize={25}>
+          <Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} />
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={82} minSize={50}>
+          <ResizablePanelGroup direction="horizontal">
+            <ResizablePanel defaultSize={65} minSize={40}>
+              <div className="h-full overflow-y-auto p-6 space-y-6">
+                <header className="flex items-center justify-between">
+                  <div>
+                    <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
+                    <p className="text-muted-foreground">Live Data from Supabase Database</p>
+                  </div>
+                  <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
+                    <ToggleGroupItem value="default" aria-label="Default view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4" /></ToggleGroupItem>
+                    <ToggleGroupItem value="map" aria-label="Map view"><Map className="h-4 w-4" /></ToggleGroupItem>
+                  </ToggleGroup>
+                </header>
+                
+                <DashboardStats claims={claims} />
+                <DataVisualization claims={claims} />
+                
+                <div className="space-y-4">
+                  <h2 className="text-2xl font-bold">Claims Explorer</h2>
+                  <div className={cn("rounded-lg overflow-hidden border", viewMode === 'table' ? 'hidden' : 'block', viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
+                    <GisMap 
+                      claims={claims}
+                      claimsData={geoJsonData} 
+                      waterData={waterBodiesGeoJson}
+                      agriData={agriLandGeoJson}
+                      selectedClaimId={selectedClaimId} 
+                      onClaimSelect={handleClaimClickOnMap}
+                    />
+                  </div>
+                  <div className={cn(viewMode === 'map' ? 'hidden' : 'block')}>
+                    <ClaimsData 
+                      claims={filteredClaims}
+                      onAddClaim={(claim) => addClaimMutation.mutate(claim)}
+                      onGenerateReport={handleGenerateReport}
+                      onZoomToClaim={handleZoomToClaim}
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={35} minSize={25}>
-            <div className="h-full overflow-y-auto p-6">
-              <DecisionSupportPanel claim={selectedClaim} />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </main>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={35} minSize={25}>
+              <div className="h-full overflow-y-auto p-6">
+                <DecisionSupportPanel claim={selectedClaim} />
+              </div>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+      </ResizablePanelGroup>
       
       <LayersPanel isOpen={isLayersPanelOpen} onOpenChange={setIsLayersPanelOpen} />
     </div>

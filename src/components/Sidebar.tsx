@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart3, BookCopy } from "lucide-react";
@@ -117,8 +117,10 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
     <>
       <aside className="bg-[#004d40] text-white flex flex-col h-full">
         <div className="p-4 border-b border-white/20">
-          <h2 className="text-2xl font-bold">FRA Atlas</h2>
-          <div className="flex items-center gap-3 mt-4">
+          <Link to="/atlas" className="flex items-center gap-2 text-2xl font-bold mb-4">
+            <Leaf className="h-7 w-7" /> FRA Atlas
+          </Link>
+          <div className="flex items-center gap-3">
             <Avatar>
               <AvatarImage src="" alt={user?.email?.charAt(0).toUpperCase()} />
               <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
