@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
@@ -10,6 +10,8 @@ import { ArrowLeft, IndianRupee, Map, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Skeleton } from "@/components/ui/skeleton";
 import ThematicMap from "@/components/ThematicMap";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
   <Card>
@@ -43,14 +45,33 @@ const fetchClaims = async (): Promise<Claim[]> => {
   }));
 };
 
+const PROFESSIONAL_COLORS = ['#4f46e5', '#0d9488', '#f59e0b', '#db2777', '#6b7280', '#3b82f6'];
+
 const Analytics = () => {
   const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
     queryKey: ['claims'],
     queryFn: fetchClaims,
   });
 
+  const [selectedState, setSelectedState] = useState<string>('all');
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
+
+  const states = useMemo(() => ['all', ...Array.from(new Set(claims.map(c => c.state).filter(Boolean)))], [claims]);
+  const districts = useMemo(() => {
+    if (selectedState === 'all') return ['all'];
+    return ['all', ...Array.from(new Set(claims.filter(c => c.state === selectedState).map(c => c.district).filter(Boolean)))];
+  }, [claims, selectedState]);
+
+  const filteredClaims = useMemo(() => {
+    return claims.filter(claim => {
+      const stateMatch = selectedState === 'all' || claim.state === selectedState;
+      const districtMatch = selectedDistrict === 'all' || claim.district === selectedDistrict;
+      return stateMatch && districtMatch;
+    });
+  }, [claims, selectedState, selectedDistrict]);
+
   const analyticsData = useMemo(() => {
-    if (!claims || claims.length === 0) {
+    if (!filteredClaims || filteredClaims.length === 0) {
       return {
         totalValue: 0,
         totalArea: 0,
@@ -60,15 +81,15 @@ const Analytics = () => {
       };
     }
 
-    const totalValue = claims.reduce((sum, claim) => sum + claim.estimatedCropValue, 0);
-    const totalArea = claims.reduce((sum, claim) => sum + claim.area, 0);
+    const totalValue = filteredClaims.reduce((sum, claim) => sum + claim.estimatedCropValue, 0);
+    const totalArea = filteredClaims.reduce((sum, claim) => sum + claim.area, 0);
 
-    const valueByDistrict = claims.reduce((acc, claim) => {
+    const valueByDistrict = filteredClaims.reduce((acc, claim) => {
       acc[claim.district] = (acc[claim.district] || 0) + claim.estimatedCropValue;
       return acc;
     }, {} as Record<string, number>);
 
-    const valueBySoilType = claims.reduce((acc, claim) => {
+    const valueBySoilType = filteredClaims.reduce((acc, claim) => {
       acc[claim.soilType] = (acc[claim.soilType] || 0) + claim.estimatedCropValue;
       return acc;
     }, {} as Record<string, number>);
@@ -76,15 +97,15 @@ const Analytics = () => {
     return {
       totalValue,
       totalArea,
-      totalClaims: claims.length,
+      totalClaims: filteredClaims.length,
       valueByDistrict: Object.entries(valueByDistrict).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
       valueBySoilType: Object.entries(valueBySoilType).map(([name, value]) => ({ name, value })),
     };
-  }, [claims]);
+  }, [filteredClaims]);
 
   const geoJsonData = useMemo((): FeatureCollection => {
-    if (!claims) return { type: "FeatureCollection", features: [] };
-    const features = claims
+    if (!filteredClaims) return { type: "FeatureCollection", features: [] };
+    const features = filteredClaims
       .filter(claim => claim.geometry)
       .map((claim): Feature => ({
         type: "Feature",
@@ -92,9 +113,7 @@ const Analytics = () => {
         geometry: claim.geometry as Geometry,
       }));
     return { type: "FeatureCollection", features };
-  }, [claims]);
-
-  const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+  }, [filteredClaims]);
 
   if (isLoading) {
     return (
@@ -130,24 +149,50 @@ const Analytics = () => {
         <p className="text-muted-foreground">Economic and agricultural insights from FRA claims data.</p>
       </header>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Filters</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1 space-y-2">
+              <Label htmlFor="state-filter">Filter by State</Label>
+              <Select value={selectedState} onValueChange={(value) => { setSelectedState(value); setSelectedDistrict('all'); }}>
+                  <SelectTrigger id="state-filter"><SelectValue placeholder="Select a state" /></SelectTrigger>
+                  <SelectContent>
+                      {states.map(state => <SelectItem key={state} value={state}>{state === 'all' ? 'All States' : state}</SelectItem>)}
+                  </SelectContent>
+              </Select>
+          </div>
+          <div className="flex-1 space-y-2">
+              <Label htmlFor="district-filter">Filter by District</Label>
+              <Select value={selectedDistrict} onValueChange={setSelectedDistrict} disabled={selectedState === 'all'}>
+                  <SelectTrigger id="district-filter"><SelectValue placeholder="Select a district" /></SelectTrigger>
+                  <SelectContent>
+                      {districts.map(district => <SelectItem key={district} value={district}>{district === 'all' ? 'All Districts' : district}</SelectItem>)}
+                  </SelectContent>
+              </Select>
+          </div>
+        </CardContent>
+      </Card>
+
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard 
           icon={IndianRupee} 
           title="Total Estimated Crop Value" 
           value={`₹${(analyticsData.totalValue / 1000).toFixed(1)}k`}
-          description="Across all digitized claims"
+          description="Across all filtered claims"
         />
         <StatCard 
           icon={Map} 
           title="Total Area Mapped" 
           value={`${analyticsData.totalArea.toFixed(1)} acres`}
-          description="Total land under FRA claims"
+          description="Total land under filtered claims"
         />
         <StatCard 
           icon={Users} 
           title="Total Claims" 
           value={`${analyticsData.totalClaims}`}
-          description="Number of households served"
+          description="Number of households in filter"
         />
       </div>
 
@@ -188,7 +233,7 @@ const Analytics = () => {
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
                   {analyticsData.valueBySoilType.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={PROFESSIONAL_COLORS[index % PROFESSIONAL_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} wrapperClassName="rounded-lg border bg-background p-2 shadow-sm" />
@@ -203,7 +248,7 @@ const Analytics = () => {
             <CardDescription>Visualize claims data based on soil type and water availability.</CardDescription>
           </CardHeader>
           <CardContent className="h-[600px] w-full p-0">
-            <ThematicMap claims={claims} geoJsonData={geoJsonData} />
+            <ThematicMap claims={filteredClaims} geoJsonData={geoJsonData} />
           </CardContent>
         </Card>
       </div>

@@ -7,8 +7,8 @@ interface DataVisualizationProps {
   claims: Claim[];
 }
 
-const COLORS = ['#22c55e', '#facc15', '#ef4444']; // Green, Yellow, Red for statuses
-const STATE_COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F'];
+const STATUS_COLORS = ['hsl(var(--primary))', 'hsl(var(--muted-foreground))', 'hsl(var(--destructive))'];
+const PROFESSIONAL_COLORS = ['#4f46e5', '#0d9488', '#f59e0b', '#db2777', '#6b7280', '#3b82f6'];
 
 const DataVisualization = ({ claims }: DataVisualizationProps) => {
   const claimsByStatus = useMemo(() => {
@@ -26,7 +26,7 @@ const DataVisualization = ({ claims }: DataVisualizationProps) => {
 
   const claimsByState = useMemo(() => {
     const stateCounts = claims.reduce((acc, claim) => {
-      if (claim.state !== 'Unknown') {
+      if (claim.state && claim.state !== 'Unknown') {
         acc[claim.state] = (acc[claim.state] || 0) + 1;
       }
       return acc;
@@ -51,7 +51,7 @@ const DataVisualization = ({ claims }: DataVisualizationProps) => {
               <Legend />
               <Bar dataKey="count" name="Number of Claims">
                 {claimsByStatus.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
                 ))}
               </Bar>
             </BarChart>
@@ -77,7 +77,7 @@ const DataVisualization = ({ claims }: DataVisualizationProps) => {
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
                 {claimsByState.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={STATE_COLORS[index % STATE_COLORS.length]} />
+                  <Cell key={`cell-${index}`} fill={PROFESSIONAL_COLORS[index % PROFESSIONAL_COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip wrapperClassName="rounded-lg border bg-background p-2 shadow-sm" />

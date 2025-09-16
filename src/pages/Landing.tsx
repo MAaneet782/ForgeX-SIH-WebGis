@@ -131,7 +131,7 @@ const LandingPage = () => {
             </div>
             <div className="lg:col-span-2">
               <div className="rounded-lg overflow-hidden shadow-lg">
-                <img src="https://images.unsplash.com/photo-1448375240586-882707db888b?q=80&w=2070&auto=format&fit=crop" alt="Sunlight filtering through a lush green forest canopy" className="w-full h-full object-cover" />
+                <img src="/forest-hero.jpg" alt="Sunlight filtering through a lush green forest canopy" className="w-full h-full object-cover" />
               </div>
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 <Globe className="inline-block mr-1 h-4 w-4 text-green-500" />
