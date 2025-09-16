@@ -184,7 +184,7 @@ const ClaimsData = ({
           </div>
         </CardContent>
       </Card>
-      <ExcelImportDialog isOpen={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} />
+      <ExcelImportDialog isOpen={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} claims={claims} />
     </>
   );
 };
