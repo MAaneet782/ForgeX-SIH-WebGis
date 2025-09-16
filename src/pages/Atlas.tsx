@@ -13,11 +13,6 @@ import { DashboardStateProvider } from "@/context/DashboardStateContext";
 import { showError, showSuccess, showInfo, showLoading, dismissToast } from "@/utils/toast";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import DashboardStats from "@/components/DashboardStats";
-import DataVisualization from "@/components/DataVisualization";
-import DecisionSupportPanel from "@/components/DecisionSupportPanel";
-import { Map, LayoutGrid, Table } from "lucide-react";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -53,7 +48,6 @@ const IndexPageContent = () => {
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
-  const [viewMode, setViewMode] = useState("default");
 
   const addClaimMutation = useMutation({
     mutationFn: async (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => {
@@ -98,10 +92,6 @@ const IndexPageContent = () => {
     );
   }, [claims, searchTerm]);
 
-  const selectedClaim = useMemo(() => {
-    return claims.find(c => c.id === selectedClaimId) || null;
-  }, [claims, selectedClaimId]);
-
   const geoJsonData = useMemo((): FeatureCollection => {
     const features = claims
       .filter(claim => claim.geometry) // Ensure claim has geometry
@@ -115,7 +105,6 @@ const IndexPageContent = () => {
 
   const handleZoomToClaim = (claimId: string) => {
     setSelectedClaimId(claimId);
-    setViewMode('map');
   };
 
   const handleClaimClickOnMap = (claimId: string | null) => {
@@ -162,54 +151,38 @@ const IndexPageContent = () => {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={82} minSize={50}>
-          <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={65} minSize={40}>
-              <div className="h-full overflow-y-auto p-6 space-y-6">
-                <header className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
-                    <p className="text-muted-foreground">Live Data from Supabase Database</p>
-                  </div>
-                  <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
-                    <ToggleGroupItem value="default" aria-label="Default view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4" /></ToggleGroupItem>
-                    <ToggleGroupItem value="map" aria-label="Map view"><Map className="h-4 w-4" /></ToggleGroupItem>
-                  </ToggleGroup>
-                </header>
-                
-                <DashboardStats claims={claims} />
-                <DataVisualization claims={claims} />
-                
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold">Claims Explorer</h2>
-                  <div className={cn("rounded-lg overflow-hidden border", viewMode === 'table' ? 'hidden' : 'block', viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
-                    <GisMap 
-                      claims={claims}
-                      claimsData={geoJsonData} 
-                      waterData={waterBodiesGeoJson}
-                      agriData={agriLandGeoJson}
-                      selectedClaimId={selectedClaimId} 
-                      onClaimSelect={handleClaimClickOnMap}
-                    />
-                  </div>
-                  <div className={cn(viewMode === 'map' ? 'hidden' : 'block')}>
-                    <ClaimsData 
-                      claims={filteredClaims}
-                      onAddClaim={(claim) => addClaimMutation.mutate(claim)}
-                      onGenerateReport={handleGenerateReport}
-                      onZoomToClaim={handleZoomToClaim}
-                    />
-                  </div>
-                </div>
+          <main className="h-full overflow-y-auto p-6 space-y-8">
+            <header>
+              <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
+              <p className="text-muted-foreground">Live Data from Supabase Database</p>
+            </header>
+            
+            <DashboardStats claims={claims} />
+            
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Claims Map</h2>
+              <div className="h-[60vh] min-h-[500px] rounded-lg overflow-hidden border">
+                <GisMap 
+                  claims={claims}
+                  claimsData={geoJsonData} 
+                  waterData={waterBodiesGeoJson}
+                  agriData={agriLandGeoJson}
+                  selectedClaimId={selectedClaimId} 
+                  onClaimSelect={handleClaimClickOnMap}
+                />
               </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={35} minSize={25}>
-              <div className="h-full overflow-y-auto p-6">
-                <DecisionSupportPanel claim={selectedClaim} />
-              </div>
-            </ResizablePanel>
-          </ResizablePanelGroup>
+            </div>
+
+            <div className="space-y-4">
+               <h2 className="text-2xl font-bold">Claims Explorer</h2>
+               <ClaimsData 
+                  claims={filteredClaims}
+                  onAddClaim={(claim) => addClaimMutation.mutate(claim)}
+                  onGenerateReport={handleGenerateReport}
+                  onZoomToClaim={handleZoomToClaim}
+                />
+            </div>
+          </main>
         </ResizablePanel>
       </ResizablePanelGroup>
       
