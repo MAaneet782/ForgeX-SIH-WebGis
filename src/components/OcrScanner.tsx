@@ -32,9 +32,14 @@ const OcrScanner = ({ isOpen, onOpenChange, onScanComplete }: OcrScannerProps) =
     setIsLoading(true);
     setScannedData(null);
     try {
-      // In a real app, you would upload the file here.
-      // For this demo, we just invoke the function which returns mock data.
-      const { data, error } = await supabase.functions.invoke('ocr-extract');
+      const formData = new FormData();
+      formData.append('document', selectedFile);
+
+      // We now pass the file to the edge function.
+      // The function will still return mock data for this demo.
+      const { data, error } = await supabase.functions.invoke('ocr-extract', {
+        body: formData,
+      });
       
       if (error) throw error;
 
