@@ -19,23 +19,27 @@ const getCropAnalysis = (soilType: Claim['soilType']) => {
   switch (soilType) {
     case 'Alluvial':
       return [
-        { name: 'Rice (Paddy)', sowingSeason: 'Kharif (June-July)', subsidyInfo: 'Eligible for MSP and covered under National Food Security Mission.', iconName: 'CalendarDays', potentialYield: '4-5 tons/ha', marketTrend: 'Stable demand, government procurement ensures price stability.' },
-        { name: 'Wheat', sowingSeason: 'Rabi (Oct-Nov)', subsidyInfo: 'High demand crop with strong MSP support. Access to PM-KISAN benefits.', iconName: 'BadgeIndianRupee', potentialYield: '3-4 tons/ha', marketTrend: 'Consistently high demand, especially for high-quality grains.' },
+        { name: 'Rice (Paddy)', sowingSeason: 'Kharif (June-July)', subsidyInfo: 'Eligible for MSP and covered under National Food Security Mission.', iconName: 'CalendarDays', potentialYield: '4-5 tons/ha', recommendation: 'Ideal for water-rich areas. Use high-yielding varieties for maximum output.' },
+        { name: 'Wheat', sowingSeason: 'Rabi (Oct-Nov)', subsidyInfo: 'High demand crop with strong MSP support. Access to PM-KISAN benefits.', iconName: 'BadgeIndianRupee', potentialYield: '3-4 tons/ha', recommendation: 'Requires well-irrigated land. Good for crop rotation with rice.' },
+        { name: 'Sugarcane', sowingSeason: 'Annual (Jan-Mar)', subsidyInfo: 'Fair and Remunerative Price (FRP) set by government. Subsidies for drip irrigation available.', iconName: 'CalendarDays', potentialYield: '80-100 tons/ha', recommendation: 'Long-duration, water-intensive crop. Suitable for large holdings.' },
       ];
     case 'Clay':
       return [
-        { name: 'Cotton', sowingSeason: 'Kharif (May-June)', subsidyInfo: 'Covered under the National Food Security Mission (Commercial Crops).', iconName: 'CalendarDays', potentialYield: '1.5-2 tons/ha', marketTrend: 'Prices linked to international markets; can be volatile but profitable.' },
-        { name: 'Soybean', sowingSeason: 'Kharif (June-July)', subsidyInfo: 'Eligible for MSP. Subsidies available for high-yield seeds.', iconName: 'BadgeIndianRupee', potentialYield: '2-2.5 tons/ha', marketTrend: 'Growing demand in food processing and animal feed industries.' },
+        { name: 'Cotton', sowingSeason: 'Kharif (May-June)', subsidyInfo: 'Covered under the National Food Security Mission (Commercial Crops).', iconName: 'CalendarDays', potentialYield: '1.5-2 tons/ha', recommendation: 'Requires a long frost-free period. Good drainage is essential.' },
+        { name: 'Soybean', sowingSeason: 'Kharif (June-July)', subsidyInfo: 'Eligible for MSP. Subsidies available for high-yield seeds.', iconName: 'BadgeIndianRupee', potentialYield: '2-2.5 tons/ha', recommendation: 'Nitrogen-fixing crop, improves soil fertility. Intercropping is beneficial.' },
+        { name: 'Lentils (Masur)', sowingSeason: 'Rabi (Oct-Nov)', subsidyInfo: 'Promoted under NFSM-Pulses. Minimum Support Price (MSP) is available.', iconName: 'CalendarDays', potentialYield: '1-1.2 tons/ha', recommendation: 'Drought-tolerant and suitable for rainfed areas with clay soil.' },
       ];
     case 'Loamy':
       return [
-        { name: 'Maize', sowingSeason: 'Kharif (June-July)', subsidyInfo: 'Subsidies available under the National Mission on Oilseeds and Oil Palm.', iconName: 'CalendarDays', potentialYield: '5-6 tons/ha', marketTrend: 'Strong demand from poultry and starch industries.' },
-        { name: 'Pulses (Gram)', sowingSeason: 'Rabi (Oct-Nov)', subsidyInfo: 'Promoted under NFSM-Pulses with financial assistance for seeds and inputs.', iconName: 'BadgeIndianRupee', potentialYield: '1-1.5 tons/ha', marketTrend: 'High domestic demand, government focus on increasing production.' },
+        { name: 'Maize', sowingSeason: 'Kharif (June-July)', subsidyInfo: 'Subsidies available under the National Mission on Oilseeds and Oil Palm.', iconName: 'CalendarDays', potentialYield: '5-6 tons/ha', recommendation: 'Versatile crop with high yield potential. Good for intercropping.' },
+        { name: 'Pulses (Gram)', sowingSeason: 'Rabi (Oct-Nov)', subsidyInfo: 'Promoted under NFSM-Pulses with financial assistance for seeds and inputs.', iconName: 'BadgeIndianRupee', potentialYield: '1-1.5 tons/ha', recommendation: 'Low water requirement, enhances soil nitrogen. Ideal for rotation.' },
+        { name: 'Groundnut', sowingSeason: 'Kharif & Rabi', subsidyInfo: 'MSP available. Support for seeds and mechanization under various schemes.', iconName: 'CalendarDays', potentialYield: '1.5-2 tons/ha', recommendation: 'Well-drained loamy soil is perfect. Can be grown in two seasons.' },
       ];
     case 'Laterite':
         return [
-        { name: 'Cashew', sowingSeason: 'Plantation (June-Aug)', subsidyInfo: 'Support available from the Directorate of Cashew and Cocoa Development.', iconName: 'CalendarDays', potentialYield: '0.8-1 ton/ha', marketTrend: 'High-value crop with strong export potential.' },
-        { name: 'Coffee', sowingSeason: 'Plantation (June-July)', subsidyInfo: 'Subsidies and support provided by the Coffee Board of India.', iconName: 'BadgeIndianRupee', potentialYield: '0.7-1 ton/ha (Arabica)', marketTrend: 'Premium prices for quality beans in global markets.' },
+        { name: 'Cashew', sowingSeason: 'Plantation (June-Aug)', subsidyInfo: 'Support available from the Directorate of Cashew and Cocoa Development.', iconName: 'CalendarDays', potentialYield: '0.8-1 ton/ha', recommendation: 'High-value plantation crop well-suited for coastal areas with laterite soil.' },
+        { name: 'Coffee', sowingSeason: 'Plantation (June-July)', subsidyInfo: 'Subsidies and support provided by the Coffee Board of India.', iconName: 'BadgeIndianRupee', potentialYield: '0.7-1 ton/ha (Arabica)', recommendation: 'Requires specific altitude and rainfall. Best for hilly regions.' },
+        { name: 'Rubber', sowingSeason: 'Plantation (June-July)', subsidyInfo: 'Support from the Rubber Board for new planting and replanting.', iconName: 'CalendarDays', potentialYield: '1.5-2 tons/ha', recommendation: 'Long-term investment. Requires high rainfall and humidity.' },
       ];
     default:
       return [];

@@ -8,7 +8,7 @@ export interface CropRecommendation {
   subsidyInfo: string;
   iconName: string;
   potentialYield: string;
-  marketTrend: string;
+  recommendation: string;
 }
 
 export interface WaterAnalysis {

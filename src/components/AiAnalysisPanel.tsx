@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import type { Claim } from "@/data/mockClaims";
-import { Leaf, Sprout, Droplets, DollarSign, Waves, Globe, Briefcase, CalendarDays, BadgeIndianRupee, AlertCircle, TrendingUp, Package } from "lucide-react";
+import { Leaf, Sprout, Droplets, DollarSign, Waves, Globe, Briefcase, CalendarDays, BadgeIndianRupee, AlertCircle, Package, Lightbulb } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type AnalysisResult } from "@/lib/ai-analysis";
@@ -128,18 +128,18 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
                     <CardTitle className="text-base font-medium flex items-center"><Leaf className="mr-2 h-4 w-4 text-green-500" />{crop.name}</CardTitle>
                     <Icon className="h-5 w-5 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm font-semibold">{crop.sowingSeason}</p>
+                  <CardContent className="space-y-3 pt-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="font-semibold">{crop.sowingSeason}</span>
+                      <div className="flex items-center font-semibold">
+                        <Package className="mr-1.5 h-4 w-4 text-primary" />
+                        <span>{crop.potentialYield}</span>
+                      </div>
+                    </div>
                     <p className="text-sm text-muted-foreground">{crop.subsidyInfo}</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                      <div className="flex items-center">
-                        <Package className="mr-2 h-4 w-4 text-primary" />
-                        <strong>Yield:</strong><span className="ml-1">{crop.potentialYield}</span>
-                      </div>
-                       <div className="flex items-center">
-                        <TrendingUp className="mr-2 h-4 w-4 text-primary" />
-                        <strong>Market:</strong><span className="ml-1">{crop.marketTrend}</span>
-                      </div>
+                    <div className="flex items-start space-x-2 pt-2">
+                      <Lightbulb className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Recommendation:</span> {crop.recommendation}</p>
                     </div>
                   </CardContent>
                 </Card>
