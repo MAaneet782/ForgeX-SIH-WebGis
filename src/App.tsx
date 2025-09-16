@@ -24,12 +24,12 @@ const App = () => (
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/atlas/analytics" element={<Analytics />} />
 
           {/* Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/atlas" element={<Atlas />} />
             <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
-            <Route path="/atlas/analytics" element={<Analytics />} />
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
