@@ -64,13 +64,13 @@ const DataVisualization = ({ claims }: DataVisualizationProps) => {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
+            <PieChart margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <Pie
                 data={claimsByState}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={100}
+                outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
                 nameKey="name"
@@ -81,7 +81,7 @@ const DataVisualization = ({ claims }: DataVisualizationProps) => {
                 ))}
               </Pie>
               <Tooltip wrapperClassName="rounded-lg border bg-background p-2 shadow-sm" />
-              <Legend />
+              <Legend layout="vertical" verticalAlign="middle" align="right" />
             </PieChart>
           </ResponsiveContainer>
         </CardContent>

@@ -14,7 +14,7 @@ const LayersPanel = ({ isOpen, onOpenChange }: LayersPanelProps) => {
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[350px] sm:w-[400px]">
+      <SheetContent className="w-[350px] sm:w-[400px] z-[9999]">
         <SheetHeader>
           <SheetTitle>Map Layers</SheetTitle>
         </SheetHeader>
