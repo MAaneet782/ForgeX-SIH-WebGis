@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf } from "lucide-react";
+import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart3 } from "lucide-react";
 import { useDashboardState } from "@/context/DashboardStateContext";
 import { showInfo } from "@/utils/toast";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: '', content: <></> });
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const schemesContent = (
     <div className="space-y-4 text-sm">
@@ -80,6 +82,7 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
       { icon: Layers, label: "Layers Panel", action: onToggleLayersPanel },
       { icon: Map, label: "Basemap Switcher", action: () => showInfo("Use the control on the map to switch basemaps.") },
       { icon: Filter, label: "Advanced Filters", action: () => showInfo("Use the 'Apply Filters' button in the header.") },
+      { icon: BarChart3, label: "Thematic Analysis", action: () => navigate('/atlas/analytics') },
     ],
     "PATTA HOLDER": [
       { icon: Compass, label: "Find My Parcel", action: onFindMyParcel },
