@@ -170,7 +170,7 @@ const ClaimsData = ({
                       <TableCell>{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
-                          <Button size="sm" className="bg-[#004d40] hover:bg-[#00382e]" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}>
+                          <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}>
                             <Info className="mr-2 h-4 w-4" />
                             Details
                           </Button>

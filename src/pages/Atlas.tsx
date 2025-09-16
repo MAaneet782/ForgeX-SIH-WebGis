@@ -13,6 +13,7 @@ import { DashboardStateProvider } from "@/context/DashboardStateContext";
 import { showError, showSuccess, showInfo, showLoading, dismissToast } from "@/utils/toast";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import DashboardStats from "@/components/DashboardStats";
+import DataVisualization from "@/components/DataVisualization";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -181,6 +182,11 @@ const IndexPageContent = () => {
                   onGenerateReport={handleGenerateReport}
                   onZoomToClaim={handleZoomToClaim}
                 />
+            </div>
+
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Data Analysis</h2>
+              <DataVisualization claims={claims} />
             </div>
           </main>
         </ResizablePanel>

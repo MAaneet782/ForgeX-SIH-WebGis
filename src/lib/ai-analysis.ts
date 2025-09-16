@@ -7,6 +7,8 @@ export interface CropRecommendation {
   sowingSeason: string;
   subsidyInfo: string;
   iconName: string;
+  potentialYield: string;
+  marketTrend: string;
 }
 
 export interface WaterAnalysis {
