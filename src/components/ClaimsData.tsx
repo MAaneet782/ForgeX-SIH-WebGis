@@ -21,8 +21,8 @@ import {
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
-import { Download, Search, Info } from "lucide-react";
-import { useState } from "react";
+import { Download, Search, Info, ArrowUpDown } from "lucide-react";
+import { useState, useMemo } from "react";
 
 interface ClaimsDataProps {
   claims: Claim[];
@@ -31,6 +31,8 @@ interface ClaimsDataProps {
   onZoomToClaim: (id: string) => void;
 }
 
+type SortKey = keyof Claim | 'updated';
+
 const ClaimsData = ({ 
   claims, 
   onAddClaim, 
@@ -38,6 +40,7 @@ const ClaimsData = ({
   onZoomToClaim,
 }: ClaimsDataProps) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
   const navigate = useNavigate();
 
   const getRightType = (status: Claim['status']) => {
@@ -57,8 +60,50 @@ const ClaimsData = ({
     const d = new Date();
     const dayOffset = parseInt(claimId.replace('C', ''), 10) % 28;
     d.setDate(d.getDate() - dayOffset);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    return d;
   };
+
+  const sortedClaims = useMemo(() => {
+    let sortableItems = [...claims];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        let aValue: any;
+        let bValue: any;
+
+        if (sortConfig.key === 'updated') {
+          aValue = getMockDate(a.id).getTime();
+          bValue = getMockDate(b.id).getTime();
+        } else {
+          aValue = a[sortConfig.key as keyof Claim];
+          bValue = b[sortConfig.key as keyof Claim];
+        }
+        
+        if (aValue < bValue) {
+          return sortConfig.direction === 'ascending' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'ascending' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [claims, sortConfig]);
+
+  const requestSort = (key: SortKey) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const SortableHeader = ({ sortKey, children }: { sortKey: SortKey, children: React.ReactNode }) => (
+    <Button variant="ghost" onClick={() => requestSort(sortKey)} className="px-2">
+      {children}
+      <ArrowUpDown className="ml-2 h-4 w-4" />
+    </Button>
+  );
 
   return (
     <Card>
@@ -95,16 +140,16 @@ const ClaimsData = ({
             <TableHeader>
               <TableRow>
                 <TableHead>Parcel ID</TableHead>
-                <TableHead>Patta Holder</TableHead>
-                <TableHead>Village</TableHead>
-                <TableHead className="text-right">Area (ha)</TableHead>
+                <TableHead><SortableHeader sortKey="holderName">Patta Holder</SortableHeader></TableHead>
+                <TableHead><SortableHeader sortKey="village">Village</SortableHeader></TableHead>
+                <TableHead className="text-right"><SortableHeader sortKey="area">Area (ha)</SortableHeader></TableHead>
                 <TableHead className="text-center">Type of Right</TableHead>
-                <TableHead>Updated</TableHead>
+                <TableHead><SortableHeader sortKey="updated">Updated</SortableHeader></TableHead>
                 <TableHead className="text-center">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {claims.map((claim) => {
+              {sortedClaims.map((claim) => {
                 const rightType = getRightType(claim.status);
                 return (
                   <TableRow key={claim.id}>
@@ -115,7 +160,7 @@ const ClaimsData = ({
                     <TableCell className="text-center">
                       <Badge variant="outline" className={cn("border-transparent font-semibold", rightType.className)}>{rightType.text}</Badge>
                     </TableCell>
-                    <TableCell>{getMockDate(claim.id)}</TableCell>
+                    <TableCell>{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-2">
                         <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onZoomToClaim(claim.id)}>

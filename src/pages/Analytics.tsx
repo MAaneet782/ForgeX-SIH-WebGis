@@ -3,11 +3,13 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
 import type { Claim } from "@/data/mockClaims";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { FeatureCollection, Geometry, Feature } from "geojson";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, IndianRupee, Map, Users } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Skeleton } from "@/components/ui/skeleton";
+import ThematicMap from "@/components/ThematicMap";
 
 const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
   <Card>
@@ -37,6 +39,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
     soilType: item.soil_type,
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
+    geometry: item.geometry,
   }));
 };
 
@@ -79,6 +82,18 @@ const Analytics = () => {
     };
   }, [claims]);
 
+  const geoJsonData = useMemo((): FeatureCollection => {
+    if (!claims) return { type: "FeatureCollection", features: [] };
+    const features = claims
+      .filter(claim => claim.geometry)
+      .map((claim): Feature => ({
+        type: "Feature",
+        properties: { ...claim },
+        geometry: claim.geometry as Geometry,
+      }));
+    return { type: "FeatureCollection", features };
+  }, [claims]);
+
   const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
   if (isLoading) {
@@ -95,6 +110,7 @@ const Analytics = () => {
           <Skeleton className="md:col-span-3 h-96 w-full" />
           <Skeleton className="md:col-span-2 h-96 w-full" />
         </div>
+        <Skeleton className="h-96 w-full" />
       </div>
     );
   }
@@ -135,8 +151,8 @@ const Analytics = () => {
         />
       </div>
 
-      <div className="grid md:grid-cols-5 gap-6">
-        <Card className="md:col-span-3">
+      <div className="grid md:grid-cols-1 lg:grid-cols-5 gap-6">
+        <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Crop Value by District</CardTitle>
           </CardHeader>
@@ -153,7 +169,7 @@ const Analytics = () => {
             </ResponsiveContainer>
           </CardContent>
         </Card>
-        <Card className="md:col-span-2">
+        <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>Crop Value by Soil Type</CardTitle>
           </CardHeader>
@@ -179,6 +195,15 @@ const Analytics = () => {
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-5">
+          <CardHeader>
+            <CardTitle>Thematic Map Analysis</CardTitle>
+            <CardDescription>Visualize claims data based on soil type and water availability.</CardDescription>
+          </CardHeader>
+          <CardContent className="h-[600px] w-full p-0">
+            <ThematicMap claims={claims} geoJsonData={geoJsonData} />
           </CardContent>
         </Card>
       </div>

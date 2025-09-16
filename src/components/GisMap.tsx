@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 import L from 'leaflet';
 import { useDashboardState } from '@/context/DashboardStateContext';
 import type { Claim } from '@/data/mockClaims';
-import MapLegend from './MapLegend';
 
 interface GisMapProps {
   claims: Claim[];
@@ -84,31 +83,6 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
     return style;
   };
 
-  const styleSoilFeature = (feature?: Feature): PathOptions => {
-    const claimId = feature?.properties?.claimId;
-    const claim = claims.find(c => c.id === claimId);
-    const soilColors = {
-      Alluvial: '#a67c52',
-      Clay: '#8c564b',
-      Loamy: '#7c6c5c',
-      Laterite: '#d6616b',
-    };
-    const color = claim ? soilColors[claim.soilType] || '#cccccc' : '#cccccc';
-    return { color: color, weight: 1, fillColor: color, fillOpacity: 0.6 };
-  };
-
-  const styleWaterFeature = (feature?: Feature): PathOptions => {
-    const claimId = feature?.properties?.claimId;
-    const claim = claims.find(c => c.id === claimId);
-    const waterColors = {
-      High: '#1f77b4',
-      Medium: '#aec7e8',
-      Low: '#ff7f0e',
-    };
-    const color = claim ? waterColors[claim.waterAvailability] || '#cccccc' : '#cccccc';
-    return { color: color, weight: 1, fillColor: color, fillOpacity: 0.6 };
-  };
-
   const waterStyle: PathOptions = { color: '#0ea5e9', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.5 };
   const agriStyle: PathOptions = { color: '#16a34a', weight: 2, fillColor: '#4ade80', fillOpacity: 0.4 };
 
@@ -163,26 +137,9 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
               <GeoJSON data={agriData} style={agriStyle} />
             </LayersControl.Overlay>
           )}
-
-          {/* New Thematic Layers */}
-          <LayersControl.Overlay name="Soil Type">
-            <GeoJSON 
-              data={claimsData} 
-              style={styleSoilFeature}
-              key={'soil-layer-' + claims.length}
-            />
-          </LayersControl.Overlay>
-          <LayersControl.Overlay name="Water Availability">
-            <GeoJSON 
-              data={claimsData} 
-              style={styleWaterFeature}
-              key={'water-layer-' + claims.length}
-            />
-          </LayersControl.Overlay>
         </LayersControl>
         <MapController selectedClaimId={selectedClaimId} data={claimsData} />
       </MapContainer>
-      <MapLegend />
     </div>
   );
 };
