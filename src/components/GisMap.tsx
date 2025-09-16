@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import L from 'leaflet';
 import { useDashboardState } from '@/context/DashboardStateContext';
 import type { Claim } from '@/data/mockClaims';
+import MapLegend from './MapLegend';
 
 interface GisMapProps {
   claims: Claim[];
@@ -83,62 +84,106 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
     return style;
   };
 
+  const styleSoilFeature = (feature?: Feature): PathOptions => {
+    const claimId = feature?.properties?.claimId;
+    const claim = claims.find(c => c.id === claimId);
+    const soilColors = {
+      Alluvial: '#a67c52',
+      Clay: '#8c564b',
+      Loamy: '#7c6c5c',
+      Laterite: '#d6616b',
+    };
+    const color = claim ? soilColors[claim.soilType] || '#cccccc' : '#cccccc';
+    return { color: color, weight: 1, fillColor: color, fillOpacity: 0.6 };
+  };
+
+  const styleWaterFeature = (feature?: Feature): PathOptions => {
+    const claimId = feature?.properties?.claimId;
+    const claim = claims.find(c => c.id === claimId);
+    const waterColors = {
+      High: '#1f77b4',
+      Medium: '#aec7e8',
+      Low: '#ff7f0e',
+    };
+    const color = claim ? waterColors[claim.waterAvailability] || '#cccccc' : '#cccccc';
+    return { color: color, weight: 1, fillColor: color, fillOpacity: 0.6 };
+  };
+
   const waterStyle: PathOptions = { color: '#0ea5e9', weight: 2, fillColor: '#38bdf8', fillOpacity: 0.5 };
   const agriStyle: PathOptions = { color: '#16a34a', weight: 2, fillColor: '#4ade80', fillOpacity: 0.4 };
 
   return (
-    <MapContainer center={center} zoom={5} className="h-full w-full">
-      <LayersControl position="topright">
-        <LayersControl.BaseLayer checked name="Street Map">
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Satellite">
-          <TileLayer
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            attribution="Tiles &copy; Esri"
-            maxZoom={18}
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Satellite + Labels">
-          <LayerGroup>
+    <div className="relative h-full w-full">
+      <MapContainer center={center} zoom={5} className="h-full w-full">
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer checked name="Street Map">
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Satellite">
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               attribution="Tiles &copy; Esri"
               maxZoom={18}
             />
-            <TileLayer
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={18}
-            />
-          </LayerGroup>
-        </LayersControl.BaseLayer>
-        
-        {state.visibleLayers.claims && (
-          <LayersControl.Overlay checked name="FRA Claims">
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Satellite + Labels">
+            <LayerGroup>
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                attribution="Tiles &copy; Esri"
+                maxZoom={18}
+              />
+              <TileLayer
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={18}
+              />
+            </LayerGroup>
+          </LayersControl.BaseLayer>
+          
+          {state.visibleLayers.claims && (
+            <LayersControl.Overlay checked name="FRA Claims">
+              <GeoJSON 
+                data={claimsData} 
+                onEachFeature={onEachFeature} 
+                style={styleClaimFeature}
+                key={selectedClaimId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
+              />
+            </LayersControl.Overlay>
+          )}
+          {state.visibleLayers.water && (
+            <LayersControl.Overlay checked name="Water Bodies">
+              <GeoJSON data={waterData} style={waterStyle} />
+            </LayersControl.Overlay>
+          )}
+          {state.visibleLayers.agri && (
+            <LayersControl.Overlay checked name="Agricultural Land">
+              <GeoJSON data={agriData} style={agriStyle} />
+            </LayersControl.Overlay>
+          )}
+
+          {/* New Thematic Layers */}
+          <LayersControl.Overlay name="Soil Type">
             <GeoJSON 
               data={claimsData} 
-              onEachFeature={onEachFeature} 
-              style={styleClaimFeature}
-              key={selectedClaimId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
+              style={styleSoilFeature}
+              key={'soil-layer-' + claims.length}
             />
           </LayersControl.Overlay>
-        )}
-        {state.visibleLayers.water && (
-          <LayersControl.Overlay checked name="Water Bodies">
-            <GeoJSON data={waterData} style={waterStyle} />
+          <LayersControl.Overlay name="Water Availability">
+            <GeoJSON 
+              data={claimsData} 
+              style={styleWaterFeature}
+              key={'water-layer-' + claims.length}
+            />
           </LayersControl.Overlay>
-        )}
-        {state.visibleLayers.agri && (
-          <LayersControl.Overlay checked name="Agricultural Land">
-            <GeoJSON data={agriData} style={agriStyle} />
-          </LayersControl.Overlay>
-        )}
-      </LayersControl>
-      <MapController selectedClaimId={selectedClaimId} data={claimsData} />
-    </MapContainer>
+        </LayersControl>
+        <MapController selectedClaimId={selectedClaimId} data={claimsData} />
+      </MapContainer>
+      <MapLegend />
+    </div>
   );
 };
 
