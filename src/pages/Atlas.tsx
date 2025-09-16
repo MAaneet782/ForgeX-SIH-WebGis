@@ -25,8 +25,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 const fetchClaims = async (): Promise<Claim[]> => {
   const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
-  // The database stores 'id' as a number, but we use a custom 'claim_id' string.
-  // Let's map the database response to our Claim type.
   return data.map(item => ({
     id: item.claim_id,
     holderName: item.holder_name,
@@ -39,6 +37,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
     soilType: item.soil_type,
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
+    geometry: item.geometry,
   }));
 };
 
@@ -57,7 +56,7 @@ const IndexPageContent = () => {
   const [viewMode, setViewMode] = useState("default");
 
   const addClaimMutation = useMutation({
-    mutationFn: async (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => {
+    mutationFn: async (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => {
       const toastId = showLoading("Adding new claim...");
       const { coordinates, ...rest } = newClaimData;
       const claim_id = `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
@@ -104,19 +103,13 @@ const IndexPageContent = () => {
   }, [claims, selectedClaimId]);
 
   const geoJsonData = useMemo((): FeatureCollection => {
-    const features = claims.map((claim): Feature => {
-      // We need to fetch the geometry for this part. For now, let's assume it's part of the claim object.
-      // This will require modifying the fetch function and Supabase table.
-      // Let's assume a placeholder geometry for now.
-      const claimWithGeo = claims.find(c => c.id === claim.id);
-      // @ts-ignore - In a real scenario, geometry would be fetched.
-      const geometry = claimWithGeo?.geometry || { type: "Polygon", coordinates: [[[0,0]]] };
-      return {
+    const features = claims
+      .filter(claim => claim.geometry) // Ensure claim has geometry
+      .map((claim): Feature => ({
         type: "Feature",
         properties: { claimId: claim.id, holderName: claim.holderName },
-        geometry: geometry as Geometry,
-      };
-    });
+        geometry: claim.geometry as Geometry,
+      }));
     return { type: "FeatureCollection", features };
   }, [claims]);
 
@@ -126,7 +119,6 @@ const IndexPageContent = () => {
   };
 
   const handleGenerateReport = () => {
-    // This function remains the same
     showSuccess("Report generated successfully!");
   };
 

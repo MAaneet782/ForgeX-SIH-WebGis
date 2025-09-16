@@ -1,4 +1,4 @@
-import { FeatureCollection } from 'geojson';
+import { FeatureCollection, Geometry } from 'geojson';
 
 export type Claim = {
   id: string;
@@ -12,6 +12,7 @@ export type Claim = {
   soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite';
   waterAvailability: 'High' | 'Medium' | 'Low';
   estimatedCropValue: number; // in INR
+  geometry?: Geometry;
 };
 
 export const waterBodiesGeoJson: FeatureCollection = {

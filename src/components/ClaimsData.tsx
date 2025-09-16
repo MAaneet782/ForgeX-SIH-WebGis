@@ -26,7 +26,7 @@ import { useState } from "react";
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => void;
+  onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => void;
   onGenerateReport: () => void;
   onZoomToClaim: (id: string) => void;
 }
@@ -74,7 +74,7 @@ const ClaimsData = ({
                 <SheetHeader>
                   <SheetTitle>Add New Claim</SheetTitle>
                   <SheetDescription>
-                    Enter the details for the new land claim. Ensure GeoJSON coordinates are accurate.
+                    Enter claim details manually or scan a document to auto-fill the form.
                   </SheetDescription>
                 </SheetHeader>
                 <div className="py-4">
