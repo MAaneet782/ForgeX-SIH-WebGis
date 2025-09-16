@@ -2,14 +2,28 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import type { Claim } from "@/data/mockClaims";
-import { Leaf, Sprout, Droplets, DollarSign } from "lucide-react";
+import { Leaf, Sprout, Droplets, DollarSign, Waves, Globe, Briefcase, CalendarDays, BadgeIndianRupee, AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { runPredictiveAnalysis, type AnalysisResult } from "@/lib/ai-analysis";
+import { type AnalysisResult } from "@/lib/ai-analysis";
+import { supabase } from "@/lib/supabaseClient";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface AiAnalysisPanelProps {
   claim: Claim;
 }
+
+// --- Icon Mapping ---
+// Maps icon names from the backend to actual Lucide components
+const iconMap: { [key: string]: React.ElementType } = {
+  Waves,
+  Globe,
+  Briefcase,
+  DollarSign,
+  CalendarDays,
+  BadgeIndianRupee,
+  Leaf,
+};
 
 // --- Skeleton Component ---
 const AiAnalysisSkeleton = () => (
@@ -44,20 +58,53 @@ const AiAnalysisSkeleton = () => (
 const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      const results = runPredictiveAnalysis(claim);
-      setAnalysis(results);
-      setIsLoading(false);
-    }, 1500); // Simulate advanced model processing time
+    const getAnalysis = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        // Invoke the Supabase Edge Function instead of the local simulation
+        const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
+          body: { claim },
+        });
 
-    return () => clearTimeout(timer);
+        if (functionError) throw functionError;
+        
+        setAnalysis(data);
+      } catch (e: any) {
+        console.error("Failed to fetch AI analysis:", e);
+        setError(e.message || "An unknown error occurred.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    getAnalysis();
   }, [claim]);
 
-  if (isLoading || !analysis) {
+  if (isLoading) {
     return <AiAnalysisSkeleton />;
+  }
+
+  if (error || !analysis) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>AI-Powered Predictive Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Analysis Failed</AlertTitle>
+            <AlertDescription>
+              Could not retrieve predictive analysis. {error}
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    );
   }
 
   const { cropAnalysis, waterAnalysis, economicOpportunities } = analysis;
@@ -73,18 +120,21 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
         <div>
           <h3 className="font-semibold text-lg mb-4 flex items-center"><Sprout className="mr-2 h-5 w-5 text-green-600" /> Crop Recommendations ({claim.soilType} Soil)</h3>
           <div className="space-y-4">
-            {cropAnalysis.map(crop => (
-              <Card key={crop.name} className="bg-muted/50">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-base font-medium flex items-center"><Leaf className="mr-2 h-4 w-4 text-green-500" />{crop.name}</CardTitle>
-                  <crop.icon className="h-5 w-5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm font-semibold">{crop.sowingSeason}</p>
-                  <p className="text-sm text-muted-foreground mt-1">{crop.subsidyInfo}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {cropAnalysis.map(crop => {
+              const Icon = iconMap[crop.iconName] || Leaf;
+              return (
+                <Card key={crop.name} className="bg-muted/50">
+                  <CardHeader className="flex flex-row items-center justify-between pb-2">
+                    <CardTitle className="text-base font-medium flex items-center"><Leaf className="mr-2 h-4 w-4 text-green-500" />{crop.name}</CardTitle>
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm font-semibold">{crop.sowingSeason}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{crop.subsidyInfo}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
 
@@ -117,15 +167,18 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
         <div>
           <h3 className="font-semibold text-lg mb-4 flex items-center"><DollarSign className="mr-2 h-5 w-5 text-yellow-600" /> Economic Opportunity Analysis</h3>
           <div className="grid md:grid-cols-2 gap-4">
-            {economicOpportunities.map(opp => (
-              <div key={opp.name} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg">
-                <opp.icon className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                <div>
-                  <p className="font-semibold">{opp.name}</p>
-                  <p className="text-sm text-muted-foreground">{opp.description}</p>
+            {economicOpportunities.map(opp => {
+              const Icon = iconMap[opp.iconName] || DollarSign;
+              return (
+                <div key={opp.name} className="flex items-start space-x-3 p-3 bg-muted/50 rounded-lg">
+                  <Icon className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold">{opp.name}</p>
+                    <p className="text-sm text-muted-foreground">{opp.description}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </CardContent>
