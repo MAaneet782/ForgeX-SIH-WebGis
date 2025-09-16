@@ -8,6 +8,9 @@ import Atlas from "./pages/Atlas";
 import NotFound from "./pages/NotFound";
 import ClaimDetail from "./pages/ClaimDetail";
 import Analytics from "./pages/Analytics";
+import LoginPage from "./pages/Login";
+import SignupPage from "./pages/Signup";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -19,9 +22,16 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/atlas" element={<Atlas />} />
-          <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
-          <Route path="/atlas/analytics" element={<Analytics />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+
+          {/* Protected Routes */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/atlas" element={<Atlas />} />
+            <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
+            <Route path="/atlas/analytics" element={<Analytics />} />
+          </Route>
+
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

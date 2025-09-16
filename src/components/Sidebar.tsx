@@ -6,6 +6,7 @@ import { useDashboardState } from "@/context/DashboardStateContext";
 import { showInfo } from "@/utils/toast";
 import { cn } from "@/lib/utils";
 import SchemeInfoModal from "./SchemeInfoModal";
+import { useAuth } from "@/context/AuthContext";
 
 interface SidebarProps {
   onToggleLayersPanel: () => void;
@@ -16,6 +17,7 @@ interface SidebarProps {
 const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: SidebarProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: '', content: <></> });
+  const { user } = useAuth();
 
   const schemesContent = (
     <div className="space-y-4 text-sm">
@@ -97,11 +99,11 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
           <h2 className="text-2xl font-bold">FRA Atlas</h2>
           <div className="flex items-center gap-3 mt-4">
             <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="Anita Devi" />
-              <AvatarFallback>AD</AvatarFallback>
+              <AvatarImage src="" alt={user?.email?.charAt(0).toUpperCase()} />
+              <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">Anita Devi</p>
+              <p className="font-semibold truncate max-w-[180px]">{user?.email}</p>
               <p className="text-xs text-gray-300">Local Government Official</p>
             </div>
           </div>

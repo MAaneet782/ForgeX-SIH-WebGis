@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "./theme-toggle";
 import { showInfo } from "@/utils/toast";
 import FiltersPanel from "./FiltersPanel";
+import { useAuth } from "@/context/AuthContext";
 
 interface HeaderProps {
   searchTerm: string;
@@ -17,6 +18,8 @@ interface HeaderProps {
 }
 
 const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
+  const { user, signOut } = useAuth();
+
   return (
     <header className="bg-card border-b p-2 flex items-center justify-between gap-4">
       <div className="flex items-center gap-4 flex-grow">
@@ -83,10 +86,10 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
               <Avatar className="h-8 w-8">
-                <AvatarImage src="https://github.com/shadcn.png" alt="Anita Devi" />
-                <AvatarFallback>AD</AvatarFallback>
+                <AvatarImage src="" alt={user?.email?.charAt(0).toUpperCase()} />
+                <AvatarFallback>{user?.email?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
-              <span>Anita Devi</span>
+              <span>{user?.email}</span>
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -94,7 +97,7 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
             <DropdownMenuItem onClick={() => showInfo("Viewing user profile...")}><User className="mr-2 h-4 w-4" />Profile</DropdownMenuItem>
             <DropdownMenuItem onClick={() => showInfo("Opening settings...")}><Settings className="mr-2 h-4 w-4" />Settings</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => showInfo("Logging out...")}><LogOut className="mr-2 h-4 w-4" />Logout</DropdownMenuItem>
+            <DropdownMenuItem onClick={signOut}><LogOut className="mr-2 h-4 w-4" />Logout</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
-import { Home, BookOpen, BarChart2, LogIn, HelpCircle, Search, Bell, Mail, User, Info, Map, TrendingUp, FileDigit, Users, Globe } from "lucide-react";
+import { Home, BookOpen, BarChart2, LogIn, HelpCircle, Search, Bell, Mail, User, Info, Map, TrendingUp, FileDigit, Users, Globe, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
 
 const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
   <Card>
@@ -20,6 +21,8 @@ const StatCard = ({ icon: Icon, title, value, description }: { icon: React.Eleme
 );
 
 const LandingPage = () => {
+  const { session, user, signOut } = useAuth();
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
       {/* Sidebar */}
@@ -31,11 +34,11 @@ const LandingPage = () => {
         <div className="p-4 border-b border-primary-foreground/20">
           <div className="flex items-center gap-3">
             <div className="bg-gray-200 text-gray-800 rounded-full h-10 w-10 flex items-center justify-center font-bold text-lg">
-              G
+              {session ? user?.email?.charAt(0).toUpperCase() : 'G'}
             </div>
             <div>
-              <p className="font-semibold">Guest</p>
-              <p className="text-xs opacity-80">Public Access</p>
+              <p className="font-semibold">{session ? user?.email : 'Guest'}</p>
+              <p className="text-xs opacity-80">{session ? 'Official Access' : 'Public Access'}</p>
             </div>
           </div>
         </div>
@@ -51,9 +54,15 @@ const LandingPage = () => {
           </Link>
         </nav>
         <div className="p-4 border-t border-primary-foreground/20 space-y-2">
-          <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
-            <LogIn className="mr-3 h-5 w-5" /> Login
-          </Link>
+          {session ? (
+            <button onClick={signOut} className="w-full flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md text-left">
+              <LogOut className="mr-3 h-5 w-5" /> Logout
+            </button>
+          ) : (
+            <Link to="/login" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
+              <LogIn className="mr-3 h-5 w-5" /> Login
+            </Link>
+          )}
           <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
             <HelpCircle className="mr-3 h-5 w-5" /> Help
           </Link>
@@ -79,9 +88,19 @@ const LandingPage = () => {
               <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs leading-none">0</Badge>
             </Button>
             <Button variant="ghost" size="icon"><Mail className="h-5 w-5" /></Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <User className="h-4 w-4" /> Guest <span className="text-xs">▼</span>
-            </Button>
+            {session ? (
+              <Button variant="outline" className="flex items-center gap-2" asChild>
+                <Link to="/atlas">
+                  <User className="h-4 w-4" /> {user?.email?.split('@')[0]} <span className="text-xs">▼</span>
+                </Link>
+              </Button>
+            ) : (
+              <Button variant="outline" className="flex items-center gap-2" asChild>
+                <Link to="/login">
+                  <User className="h-4 w-4" /> Guest <span className="text-xs">▼</span>
+                </Link>
+              </Button>
+            )}
           </div>
         </header>
 
@@ -91,7 +110,7 @@ const LandingPage = () => {
             <Info className="h-4 w-4 !text-blue-800 dark:!text-blue-300" />
             <AlertTitle>Heads up!</AlertTitle>
             <AlertDescription>
-              You are viewing the public preview of the FRA Platform. Some features require login.
+              {session ? `You are logged in as ${user?.email}.` : 'You are viewing the public preview of the FRA Platform. Some features require login.'}
             </AlertDescription>
           </Alert>
 
