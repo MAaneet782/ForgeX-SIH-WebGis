@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Loader2, UploadCloud } from "lucide-react";
 import { showError, showSuccess, showLoading, dismissToast } from "@/utils/toast";
 import { useQueryClient } from "@tanstack/react-query";
+import type { Claim } from "@/data/mockClaims"; // Import Claim type for soilType and waterAvailability
 
 interface ExcelImportDialogProps {
   isOpen: boolean;
@@ -16,7 +17,7 @@ interface ExcelImportDialogProps {
 
 // Helper to convert Excel serial date to JS Date
 const excelSerialToDate = (serial: number) => {
-  if (isNaN(serial)) return null;
+  if (isNaN(serial) || serial < 25569 || serial > 50000) return null; // Basic validation for Excel date range
   const utc_days = Math.floor(serial - 25569);
   const utc_value = utc_days * 86400;
   const date_info = new Date(utc_value * 1000);
@@ -25,7 +26,16 @@ const excelSerialToDate = (serial: number) => {
 
 // Helper to create a random polygon around a center point (with reduced size)
 const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) => {
-    const radius = (Math.sqrt(areaInAcres * 4046.86) / 111320 / 2) / 2; // Reduced radius by 50%
+    // Ensure lat/lon are valid numbers
+    if (isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) {
+      // Fallback to a default small polygon if coordinates are invalid
+      lat = 22.5937; // Default center of India
+      lon = 78.9629;
+      areaInAcres = 0.1; // Very small default area
+    }
+
+    const effectiveArea = Math.max(0.01, areaInAcres); // Ensure area is at least a small positive number
+    const radius = (Math.sqrt(effectiveArea * 4046.86) / 111320 / 2) / 2; // Reduced radius by 50%
     const points = 5;
     const coords = [];
     for (let i = 0; i < points; i++) {
@@ -37,6 +47,24 @@ const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) 
     }
     coords.push(coords[0]); // Close the polygon
     return { type: "Polygon", coordinates: [coords] };
+};
+
+// Helper to get value from potential column names (case-insensitive and space-tolerant)
+const getCellValue = (row: any, keys: string[]) => {
+  const normalizedRow: Record<string, any> = {};
+  for (const key in row) {
+    if (Object.prototype.hasOwnProperty.call(row, key)) {
+      normalizedRow[key.toLowerCase().replace(/[^a-z0-9]/g, '')] = row[key];
+    }
+  }
+
+  for (const key of keys) {
+    const normalizedKey = key.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (normalizedRow[normalizedKey] !== undefined && normalizedRow[normalizedKey] !== null) {
+      return normalizedRow[normalizedKey];
+    }
+  }
+  return undefined;
 };
 
 const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => {
@@ -51,12 +79,18 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
       setFile(selectedFile);
       const reader = new FileReader();
       reader.onload = (event) => {
-        const data = new Uint8Array(event.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(worksheet);
-        setJsonData(json);
+        try {
+          const data = new Uint8Array(event.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet);
+          setJsonData(json);
+        } catch (error: any) {
+          showError(`Failed to parse Excel file: ${error.message}`);
+          setFile(null);
+          setJsonData([]);
+        }
       };
       reader.readAsArrayBuffer(selectedFile);
     }
@@ -74,35 +108,68 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
       'IFR': 'Approved',
       'CR': 'Pending',
       'CFR': 'Rejected',
+      'Approved': 'Approved', // Handle if status is already in desired format
+      'Pending': 'Pending',
+      'Rejected': 'Rejected',
     };
 
+    const soilTypes: Claim['soilType'][] = ['Alluvial', 'Clay', 'Loamy', 'Laterite'];
+    const waterAvailabilities: Claim['waterAvailability'][] = ['High', 'Medium', 'Low'];
+
     const newClaims = jsonData
-      .filter(row => row['patta holder']) // Filter out empty rows
+      .filter(row => getCellValue(row, ['patta holder', 'Patta Holder', 'holder name', 'Holder Name'])) // Filter out empty rows based on holder name
       .map(row => {
-        const [lat, lng] = (row['location coordinates'] || "0,0").split(',').map(Number);
-        const areaInAcres = parseFloat(row['area (ha)']) * 2.47105;
-        const updatedDate = excelSerialToDate(row['updated']);
+        const rawCoords = getCellValue(row, ['location coordinates', 'Location Coordinates', 'coordinates', 'Coordinates']);
+        let lat = 0;
+        let lng = 0;
+        if (rawCoords) {
+          const parts = String(rawCoords).split(',').map(Number);
+          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            [lat, lng] = parts;
+          } else {
+            console.warn(`Invalid coordinates for row: ${JSON.stringify(row)}. Using default 0,0.`);
+          }
+        }
+
+        const areaInHectares = parseFloat(getCellValue(row, ['area (ha)', 'Area (ha)', 'area', 'Area']) || '0');
+        const areaInAcres = areaInHectares * 2.47105;
+        const updatedDateSerial = getCellValue(row, ['updated', 'Updated', 'date', 'Date']);
+        const updatedDate = excelSerialToDate(updatedDateSerial);
         
-        // If 'parcel id' is missing, generate a random one to prevent db error
-        const claimId = row['parcel id'] ? String(row['parcel id']) : `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+        const claimId = String(getCellValue(row, ['parcel id', 'Parcel ID', 'claim id', 'Claim ID']) || `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`);
+        const statusRaw = getCellValue(row, ['type of right', 'Type of Right', 'status', 'Status']);
+        const status: 'Approved' | 'Pending' | 'Rejected' = statusMap[statusRaw] || 'Pending';
+
+        const soilTypeRaw = getCellValue(row, ['soil type', 'Soil Type', 'soil']);
+        const soilType: Claim['soilType'] = soilTypes.includes(soilTypeRaw) ? soilTypeRaw : soilTypes[Math.floor(Math.random() * soilTypes.length)];
+
+        const waterAvailabilityRaw = getCellValue(row, ['water availability', 'Water Availability', 'water']);
+        const waterAvailability: Claim['waterAvailability'] = waterAvailabilities.includes(waterAvailabilityRaw) ? waterAvailabilityRaw : waterAvailabilities[Math.floor(Math.random() * waterAvailabilities.length)];
+
+        const estimatedCropValueRaw = getCellValue(row, ['estimated crop value', 'Estimated Crop Value', 'crop value']);
+        const estimatedCropValue = isNaN(parseFloat(estimatedCropValueRaw)) ? (Math.floor(Math.random() * 20000) + 5000) : parseFloat(estimatedCropValueRaw);
 
         return {
           claim_id: claimId,
-          holder_name: row['patta holder'],
-          village: row['village'],
-          district: 'Unknown', // Not in Excel
-          state: row['state'],
+          holder_name: getCellValue(row, ['patta holder', 'Patta Holder', 'holder name', 'Holder Name']),
+          village: getCellValue(row, ['village', 'Village']),
+          district: getCellValue(row, ['district', 'District']) || 'Unknown',
+          state: getCellValue(row, ['state', 'State']),
           area: isNaN(areaInAcres) ? 0 : areaInAcres,
-          status: statusMap[row['type of right']] || 'Pending',
-          soil_type: ['Alluvial', 'Clay', 'Loamy', 'Laterite'][Math.floor(Math.random() * 4)],
-          water_availability: ['High', 'Medium', 'Low'][Math.floor(Math.random() * 3)],
-          estimated_crop_value: Math.floor(Math.random() * 20000) + 5000,
+          status: status,
+          document_name: getCellValue(row, ['document name', 'Document Name']),
+          soil_type: soilType,
+          water_availability: waterAvailability,
+          estimated_crop_value: estimatedCropValue,
           geometry: createPolygonFromCenter(lat, lng, isNaN(areaInAcres) ? 1 : areaInAcres),
           created_at: updatedDate || new Date(),
         };
       });
 
     try {
+      if (newClaims.length === 0) {
+        throw new Error("No valid claims found to import after processing.");
+      }
       const { error } = await supabase.from('claims').insert(newClaims);
       if (error) throw error;
       
@@ -126,7 +193,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
         <DialogHeader>
           <DialogTitle>Import Claims from Excel</DialogTitle>
           <DialogDescription>
-            Upload an Excel file with claim data. The columns should be: parcel id, patta holder, village, state, area (ha), type of right, updated, location coordinates.
+            Upload an Excel file with claim data. Expected columns (case-insensitive, space-tolerant): "parcel id", "patta holder", "village", "district", "state", "area (ha)", "type of right", "updated", "location coordinates", "soil type", "water availability", "estimated crop value".
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
@@ -139,7 +206,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
           </div>
           {jsonData.length > 0 && (
             <div>
-              <h4 className="font-semibold mb-2">Data Preview</h4>
+              <h4 className="font-semibold mb-2">Data Preview ({jsonData.length} rows)</h4>
               <div className="max-h-64 overflow-y-auto border rounded-lg">
                 <Table>
                   <TableHeader>
@@ -150,9 +217,10 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
                   <TableBody>
                     {jsonData.slice(0, 5).map((row, i) => (
                       <TableRow key={i}>
-                        {Object.entries(row).map(([key, val]: [string, any], j: number) => (
+                        {Object.values(row).map((val: any, j: number) => (
                           <TableCell key={j}>
-                            {key === 'updated' ? excelSerialToDate(val)?.toLocaleDateString() : String(val)}
+                            {/* Attempt to format date if it looks like an Excel serial number */}
+                            {typeof val === 'number' && val > 25569 && val < 50000 ? excelSerialToDate(val)?.toLocaleDateString() || String(val) : String(val)}
                           </TableCell>
                         ))}
                       </TableRow>
