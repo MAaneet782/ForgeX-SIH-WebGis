@@ -9,16 +9,19 @@ const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
   const schemes = [
     {
       name: "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
+      url: "https://pmkisan.gov.in/",
       isEligible: claim.status === 'Approved' && claim.area < 5,
       reason: claim.status !== 'Approved' ? "Claim not approved" : claim.area >= 5 ? "Area exceeds 5 acres" : "Eligible",
     },
     {
       name: "National Food Security Mission",
+      url: "https://www.nfsm.gov.in/",
       isEligible: claim.status === 'Approved',
       reason: claim.status === 'Approved' ? "Eligible" : "Claim not approved",
     },
     {
       name: "Rashtriya Krishi Vikas Yojana (RKVY)",
+      url: "https://rkvy.nic.in/",
       isEligible: claim.area > 2,
       reason: claim.area > 2 ? "Eligible" : "Area is 2 acres or less",
     },
@@ -35,7 +38,9 @@ const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
             <XCircle className="h-5 w-5 text-red-500 mt-1 flex-shrink-0" />
           )}
           <div>
-            <p className="font-medium">{scheme.name}</p>
+            <a href={scheme.url} target="_blank" rel="noopener noreferrer" className="font-medium hover:underline">
+              {scheme.name}
+            </a>
             <p className={`text-sm ${scheme.isEligible ? 'text-green-600' : 'text-red-600'}`}>
               {scheme.isEligible ? "Eligible" : "Not Eligible"}: <span className="text-muted-foreground">{scheme.reason}</span>
             </p>

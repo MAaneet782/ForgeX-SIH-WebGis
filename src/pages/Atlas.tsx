@@ -118,6 +118,12 @@ const IndexPageContent = () => {
     setViewMode('map');
   };
 
+  const handleClaimClickOnMap = (claimId: string | null) => {
+    if (claimId) {
+      navigate(`/atlas/claim/${claimId}`);
+    }
+  };
+
   const handleGenerateReport = () => {
     showSuccess("Report generated successfully!");
   };
@@ -179,7 +185,7 @@ const IndexPageContent = () => {
                     waterData={waterBodiesGeoJson}
                     agriData={agriLandGeoJson}
                     selectedClaimId={selectedClaimId} 
-                    onClaimSelect={setSelectedClaimId}
+                    onClaimSelect={handleClaimClickOnMap}
                   />
                 </div>
                 <div className={cn(viewMode === 'map' ? 'hidden' : 'block')}>
