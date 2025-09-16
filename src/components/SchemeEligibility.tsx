@@ -1,33 +1,93 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, AlertCircle } from "lucide-react";
 import type { Claim } from "@/data/mockClaims";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface SchemeEligibilityProps {
   claim: Claim;
 }
 
+interface Scheme {
+  name: string;
+  url: string;
+  isEligible: boolean;
+  reason: string;
+}
+
+const SchemeEligibilitySkeleton = () => (
+  <div className="space-y-4">
+    <h4 className="text-md font-semibold">Scheme Eligibility Analysis</h4>
+    <div className="space-y-3">
+      {[...Array(3)].map((_, i) => (
+        <div key={i} className="p-4 border rounded-lg">
+          <div className="flex justify-between items-center mb-2">
+            <Skeleton className="h-5 w-3/5" />
+            <Skeleton className="h-6 w-20" />
+          </div>
+          <Skeleton className="h-4 w-4/5 mb-3" />
+          <Skeleton className="h-4 w-1/3" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
-  const schemes = [
-    {
-      name: "Pradhan Mantri Kisan Samman Nidhi (PM-KISAN)",
-      url: "https://pmkisan.gov.in/",
-      isEligible: claim.status === 'Approved' && claim.area < 5,
-      reason: claim.status !== 'Approved' ? "Claim not approved." : claim.area >= 5 ? "Area exceeds 5 acre limit." : "All criteria met.",
-    },
-    {
-      name: "National Food Security Mission",
-      url: "https://www.nfsm.gov.in/",
-      isEligible: claim.status === 'Approved',
-      reason: claim.status === 'Approved' ? "Claim is approved." : "Claim not approved.",
-    },
-    {
-      name: "Rashtriya Krishi Vikas Yojana (RKVY)",
-      url: "https://rkvy.nic.in/",
-      isEligible: claim.area > 2,
-      reason: claim.area > 2 ? "Area is above the 2 acre minimum." : "Area is 2 acres or less.",
-    },
-  ];
+  const [schemes, setSchemes] = useState<Scheme[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchEligibility = async () => {
+      if (!claim) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const { data, error: functionError } = await supabase.functions.invoke('scheme-eligibility', {
+          body: { claim: { status: claim.status, area: claim.area } },
+        });
+
+        if (functionError) {
+          throw functionError;
+        }
+
+        if (data && data.schemes) {
+          setSchemes(data.schemes);
+        } else {
+          throw new Error("Invalid response from eligibility function.");
+        }
+      } catch (e: any) {
+        setError(e.message || "Failed to fetch scheme eligibility.");
+        console.error(e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchEligibility();
+  }, [claim]);
+
+  if (isLoading) {
+    return <SchemeEligibilitySkeleton />;
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Could not load scheme eligibility data. {error}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-4">
