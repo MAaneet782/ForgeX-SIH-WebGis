@@ -29,21 +29,28 @@ const excelSerialToDate = (serial: number) => {
 const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) => {
     // Ensure lat/lon are valid numbers
     if (isNaN(lat) || isNaN(lon)) {
-      // Fallback to a default small polygon if coordinates are invalid
       lat = 22.5937; // Default center of India (latitude)
       lon = 78.9629; // Default center of India (longitude)
-      areaInAcres = 0.1; // Very small default area
     }
 
-    const effectiveArea = Math.max(0.01, areaInAcres); // Ensure area is at least a small positive number
-    const radius = (Math.sqrt(effectiveArea * 4046.86) / 111320 / 2) / 2; // Reduced radius by 50%
+    // Define a small base delta for polygon points in degrees
+    // This ensures the polygon is always small and localized.
+    // The actual size will be scaled by areaInAcres.
+    const baseDelta = 0.001; // Approximately 111 meters at the equator
+
+    // Scale the delta based on the area, but keep it small
+    // Using Math.cbrt for a more gradual scaling effect for area
+    const scaleFactor = Math.cbrt(Math.max(0.1, areaInAcres)) * 0.5; // Scale by cube root of area, min 0.1 acres, then halve it
+    const deltaLat = baseDelta * scaleFactor;
+    const deltaLon = baseDelta * scaleFactor;
+
     const points = 5;
     const coords = [];
     for (let i = 0; i < points; i++) {
         const angle = (i / points) * 2 * Math.PI;
-        const randomFactor = 0.75 + Math.random() * 0.5;
-        const newLat = lat + Math.cos(angle) * radius * randomFactor;
-        const newLon = lon + Math.sin(angle) * radius * randomFactor;
+        const randomFactor = 0.9 + Math.random() * 0.2; // Slight randomness
+        const newLat = lat + Math.cos(angle) * deltaLat * randomFactor;
+        const newLon = lon + Math.sin(angle) * deltaLon * randomFactor;
         coords.push([newLon, newLat]); // GeoJSON expects [longitude, latitude]
     }
     coords.push(coords[0]); // Close the polygon
@@ -150,6 +157,20 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
             // Assuming Excel provides coordinates as "longitude, latitude"
             parsedLon = parts[0];
             parsedLat = parts[1];
+
+            // Validate coordinates to be within India's approximate bounds
+            const INDIA_MIN_LAT = 8;
+            const INDIA_MAX_LAT = 37;
+            const INDIA_MIN_LON = 68;
+            const INDIA_MAX_LON = 97;
+
+            if (parsedLat < INDIA_MIN_LAT || parsedLat > INDIA_MAX_LAT ||
+                parsedLon < INDIA_MIN_LON || parsedLon > INDIA_MAX_LON) {
+                console.warn(`Coordinates ${parsedLat}, ${parsedLon} are outside India's bounds for row: ${JSON.stringify(row)}. Using default center.`);
+                parsedLat = 22.5937; // Default center of India (latitude)
+                parsedLon = 78.9629; // Default center of India (longitude)
+            }
+
           } else {
             console.warn(`Invalid coordinates for row: ${JSON.stringify(row)}. Using default center.`);
           }
