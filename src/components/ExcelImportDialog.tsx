@@ -13,6 +13,7 @@ import type { Claim } from "@/data/mockClaims"; // Import Claim type for soilTyp
 interface ExcelImportDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  claims: Claim[]; // Added to receive existing claims for ID validation
 }
 
 // Helper to convert Excel serial date to JS Date
@@ -67,7 +68,7 @@ const getCellValue = (row: any, keys: string[]) => {
   return undefined;
 };
 
-const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => {
+const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogProps) => {
   const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [jsonData, setJsonData] = useState<any[]>([]);
@@ -116,6 +117,26 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
     const soilTypes: Claim['soilType'][] = ['Alluvial', 'Clay', 'Loamy', 'Laterite'];
     const waterAvailabilities: Claim['waterAvailability'][] = ['High', 'Medium', 'Low'];
 
+    const existingClaimIds = new Set(claims.map(c => c.id));
+    const generatedIdsInBatch = new Set<string>();
+
+    const generateUniqueClaimId = (baseId?: string): string => {
+      let newId = baseId || `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+      let counter = 0;
+      while (existingClaimIds.has(newId) || generatedIdsInBatch.has(newId)) {
+        counter++;
+        // Append a timestamp and a small random number to ensure uniqueness
+        newId = `C${Date.now()}-${Math.floor(Math.random() * 100000)}`; 
+        if (counter > 100) { // Safety break to prevent infinite loops in extreme collision cases
+            console.warn("Too many ID collisions, falling back to a more robust random ID.");
+            newId = `C${Date.now()}-${Math.floor(Math.random() * 10000000)}`;
+            break;
+        }
+      }
+      generatedIdsInBatch.add(newId);
+      return newId;
+    };
+
     const newClaims = jsonData
       .filter(row => getCellValue(row, ['patta holder', 'Patta Holder', 'holder name', 'Holder Name'])) // Filter out empty rows based on holder name
       .map(row => {
@@ -136,7 +157,9 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
         const updatedDateSerial = getCellValue(row, ['updated', 'Updated', 'date', 'Date']);
         const updatedDate = excelSerialToDate(updatedDateSerial);
         
-        const claimId = String(getCellValue(row, ['parcel id', 'Parcel ID', 'claim id', 'Claim ID']) || `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`);
+        const claimIdFromExcel = String(getCellValue(row, ['parcel id', 'Parcel ID', 'claim id', 'Claim ID']) || '');
+        const finalClaimId = generateUniqueClaimId(claimIdFromExcel);
+
         const statusRaw = getCellValue(row, ['type of right', 'Type of Right', 'status', 'Status']);
         const status: 'Approved' | 'Pending' | 'Rejected' = statusMap[statusRaw] || 'Pending';
 
@@ -150,7 +173,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange }: ExcelImportDialogProps) => 
         const estimatedCropValue = isNaN(parseFloat(estimatedCropValueRaw)) ? (Math.floor(Math.random() * 20000) + 5000) : parseFloat(estimatedCropValueRaw);
 
         return {
-          claim_id: claimId,
+          claim_id: finalClaimId,
           holder_name: getCellValue(row, ['patta holder', 'Patta Holder', 'holder name', 'Holder Name']),
           village: getCellValue(row, ['village', 'Village']),
           district: getCellValue(row, ['district', 'District']) || 'Unknown',
