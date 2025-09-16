@@ -152,25 +152,28 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
         let parsedLon = 78.9629; // Default longitude for India
 
         if (rawCoords) {
-          const parts = String(rawCoords).split(',').map(Number);
+          const parts = String(rawCoords).split(',').map(s => parseFloat(s.trim()));
           if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            // Assuming Excel provides coordinates as "longitude, latitude"
-            parsedLon = parts[0];
-            parsedLat = parts[1];
+            let lat = parts[0];
+            let lon = parts[1];
+
+            // Heuristic check: if the first value is > 90, it's likely longitude.
+            if (Math.abs(lat) > 90 && Math.abs(lon) <= 90) {
+              [lat, lon] = [lon, lat]; // Swap them
+            }
 
             // Validate coordinates to be within India's approximate bounds
             const INDIA_MIN_LAT = 8;
             const INDIA_MAX_LAT = 37;
             const INDIA_MIN_LON = 68;
-            const INDIA_MAX_LON = 97;
+            const INDIA_MAX_LON = 98; // A bit of buffer
 
-            if (parsedLat < INDIA_MIN_LAT || parsedLat > INDIA_MAX_LAT ||
-                parsedLon < INDIA_MIN_LON || parsedLon > INDIA_MAX_LON) {
-                console.warn(`Coordinates ${parsedLat}, ${parsedLon} are outside India's bounds for row: ${JSON.stringify(row)}. Using default center.`);
-                parsedLat = 22.5937; // Default center of India (latitude)
-                parsedLon = 78.9629; // Default center of India (longitude)
+            if (lat >= INDIA_MIN_LAT && lat <= INDIA_MAX_LAT && lon >= INDIA_MIN_LON && lon <= INDIA_MAX_LON) {
+              parsedLat = lat;
+              parsedLon = lon;
+            } else {
+              console.warn(`Coordinates ${lat}, ${lon} are outside India's bounds for row: ${JSON.stringify(row)}. Using default center.`);
             }
-
           } else {
             console.warn(`Invalid coordinates for row: ${JSON.stringify(row)}. Using default center.`);
           }
@@ -240,7 +243,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
         <DialogHeader>
           <DialogTitle>Import Claims from Excel</DialogTitle>
           <DialogDescription>
-            Upload an Excel file with claim data. Expected columns (case-insensitive, space-tolerant): "parcel id", "patta holder", "village", "district", "state", "area (ha)", "type of right", "updated", "location coordinates" (expected format: "longitude,latitude"), "soil type", "water availability", "estimated crop value".
+            Upload an Excel file with claim data. Expected columns (case-insensitive, space-tolerant): "parcel id", "patta holder", "village", "district", "state", "area (ha)", "type of right", "updated", "location coordinates" (expected format: "latitude, longitude" e.g., "22.59, 78.96"), "soil type", "water availability", "estimated crop value".
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
