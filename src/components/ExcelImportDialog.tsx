@@ -28,10 +28,10 @@ const excelSerialToDate = (serial: number) => {
 // Helper to create a random polygon around a center point (with reduced size)
 const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) => {
     // Ensure lat/lon are valid numbers
-    if (isNaN(lat) || isNaN(lon) || lat === 0 || lon === 0) {
+    if (isNaN(lat) || isNaN(lon)) {
       // Fallback to a default small polygon if coordinates are invalid
-      lat = 22.5937; // Default center of India
-      lon = 78.9629;
+      lat = 22.5937; // Default center of India (latitude)
+      lon = 78.9629; // Default center of India (longitude)
       areaInAcres = 0.1; // Very small default area
     }
 
@@ -44,7 +44,7 @@ const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) 
         const randomFactor = 0.75 + Math.random() * 0.5;
         const newLat = lat + Math.cos(angle) * radius * randomFactor;
         const newLon = lon + Math.sin(angle) * radius * randomFactor;
-        coords.push([newLon, newLat]);
+        coords.push([newLon, newLat]); // GeoJSON expects [longitude, latitude]
     }
     coords.push(coords[0]); // Close the polygon
     return { type: "Polygon", coordinates: [coords] };
@@ -141,14 +141,17 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
       .filter(row => getCellValue(row, ['patta holder', 'Patta Holder', 'holder name', 'Holder Name'])) // Filter out empty rows based on holder name
       .map(row => {
         const rawCoords = getCellValue(row, ['location coordinates', 'Location Coordinates', 'coordinates', 'Coordinates']);
-        let lat = 0;
-        let lng = 0;
+        let parsedLat = 22.5937; // Default latitude for India
+        let parsedLon = 78.9629; // Default longitude for India
+
         if (rawCoords) {
           const parts = String(rawCoords).split(',').map(Number);
           if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            [lat, lng] = parts;
+            // Assuming Excel provides coordinates as "longitude, latitude"
+            parsedLon = parts[0];
+            parsedLat = parts[1];
           } else {
-            console.warn(`Invalid coordinates for row: ${JSON.stringify(row)}. Using default 0,0.`);
+            console.warn(`Invalid coordinates for row: ${JSON.stringify(row)}. Using default center.`);
           }
         }
 
@@ -184,7 +187,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
           soil_type: soilType,
           water_availability: waterAvailability,
           estimated_crop_value: estimatedCropValue,
-          geometry: createPolygonFromCenter(lat, lng, isNaN(areaInAcres) ? 1 : areaInAcres),
+          geometry: createPolygonFromCenter(parsedLat, parsedLon, isNaN(areaInAcres) ? 1 : areaInAcres),
           created_at: updatedDate || new Date(),
         };
       });
@@ -216,7 +219,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
         <DialogHeader>
           <DialogTitle>Import Claims from Excel</DialogTitle>
           <DialogDescription>
-            Upload an Excel file with claim data. Expected columns (case-insensitive, space-tolerant): "parcel id", "patta holder", "village", "district", "state", "area (ha)", "type of right", "updated", "location coordinates", "soil type", "water availability", "estimated crop value".
+            Upload an Excel file with claim data. Expected columns (case-insensitive, space-tolerant): "parcel id", "patta holder", "village", "district", "state", "area (ha)", "type of right", "updated", "location coordinates" (expected format: "longitude,latitude"), "soil type", "water availability", "estimated crop value".
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
