@@ -25,6 +25,20 @@ const excelSerialToDate = (serial: number) => {
   return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
 };
 
+// Approximate bounding boxes for MP and Odisha
+const STATE_BOUNDS = {
+  MP: { minLat: 21.15, maxLat: 26.90, minLon: 74.00, maxLon: 82.80 },
+  Odisha: { minLat: 17.70, maxLat: 22.75, minLon: 81.30, maxLon: 87.50 },
+};
+
+const isWithinStateBounds = (lat: number, lon: number): boolean => {
+  const inMP = lat >= STATE_BOUNDS.MP.minLat && lat <= STATE_BOUNDS.MP.maxLat &&
+               lon >= STATE_BOUNDS.MP.minLon && lon <= STATE_BOUNDS.MP.maxLon;
+  const inOdisha = lat >= STATE_BOUNDS.Odisha.minLat && lat <= STATE_BOUNDS.Odisha.maxLat &&
+                   lon >= STATE_BOUNDS.Odisha.minLon && lon <= STATE_BOUNDS.Odisha.maxLon;
+  return inMP || inOdisha;
+};
+
 // Helper to create a random polygon around a center point (with reduced size)
 const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) => {
     // Ensure lat/lon are valid numbers
@@ -33,13 +47,10 @@ const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) 
       lon = 78.9629; // Default center of India (longitude)
     }
 
-    // Define a small base delta for polygon points in degrees
-    // This ensures the polygon is always small and localized.
-    // The actual size will be scaled by areaInAcres.
-    const baseDelta = 0.0005; // Reduced base delta
-    // Scale the delta based on the area, but keep it small
-    // Using Math.cbrt for a more gradual scaling effect for area, with a significantly reduced multiplier
-    const scaleFactor = Math.cbrt(Math.max(0.1, areaInAcres)) * 0.1; 
+    // Define a very small base delta for polygon points in degrees
+    const baseDelta = 0.00005; // Significantly reduced base delta for very small polygons
+    // Scale the delta based on the area, but keep it extremely small
+    const scaleFactor = Math.cbrt(Math.max(0.01, areaInAcres)) * 0.02; // Even smaller multiplier
     const deltaLat = baseDelta * scaleFactor;
     const deltaLon = baseDelta * scaleFactor;
 
@@ -131,9 +142,8 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
       let counter = 0;
       while (existingClaimIds.has(newId) || generatedIdsInBatch.has(newId)) {
         counter++;
-        // Append a timestamp and a small random number to ensure uniqueness
         newId = `C${Date.now()}-${Math.floor(Math.random() * 100000)}`; 
-        if (counter > 100) { // Safety break to prevent infinite loops in extreme collision cases
+        if (counter > 100) { 
             console.warn("Too many ID collisions, falling back to a more robust random ID.");
             newId = `C${Date.now()}-${Math.floor(Math.random() * 10000000)}`;
             break;
@@ -146,36 +156,55 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
     const newClaims = jsonData
       .filter(row => getCellValue(row, ['patta holder', 'Patta Holder', 'holder name', 'Holder Name'])) // Filter out empty rows based on holder name
       .map(row => {
-        const rawCoords = getCellValue(row, ['location coordinates', 'Location Coordinates', 'coordinates', 'Coordinates']);
+        let geometry: any = null;
         let parsedLat = 22.5937; // Default latitude for India
         let parsedLon = 78.9629; // Default longitude for India
 
-        if (rawCoords) {
-          const parts = String(rawCoords).split(',').map(s => parseFloat(s.trim()));
-          if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            let lat = parts[0];
-            let lon = parts[1];
-
-            // Heuristic check: if the first value is > 90, it's likely longitude.
-            if (Math.abs(lat) > 90 && Math.abs(lon) <= 90) {
-              [lat, lon] = [lon, lat]; // Swap them
+        // Priority 1: Check for full GeoJSON geometry string
+        const rawGeoJson = getCellValue(row, ['geometry', 'geojson', 'Geometry', 'GeoJSON']);
+        if (rawGeoJson) {
+          try {
+            const parsedGeoJson = JSON.parse(rawGeoJson);
+            if (parsedGeoJson.type === 'Polygon' && Array.isArray(parsedGeoJson.coordinates)) {
+              geometry = parsedGeoJson;
+              // Attempt to get a centroid for state validation
+              const firstCoord = parsedGeoJson.coordinates[0][0]; // [lon, lat]
+              if (firstCoord && firstCoord.length === 2) {
+                parsedLon = firstCoord[0];
+                parsedLat = firstCoord[1];
+              }
             }
+          } catch (e) {
+            console.warn(`Invalid GeoJSON for row: ${JSON.stringify(row)}. Error: ${e}. Falling back to coordinates.`);
+          }
+        }
 
-            // Validate coordinates to be within India's approximate bounds
-            const INDIA_MIN_LAT = 8;
-            const INDIA_MAX_LAT = 37;
-            const INDIA_MIN_LON = 68;
-            const INDIA_MAX_LON = 98; // A bit of buffer
+        // Priority 2: If no valid GeoJSON, check for lat/lon coordinates
+        if (!geometry) {
+          const rawCoords = getCellValue(row, ['location coordinates', 'Location Coordinates', 'coordinates', 'Coordinates']);
+          if (rawCoords) {
+            const parts = String(rawCoords).split(',').map(s => parseFloat(s.trim()));
+            if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+              let lat = parts[0];
+              let lon = parts[1];
 
-            if (lat >= INDIA_MIN_LAT && lat <= INDIA_MAX_LAT && lon >= INDIA_MIN_LON && lon <= INDIA_MAX_LON) {
+              // Heuristic check: if the first value is > 90, it's likely longitude.
+              if (Math.abs(lat) > 90 && Math.abs(lon) <= 90) {
+                [lat, lon] = [lon, lat]; // Swap them
+              }
               parsedLat = lat;
               parsedLon = lon;
             } else {
-              console.warn(`Coordinates ${lat}, ${lon} are outside India's bounds for row: ${JSON.stringify(row)}. Using default center.`);
+              console.warn(`Invalid coordinates for row: ${JSON.stringify(row)}. Using default center.`);
             }
-          } else {
-            console.warn(`Invalid coordinates for row: ${JSON.stringify(row)}. Using default center.`);
           }
+        }
+
+        // Validate coordinates against state bounds
+        if (!isWithinStateBounds(parsedLat, parsedLon)) {
+          console.warn(`Coordinates ${parsedLat}, ${parsedLon} are outside MP/Odisha bounds for row: ${JSON.stringify(row)}. Using default center for MP.`);
+          parsedLat = 22.5937; // Default center of India (latitude)
+          parsedLon = 78.9629; // Default center of India (longitude)
         }
 
         const areaInHectares = parseFloat(getCellValue(row, ['area (ha)', 'Area (ha)', 'area', 'Area']) || '0');
@@ -210,7 +239,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
           soil_type: soilType,
           water_availability: waterAvailability,
           estimated_crop_value: estimatedCropValue,
-          geometry: createPolygonFromCenter(parsedLat, parsedLon, isNaN(areaInAcres) ? 1 : areaInAcres),
+          geometry: geometry || createPolygonFromCenter(parsedLat, parsedLon, isNaN(areaInAcres) ? 1 : areaInAcres),
           created_at: updatedDate || new Date(),
         };
       });
@@ -219,7 +248,8 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
       if (newClaims.length === 0) {
         throw new Error("No valid claims found to import after processing.");
       }
-      const { error } = await supabase.from('claims').insert(newClaims);
+      // Use upsert to update existing claims or insert new ones
+      const { error } = await supabase.from('claims').upsert(newClaims, { onConflict: 'claim_id', ignoreDuplicates: false });
       if (error) throw error;
       
       dismissToast(toastId);
@@ -242,7 +272,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
         <DialogHeader>
           <DialogTitle>Import Claims from Excel</DialogTitle>
           <DialogDescription>
-            Upload an Excel file with claim data. Expected columns (case-insensitive, space-tolerant): "parcel id", "patta holder", "village", "district", "state", "area (ha)", "type of right", "updated", "location coordinates" (expected format: "latitude, longitude" e.g., "22.59, 78.96"), "soil type", "water availability", "estimated crop value".
+            Upload an Excel file with claim data. Expected columns (case-insensitive, space-tolerant): "parcel id", "patta holder", "village", "district", "state", "area (ha)", "type of right", "updated", "location coordinates" (expected format: "latitude, longitude" e.g., "22.59, 78.96"), "geometry" (full GeoJSON Polygon string), "soil type", "water availability", "estimated crop value".
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
