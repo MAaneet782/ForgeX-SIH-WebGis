@@ -25,26 +25,32 @@ const excelSerialToDate = (serial: number) => {
   return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
 };
 
-// Approximate bounding boxes for MP and Odisha
+// Approximate bounding boxes for allowed states
 const STATE_BOUNDS = {
-  MP: { minLat: 21.15, maxLat: 26.90, minLon: 74.00, maxLon: 82.80 },
-  Odisha: { minLat: 17.70, maxLat: 22.75, minLon: 81.30, maxLon: 87.50 },
+  MP: { minLat: 21.15, maxLat: 26.90, minLon: 74.00, maxLon: 82.80 }, // Madhya Pradesh
+  Odisha: { minLat: 17.70, maxLat: 22.75, minLon: 81.30, maxLon: 87.50 }, // Odisha
+  Tripura: { minLat: 22.60, maxLat: 24.50, minLon: 91.00, maxLon: 92.50 }, // Tripura
+  Telangana: { minLat: 15.80, maxLat: 19.50, minLon: 77.20, maxLon: 81.50 }, // Telangana
 };
 
 const isWithinStateBounds = (lat: number, lon: number): boolean => {
-  const inMP = lat >= STATE_BOUNDS.MP.minLat && lat <= STATE_BOUNDS.MP.maxLat &&
-               lon >= STATE_BOUNDS.MP.minLon && lon <= STATE_BOUNDS.MP.maxLon;
-  const inOdisha = lat >= STATE_BOUNDS.Odisha.minLat && lat <= STATE_BOUNDS.Odisha.maxLat &&
-                   lon >= STATE_BOUNDS.Odisha.minLon && lon <= STATE_BOUNDS.Odisha.maxLon;
-  return inMP || inOdisha;
+  for (const stateKey in STATE_BOUNDS) {
+    // @ts-ignore
+    const bounds = STATE_BOUNDS[stateKey];
+    if (lat >= bounds.minLat && lat <= bounds.maxLat &&
+        lon >= bounds.minLon && lon <= bounds.maxLon) {
+      return true;
+    }
+  }
+  return false;
 };
 
 // Helper to create a random polygon around a center point (with reduced size)
 const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) => {
     // Ensure lat/lon are valid numbers
     if (isNaN(lat) || isNaN(lon)) {
-      lat = 22.5937; // Default center of India (latitude)
-      lon = 78.9629; // Default center of India (longitude)
+      lat = 22.5937; // Default latitude for India (within MP bounds)
+      lon = 78.9629; // Default longitude for India (within MP bounds)
     }
 
     // Define a very small base delta for polygon points in degrees
@@ -157,8 +163,8 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
       .filter(row => getCellValue(row, ['patta holder', 'Patta Holder', 'holder name', 'Holder Name'])) // Filter out empty rows based on holder name
       .map(row => {
         let geometry: any = null;
-        let parsedLat = 22.5937; // Default latitude for India
-        let parsedLon = 78.9629; // Default longitude for India
+        let parsedLat = 22.5937; // Default latitude for India (within MP bounds)
+        let parsedLon = 78.9629; // Default longitude for India (within MP bounds)
 
         // Priority 1: Check for full GeoJSON geometry string
         const rawGeoJson = getCellValue(row, ['geometry', 'geojson', 'Geometry', 'GeoJSON']);
@@ -202,9 +208,9 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
 
         // Validate coordinates against state bounds
         if (!isWithinStateBounds(parsedLat, parsedLon)) {
-          console.warn(`Coordinates ${parsedLat}, ${parsedLon} are outside MP/Odisha bounds for row: ${JSON.stringify(row)}. Using default center for MP.`);
-          parsedLat = 22.5937; // Default center of India (latitude)
-          parsedLon = 78.9629; // Default center of India (longitude)
+          console.warn(`Coordinates ${parsedLat}, ${parsedLon} are outside allowed state bounds for row: ${JSON.stringify(row)}. Using default center for MP.`);
+          parsedLat = 22.5937; // Default center of India (latitude, within MP)
+          parsedLon = 78.9629; // Default longitude for India (within MP)
         }
 
         const areaInHectares = parseFloat(getCellValue(row, ['area (ha)', 'Area (ha)', 'area', 'Area']) || '0');
