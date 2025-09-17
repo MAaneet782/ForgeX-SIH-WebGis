@@ -1,7 +1,8 @@
 import { FeatureCollection, Geometry } from 'geojson';
 
 export type Claim = {
-  id: string;
+  dbId: string; // The actual UUID primary key from Supabase
+  id: string; // The user-facing claim_id (text)
   holderName: string;
   village: string;
   district: string;

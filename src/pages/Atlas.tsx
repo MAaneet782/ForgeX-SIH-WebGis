@@ -22,7 +22,8 @@ const fetchClaims = async (): Promise<Claim[]> => {
   const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
   return data.map(item => ({
-    id: item.claim_id,
+    dbId: item.id, // Map DB's primary key 'id' to frontend 'dbId'
+    id: item.claim_id, // Map DB's 'claim_id' (text) to frontend 'id' (user-facing)
     holderName: item.holder_name,
     village: item.village,
     district: item.district,
@@ -46,20 +47,20 @@ const IndexPageContent = () => {
     queryFn: fetchClaims,
   });
 
-  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
+  const [selectedClaimDbId, setSelectedClaimDbId] = useState<string | null>(null); // Use dbId for map selection
   const [searchTerm, setSearchTerm] = useState("");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
 
   const addClaimMutation = useMutation({
-    mutationFn: async (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => {
+    mutationFn: async (newClaimData: Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => {
       const toastId = showLoading("Adding new claim...");
       const { coordinates, ...rest } = newClaimData;
       
-      // Generate a truly unique ID using crypto.randomUUID()
-      const claim_id = crypto.randomUUID();
+      // Generate a user-facing claim_id (text)
+      const userFacingClaimId = `C-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
       
       const newClaimRecord = {
-        claim_id,
+        claim_id: userFacingClaimId, // User-facing text ID
         holder_name: rest.holderName,
         village: rest.village,
         district: rest.district,
@@ -73,15 +74,15 @@ const IndexPageContent = () => {
         geometry: JSON.parse(coordinates),
       };
 
-      const { error } = await supabase.from('claims').insert([newClaimRecord]);
+      const { data, error } = await supabase.from('claims').insert([newClaimRecord]).select('id, claim_id').single(); // Select DB's primary key 'id'
       dismissToast(String(toastId));
       if (error) throw new Error(error.message);
-      return claim_id;
+      return { dbId: data.id, userFacingId: data.claim_id }; // Return both IDs
     },
-    onSuccess: (newClaimId) => {
+    onSuccess: ({ dbId, userFacingId }) => {
       queryClient.invalidateQueries({ queryKey: ['claims'] });
-      showSuccess(`Claim ${newClaimId} added. Redirecting to its dashboard for AI analysis.`);
-      navigate(`/atlas/claim/${newClaimId}`);
+      showSuccess(`Claim ${userFacingId} added. Redirecting to its dashboard for AI analysis.`);
+      navigate(`/atlas/claim/${userFacingId}`); // Navigate using user-facing ID
     },
     onError: (error) => {
       showError(`Failed to add claim: ${error.message}`);
@@ -89,18 +90,18 @@ const IndexPageContent = () => {
   });
 
   const deleteClaimMutation = useMutation({
-    mutationFn: async (claimId: string) => {
-      const toastId = showLoading(`Deleting claim ${claimId}...`);
-      const { error } = await supabase.from('claims').delete().eq('claim_id', claimId);
+    mutationFn: async (dbId: string) => { // Expects the database's primary key
+      const toastId = showLoading(`Deleting claim...`);
+      const { error } = await supabase.from('claims').delete().eq('id', dbId); // Delete using DB's primary key
       dismissToast(String(toastId));
       if (error) throw new Error(error.message);
-      return claimId;
+      return dbId;
     },
-    onSuccess: (deletedClaimId) => {
+    onSuccess: (deletedDbId) => {
       queryClient.invalidateQueries({ queryKey: ['claims'] });
-      showSuccess(`Claim ${deletedClaimId} deleted successfully.`);
-      if (selectedClaimId === deletedClaimId) {
-        setSelectedClaimId(null);
+      showSuccess(`Claim deleted successfully.`);
+      if (selectedClaimDbId === deletedDbId) {
+        setSelectedClaimDbId(null);
       }
     },
     onError: (error) => {
@@ -111,7 +112,8 @@ const IndexPageContent = () => {
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) =>
       claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      claim.village.toLowerCase().includes(searchTerm.toLowerCase())
+      claim.village.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      claim.id.toLowerCase().includes(searchTerm.toLowerCase()) // Search by user-facing ID
     );
   }, [claims, searchTerm]);
 
@@ -120,19 +122,22 @@ const IndexPageContent = () => {
       .filter(claim => claim.geometry) // Ensure claim has geometry
       .map((claim): Feature => ({
         type: "Feature",
-        properties: { claimId: claim.id, holderName: claim.holderName },
+        properties: { dbId: claim.dbId, claimId: claim.id, holderName: claim.holderName }, // Pass both IDs
         geometry: claim.geometry as Geometry,
       }));
     return { type: "FeatureCollection", features };
   }, [claims]);
 
-  const handleZoomToClaim = (claimId: string) => {
-    setSelectedClaimId(claimId);
+  const handleZoomToClaim = (dbId: string) => { // Expects dbId for map interaction
+    setSelectedClaimDbId(dbId);
   };
 
-  const handleClaimClickOnMap = (claimId: string | null) => {
-    if (claimId) {
-      navigate(`/atlas/claim/${claimId}`);
+  const handleClaimClickOnMap = (dbId: string | null) => { // Expects dbId from map
+    if (dbId) {
+      const clickedClaim = claims.find(c => c.dbId === dbId);
+      if (clickedClaim) {
+        navigate(`/atlas/claim/${clickedClaim.id}`); // Navigate using user-facing ID
+      }
     }
   };
 
@@ -142,9 +147,9 @@ const IndexPageContent = () => {
 
   const handleFindMyParcel = () => {
     if (claims.length > 0) {
-      const parcelId = claims[0].id;
-      setSelectedClaimId(parcelId);
-      showInfo(`Locating parcel for ${claims[0].holderName} (ID: ${parcelId})`);
+      const parcelDbId = claims[0].dbId;
+      setSelectedClaimDbId(parcelDbId);
+      showInfo(`Locating parcel for ${claims[0].holderName} (ID: ${claims[0].id})`);
     }
   };
 
@@ -190,7 +195,7 @@ const IndexPageContent = () => {
                   claimsData={geoJsonData} 
                   waterData={waterBodiesGeoJson}
                   agriData={agriLandGeoJson}
-                  selectedClaimId={selectedClaimId} 
+                  selectedClaimDbId={selectedClaimDbId} // Pass dbId to map
                   onClaimSelect={handleClaimClickOnMap}
                 />
               </div>
@@ -203,7 +208,7 @@ const IndexPageContent = () => {
                   onAddClaim={(claim) => addClaimMutation.mutate(claim)}
                   onGenerateReport={handleGenerateReport}
                   onZoomToClaim={handleZoomToClaim}
-                  onDeleteClaim={(claimId) => deleteClaimMutation.mutate(claimId)}
+                  onDeleteClaim={(dbId) => deleteClaimMutation.mutate(dbId)} // Pass dbId for deletion
                 />
             </div>
 

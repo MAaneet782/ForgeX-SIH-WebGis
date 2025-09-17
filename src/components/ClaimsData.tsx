@@ -37,10 +37,10 @@ import ExcelImportDialog from "./ExcelImportDialog";
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => void;
+  onAddClaim: (claim: Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => void;
   onGenerateReport: () => void;
-  onZoomToClaim: (id: string) => void;
-  onDeleteClaim: (id: string) => void; // New prop for deleting claims
+  onZoomToClaim: (dbId: string) => void; // Expects dbId for map zoom
+  onDeleteClaim: (dbId: string) => void; // Expects dbId for deleting claims
 }
 
 type SortKey = keyof Claim | 'updated';
@@ -56,7 +56,8 @@ const ClaimsData = ({
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [claimToDelete, setClaimToDelete] = useState<string | null>(null);
+  const [claimToDeleteDbId, setClaimToDeleteDbId] = useState<string | null>(null); // Store dbId for deletion
+  const [claimToDeleteUserFacingId, setClaimToDeleteUserFacingId] = useState<string | null>(null); // Store user-facing ID for dialog
   const navigate = useNavigate();
 
   const getRightType = (status: Claim['status']) => {
@@ -74,7 +75,9 @@ const ClaimsData = ({
 
   const getMockDate = (claimId: string) => {
     const d = new Date();
-    const dayOffset = parseInt(claimId.replace('C', ''), 10) % 28;
+    // Use a consistent way to generate mock dates based on the user-facing ID
+    const hash = claimId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const dayOffset = hash % 28;
     d.setDate(d.getDate() - dayOffset);
     return d;
   };
@@ -87,8 +90,8 @@ const ClaimsData = ({
         let bValue: any;
 
         if (sortConfig.key === 'updated') {
-          aValue = getMockDate(a.id).getTime();
-          bValue = getMockDate(b.id).getTime();
+          aValue = getMockDate(a.id).getTime(); // Use user-facing ID for mock date
+          bValue = getMockDate(b.id).getTime(); // Use user-facing ID for mock date
         } else {
           aValue = a[sortConfig.key as keyof Claim];
           bValue = b[sortConfig.key as keyof Claim];
@@ -121,15 +124,17 @@ const ClaimsData = ({
     </Button>
   );
 
-  const handleDeleteClick = (claimId: string) => {
-    setClaimToDelete(claimId);
+  const handleDeleteClick = (claimDbId: string, userFacingClaimId: string) => {
+    setClaimToDeleteDbId(claimDbId);
+    setClaimToDeleteUserFacingId(userFacingClaimId);
     setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
-    if (claimToDelete) {
-      onDeleteClaim(claimToDelete);
-      setClaimToDelete(null);
+    if (claimToDeleteDbId) {
+      onDeleteClaim(claimToDeleteDbId);
+      setClaimToDeleteDbId(null);
+      setClaimToDeleteUserFacingId(null);
       setIsDeleteDialogOpen(false);
     }
   };
@@ -186,8 +191,8 @@ const ClaimsData = ({
                 {sortedClaims.map((claim) => {
                   const rightType = getRightType(claim.status);
                   return (
-                    <TableRow key={claim.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onZoomToClaim(claim.id)}>
-                      <TableCell className="font-medium">{claim.id}</TableCell>
+                    <TableRow key={claim.dbId} className="cursor-pointer hover:bg-muted/50" onClick={() => onZoomToClaim(claim.dbId)}>
+                      <TableCell className="font-medium">{claim.id}</TableCell> {/* Display user-facing ID */}
                       <TableCell>{claim.holderName}</TableCell>
                       <TableCell>{claim.village}</TableCell>
                       <TableCell className="text-right">{(claim.area * 0.404686).toFixed(2)}</TableCell>
@@ -197,14 +202,14 @@ const ClaimsData = ({
                       <TableCell>{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-2">
-                          <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}>
+                          <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}> {/* Navigate using user-facing ID */}
                             <Info className="mr-2 h-4 w-4" />
                             Details
                           </Button>
                           <Button 
                             size="sm" 
                             variant="destructive" 
-                            onClick={(e) => { e.stopPropagation(); handleDeleteClick(claim.id); }}
+                            onClick={(e) => { e.stopPropagation(); handleDeleteClick(claim.dbId, claim.id); }} // Pass both IDs
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -225,7 +230,7 @@ const ClaimsData = ({
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete claim <span className="font-semibold">{claimToDelete}</span> from the database.
+              This action cannot be undone. This will permanently delete claim <span className="font-semibold">{claimToDeleteUserFacingId}</span> from the database.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

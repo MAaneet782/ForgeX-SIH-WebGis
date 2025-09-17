@@ -11,18 +11,19 @@ import type { Claim } from "@/data/mockClaims";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClaimLocationMap from "@/components/ClaimLocationMap";
 
-const fetchClaimById = async (claimId: string): Promise<Claim> => {
+const fetchClaimById = async (userFacingClaimId: string): Promise<Claim> => {
   const { data, error } = await supabase
     .from('claims')
     .select('*')
-    .eq('claim_id', claimId)
+    .eq('claim_id', userFacingClaimId) // Query by user-facing claim_id
     .single();
 
   if (error) throw new Error(error.message);
   if (!data) throw new Error("Claim not found");
 
   return {
-    id: data.claim_id,
+    dbId: data.id, // Map DB's primary key 'id' to frontend 'dbId'
+    id: data.claim_id, // Map DB's 'claim_id' (text) to frontend 'id' (user-facing)
     holderName: data.holder_name,
     village: data.village,
     district: data.district,
@@ -38,7 +39,7 @@ const fetchClaimById = async (claimId: string): Promise<Claim> => {
 };
 
 const ClaimDetail = () => {
-  const { claimId } = useParams<{ claimId: string }>();
+  const { claimId } = useParams<{ claimId: string }>(); // This is the user-facing claim_id
 
   const { data: claim, isLoading, isError } = useQuery<Claim>({
     queryKey: ['claim', claimId],
@@ -97,7 +98,7 @@ const ClaimDetail = () => {
                 <CardTitle>Claim Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between"><span>Claim ID:</span> <span className="font-mono">{claim.id}</span></div>
+                <div className="flex justify-between"><span>Claim ID:</span> <span className="font-mono">{claim.id}</span></div> {/* Display user-facing ID */}
                 <div className="flex justify-between"><span>Village:</span> <span>{claim.village}</span></div>
                 <div className="flex justify-between"><span>District:</span> <span>{claim.district}</span></div>
                 <div className="flex justify-between"><span>State:</span> <span>{claim.state}</span></div>

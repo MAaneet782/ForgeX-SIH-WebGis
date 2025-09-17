@@ -35,7 +35,8 @@ const fetchClaims = async (): Promise<Claim[]> => {
     .in('state', ALLOWED_STATES); // Filter by allowed states
   if (error) throw new Error(error.message);
   return data.map(item => ({
-    id: item.claim_id,
+    dbId: item.id, // Map DB's primary key 'id' to frontend 'dbId'
+    id: item.claim_id, // Map DB's 'claim_id' (text) to frontend 'id' (user-facing)
     holderName: item.holder_name,
     village: item.village,
     district: item.district,

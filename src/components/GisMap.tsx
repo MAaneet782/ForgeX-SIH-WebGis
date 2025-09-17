@@ -11,17 +11,17 @@ interface GisMapProps {
   claimsData: FeatureCollection;
   waterData: FeatureCollection;
   agriData: FeatureCollection;
-  selectedClaimId: string | null;
-  onClaimSelect: (id: string | null) => void;
+  selectedClaimDbId: string | null; // Now expects dbId
+  onClaimSelect: (dbId: string | null) => void; // Now emits dbId
 }
 
-const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | null, data: FeatureCollection }) => {
+const MapController = ({ selectedClaimDbId, data }: { selectedClaimDbId: string | null, data: FeatureCollection }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (selectedClaimId && data.type === 'FeatureCollection') {
+    if (selectedClaimDbId && data.type === 'FeatureCollection') {
       const feature = data.features.find(
-        (f) => f.properties?.claimId === selectedClaimId
+        (f) => f.properties?.dbId === selectedClaimDbId // Match by dbId
       );
 
       if (feature && feature.geometry) {
@@ -32,12 +32,12 @@ const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | nu
         }
       }
     }
-  }, [selectedClaimId, data, map]);
+  }, [selectedClaimDbId, data, map]);
 
   return null;
 };
 
-const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onClaimSelect }: GisMapProps) => {
+const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimDbId, onClaimSelect }: GisMapProps) => {
   const { state, isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState();
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
@@ -51,15 +51,15 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
 
       layer.on({
         click: () => {
-          onClaimSelect(feature.properties.claimId);
+          onClaimSelect(feature.properties.dbId); // Emit dbId on click
         },
       });
     }
   };
 
   const styleClaimFeature = (feature?: Feature): PathOptions => {
-    const claimId = feature?.properties?.claimId;
-    const claim = claims.find(c => c.id === claimId);
+    const claimDbId = feature?.properties?.dbId; // Use dbId for finding claim
+    const claim = claims.find(c => c.dbId === claimDbId);
     
     let style: PathOptions = { color: '#166534', weight: 2, fillOpacity: 0.3 }; // Default
 
@@ -76,7 +76,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
     }
 
     // Highlight for selection (overrides other styles)
-    if (claimId === selectedClaimId) {
+    if (claimDbId === selectedClaimDbId) { // Match by dbId
       style = { color: '#d97706', weight: 3, fillColor: '#f59e0b', fillOpacity: 0.6 };
     }
     
@@ -123,7 +123,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
                 data={claimsData} 
                 onEachFeature={onEachFeature} 
                 style={styleClaimFeature}
-                key={selectedClaimId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
+                key={selectedClaimDbId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
               />
             </LayersControl.Overlay>
           )}
@@ -138,7 +138,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
             </LayersControl.Overlay>
           )}
         </LayersControl>
-        <MapController selectedClaimId={selectedClaimId} data={claimsData} />
+        <MapController selectedClaimDbId={selectedClaimDbId} data={claimsData} />
       </MapContainer>
     </div>
   );
