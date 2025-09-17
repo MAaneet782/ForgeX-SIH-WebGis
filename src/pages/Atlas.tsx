@@ -23,7 +23,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
   if (error) throw new Error(error.message);
   return data.map(item => ({
     dbId: item.id, // Map DB's primary key 'id' to frontend 'dbId'
-    id: item.claim_id, // Map DB's 'claim_id' (text) to frontend 'id' (user-facing)
+    id: item.claim_id, // Map DB's 'claim_id' (text) to frontend 'id'
     holderName: item.holder_name,
     village: item.village,
     district: item.district,
@@ -179,8 +179,8 @@ const IndexPageContent = () => {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={82} minSize={50}>
-          <main className="h-full overflow-y-auto p-6 space-y-8">
-            <header>
+          <main className="h-full overflow-y-auto p-6 space-y-8"> {/* Consistent padding and spacing */}
+            <header className="mb-6"> {/* Added bottom margin */}
               <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
               <p className="text-muted-foreground">Live Data from Supabase Database</p>
             </header>

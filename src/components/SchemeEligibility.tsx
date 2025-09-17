@@ -106,7 +106,7 @@ const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
 
   return (
     <div className="space-y-6">
-      <h4 className="text-lg font-semibold">Government Scheme Eligibility</h4>
+      <h4 className="text-lg font-semibold mb-4">Government Scheme Eligibility</h4> {/* Added bottom margin */}
       <div className="space-y-4">
         {schemes.map((scheme) => (
           <Card key={scheme.name} className="bg-card transition-all hover:shadow-md">
@@ -125,7 +125,7 @@ const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
               <p className="text-sm text-muted-foreground mt-1">{scheme.reason}</p>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-              <Separator />
+              <Separator className="my-4" /> {/* Added vertical margin */}
               <div className="space-y-2">
                 <h5 className="font-medium flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-green-600" /> Eligibility Conditions</h5>
                 <ul className="list-disc list-inside pl-4 text-muted-foreground">

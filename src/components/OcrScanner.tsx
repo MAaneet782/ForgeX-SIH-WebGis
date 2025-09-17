@@ -79,7 +79,7 @@ const OcrScanner = ({ isOpen, onOpenChange, onScanComplete }: OcrScannerProps) =
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-          <div className="flex flex-col items-center justify-center space-y-4 border-2 border-dashed rounded-lg p-4">
+          <div className="flex flex-col items-center justify-center space-y-4 border-2 border-dashed rounded-lg p-6 min-h-[250px]"> {/* Increased padding and min-height */}
             <input
               type="file"
               ref={fileInputRef}
@@ -103,14 +103,14 @@ const OcrScanner = ({ isOpen, onOpenChange, onScanComplete }: OcrScannerProps) =
                 <Button variant="link" size="sm" onClick={() => setSelectedFile(null)}>Change file</Button>
               </div>
             )}
-            <Button onClick={handleScan} disabled={isLoading || !selectedFile} className="w-full">
+            <Button onClick={handleScan} disabled={isLoading || !selectedFile} className="w-full mt-4"> {/* Added top margin */}
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ScanLine className="mr-2 h-4 w-4" />}
               {isLoading ? "Scanning..." : "Scan Document"}
             </Button>
           </div>
           <div className="flex flex-col space-y-4">
             <p className="font-semibold text-center">Extracted Data (JSON)</p>
-            <div className="bg-muted rounded-lg p-4 h-full min-h-[250px] overflow-y-auto">
+            <div className="bg-muted rounded-lg p-4 h-full min-h-[250px] overflow-y-auto border"> {/* Added border */}
               {isLoading && <div className="flex items-center justify-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}
               {scannedData && (
                 <pre className="text-xs whitespace-pre-wrap">

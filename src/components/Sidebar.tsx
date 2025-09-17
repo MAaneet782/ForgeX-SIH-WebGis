@@ -135,17 +135,19 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
             </div>
           </div>
         </div>
-        <nav className="flex-grow p-4 space-y-6 overflow-y-auto">
+        <nav className="flex-grow p-4 space-y-6 overflow-y-auto"> {/* Adjusted vertical spacing */}
           {Object.entries(navItems).map(([section, items]) => (
             <div key={section}>
-              <h3 className="text-xs font-bold tracking-wider text-gray-400 uppercase mb-2">{section}</h3>
+              <h3 className="text-xs font-bold tracking-wider text-gray-400 uppercase mb-3"> {/* Adjusted bottom margin */}
+                {section}
+              </h3>
               <ul className="space-y-1">
                 {items.map((item) => (
                   <li key={item.label}>
                     <Button 
                       variant="ghost" 
                       onClick={item.action}
-                      className="w-full justify-start text-white hover:bg-white/10 hover:text-white"
+                      className="w-full justify-start text-white hover:bg-white/10 hover:text-white px-3 py-2" // Consistent padding
                     >
                       <item.icon className="mr-3 h-5 w-5" />
                       {item.label}

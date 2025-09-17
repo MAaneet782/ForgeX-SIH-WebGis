@@ -7,7 +7,7 @@
     --background: 220 20% 97%; /* Light cool gray */
     --foreground: 220 10% 10%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 100%; /* Removed / 0.9 opacity */
     --card-foreground: 220 10% 10%;
 
     --popover: 0 0% 100%;

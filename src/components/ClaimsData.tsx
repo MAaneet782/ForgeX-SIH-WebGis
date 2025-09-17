@@ -143,7 +143,7 @@ const ClaimsData = ({
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-2"> {/* Added flex-wrap and gap */}
             <CardTitle>Search Results: FRA Parcels</CardTitle>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
@@ -178,13 +178,13 @@ const ClaimsData = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Parcel ID</TableHead>
-                  <TableHead><SortableHeader sortKey="holderName">Patta Holder</SortableHeader></TableHead>
-                  <TableHead><SortableHeader sortKey="village">Village</SortableHeader></TableHead>
-                  <TableHead className="text-right"><SortableHeader sortKey="area">Area (ha)</SortableHeader></TableHead>
-                  <TableHead className="text-center">Type of Right</TableHead>
-                  <TableHead><SortableHeader sortKey="updated">Updated</SortableHeader></TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
+                  <TableHead className="py-3">Parcel ID</TableHead> {/* Adjusted padding */}
+                  <TableHead className="py-3"><SortableHeader sortKey="holderName">Patta Holder</SortableHeader></TableHead>
+                  <TableHead className="py-3"><SortableHeader sortKey="village">Village</SortableHeader></TableHead>
+                  <TableHead className="text-right py-3"><SortableHeader sortKey="area">Area (ha)</SortableHeader></TableHead>
+                  <TableHead className="text-center py-3">Type of Right</TableHead>
+                  <TableHead className="py-3"><SortableHeader sortKey="updated">Updated</SortableHeader></TableHead>
+                  <TableHead className="text-center py-3">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -192,15 +192,15 @@ const ClaimsData = ({
                   const rightType = getRightType(claim.status);
                   return (
                     <TableRow key={claim.dbId} className="cursor-pointer hover:bg-muted/50" onClick={() => onZoomToClaim(claim.dbId)}>
-                      <TableCell className="font-medium">{claim.id}</TableCell> {/* Display user-facing ID */}
-                      <TableCell>{claim.holderName}</TableCell>
-                      <TableCell>{claim.village}</TableCell>
-                      <TableCell className="text-right">{(claim.area * 0.404686).toFixed(2)}</TableCell>
-                      <TableCell className="text-center">
+                      <TableCell className="font-medium py-2">{claim.id}</TableCell> {/* Adjusted padding */}
+                      <TableCell className="py-2">{claim.holderName}</TableCell>
+                      <TableCell className="py-2">{claim.village}</TableCell>
+                      <TableCell className="text-right py-2">{(claim.area * 0.404686).toFixed(2)}</TableCell>
+                      <TableCell className="text-center py-2">
                         <Badge variant="outline" className={cn("border-transparent font-semibold", rightType.className)}>{rightType.text}</Badge>
                       </TableCell>
-                      <TableCell>{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
-                      <TableCell>
+                      <TableCell className="py-2">{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
+                      <TableCell className="py-2">
                         <div className="flex items-center justify-center gap-2">
                           <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}> {/* Navigate using user-facing ID */}
                             <Info className="mr-2 h-4 w-4" />

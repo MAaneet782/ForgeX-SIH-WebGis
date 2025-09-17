@@ -21,7 +21,7 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
   const { user, signOut } = useAuth();
 
   return (
-    <header className="bg-card border-b p-3 flex items-center justify-between gap-4">
+    <header className="bg-card border-b p-4 flex items-center justify-between gap-4"> {/* Increased vertical padding */}
       <div className="flex items-center gap-4">
         <Link to="/atlas" className="flex items-center gap-2 text-lg font-bold text-primary">
           <Leaf className="h-6 w-6" /> FRA Atlas

@@ -93,14 +93,14 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
         onScanComplete={handleScanComplete} 
       />
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6"> {/* Increased vertical spacing */}
           <div className="flex justify-end">
             <Button type="button" variant="outline" onClick={() => setIsScannerOpen(true)}>
               <ScanLine className="mr-2 h-4 w-4" />
               Scan Document to Auto-fill
             </Button>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> {/* Made responsive */}
             <FormField control={form.control} name="holderName" render={({ field }) => ( <FormItem><FormLabel>Holder Name</FormLabel><FormControl><Input placeholder="Enter name" {...field} /></FormControl><FormMessage /></FormItem> )} />
             <FormField control={form.control} name="village" render={({ field }) => ( <FormItem><FormLabel>Village</FormLabel><FormControl><Input placeholder="Enter village" {...field} /></FormControl><FormMessage /></FormItem> )} />
             <FormField control={form.control} name="district" render={({ field }) => ( <FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="Enter district" {...field} /></FormControl><FormMessage /></FormItem> )} />

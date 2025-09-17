@@ -278,11 +278,11 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
       <DialogContent className="max-w-4xl z-[9999]">
         <DialogHeader>
           <DialogTitle>Import Claims from Excel</DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm text-muted-foreground mt-2"> {/* Adjusted font size and margin */}
             Upload an Excel file with claim data. Expected columns (case-insensitive, space-tolerant): "parcel id", "patta holder", "village", "district", "state", "area (ha)", "type of right", "updated", "location coordinates" (expected format: "latitude, longitude" e.g., "22.59, 78.96"), "geometry" (full GeoJSON Polygon string), "soil type", "water availability", "estimated crop value".
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4 space-y-4">
+        <div className="py-4 space-y-6"> {/* Increased vertical spacing */}
           <div className="flex flex-col items-center justify-center w-full p-6 border-2 border-dashed rounded-lg">
             <UploadCloud className="w-12 h-12 text-muted-foreground" />
             <p className="mt-2 text-sm text-muted-foreground">
@@ -292,19 +292,19 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
           </div>
           {jsonData.length > 0 && (
             <div>
-              <h4 className="font-semibold mb-2">Data Preview ({jsonData.length} rows)</h4>
+              <h4 className="font-semibold mb-3">Data Preview ({jsonData.length} rows)</h4> {/* Adjusted bottom margin */}
               <div className="max-h-64 overflow-y-auto border rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      {Object.keys(jsonData[0]).map(key => <TableHead key={key}>{key}</TableHead>)}
+                      {Object.keys(jsonData[0]).map(key => <TableHead key={key} className="py-2">{key}</TableHead>)} {/* Adjusted padding */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {jsonData.slice(0, 5).map((row, i) => (
                       <TableRow key={i}>
                         {Object.values(row).map((val: any, j: number) => (
-                          <TableCell key={j}>
+                          <TableCell key={j} className="py-2"> {/* Adjusted padding */}
                             {/* Attempt to format date if it looks like an Excel serial number */}
                             {typeof val === 'number' && val > 25569 && val < 50000 ? excelSerialToDate(val)?.toLocaleDateString() || String(val) : String(val)}
                           </TableCell>
@@ -314,7 +314,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
                   </TableBody>
                 </Table>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">Showing first 5 of {jsonData.length} rows.</p>
+              <p className="text-sm text-muted-foreground mt-3">Showing first 5 of {jsonData.length} rows.</p> {/* Adjusted top margin */}
             </div>
           )}
         </div>

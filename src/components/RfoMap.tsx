@@ -25,12 +25,12 @@ const RfoMap = ({ claimsData }: RfoMapProps) => {
       const areaHectares = areaAcres ? (areaAcres * 0.404686).toFixed(2) : 'N/A';
 
       const popupContent = `
-        <div style="font-family: sans-serif; padding: 5px;">
-          <h4 style="margin: 0 0 8px 0; font-weight: bold; font-size: 1.1em;">Land Parcel Details</h4>
-          <p style="margin: 0 0 4px 0;"><strong>Holder Name:</strong> ${holderName}</p>
-          <p style="margin: 0 0 4px 0;"><strong>Village:</strong> ${village}</p>
-          <p style="margin: 0 0 4px 0;"><strong>Title ID:</strong> ${claimId}</p>
-          <p style="margin: 0;"><strong>Area:</strong> ${areaHectares} Hectares</p>
+        <div style="font-family: 'Inter', sans-serif; padding: 8px; color: hsl(var(--foreground));">
+          <h4 style="margin: 0 0 10px 0; font-weight: 600; font-size: 1.1em; color: hsl(var(--primary));">Land Parcel Details</h4>
+          <p style="margin: 0 0 6px 0; font-size: 0.9em;"><strong>Holder Name:</strong> ${holderName}</p>
+          <p style="margin: 0 0 6px 0; font-size: 0.9em;"><strong>Village:</strong> ${village}</p>
+          <p style="margin: 0 0 6px 0; font-size: 0.9em;"><strong>Title ID:</strong> ${claimId}</p>
+          <p style="margin: 0; font-size: 0.9em;"><strong>Area:</strong> ${areaHectares} Hectares</p>
         </div>
       `;
       layer.bindPopup(popupContent);

@@ -129,7 +129,7 @@ const LandingPage = () => {
               </div>
             </div>
             <div className="lg:col-span-2">
-              <div className="rounded-lg overflow-hidden shadow-lg">
+              <div className="rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"> {/* Added hover effect */}
                 <img src="/modi-farmers.webp" alt="Prime Minister Modi with Indian farmers" className="w-full h-full object-cover" />
               </div>
               <p className="text-sm text-muted-foreground mt-2 text-center">

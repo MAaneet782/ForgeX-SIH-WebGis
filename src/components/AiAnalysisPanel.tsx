@@ -169,7 +169,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </div>
         </div>
 
-        <Separator />
+        <Separator className="my-8" /> {/* Increased vertical spacing */}
 
         {/* NEW: Soil Composition Section */}
         <div>
@@ -198,7 +198,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </div>
         </div>
 
-        <Separator />
+        <Separator className="my-8" /> {/* Increased vertical spacing */}
 
         {/* NEW: Soil Health Assessment */}
         <div>
@@ -224,7 +224,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
               </div>
               <Progress value={soilAnalysis.healthAssessment.fertilityScore} className="w-full" />
               
-              <div className="space-y-2">
+              <div className="space-y-2 mt-4"> {/* Added top margin */}
                 <h5 className="font-medium flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-green-600" /> Strengths:</h5>
                 <ul className="list-disc list-inside text-sm pl-4 text-muted-foreground">
                   {soilAnalysis.healthAssessment.strengths.map((s, i) => <li key={i}>{s}</li>)}
@@ -240,7 +240,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </Card>
         </div>
 
-        <Separator />
+        <Separator className="my-8" /> {/* Increased vertical spacing */}
 
         {/* NEW: Soil Health Recommendations */}
         <div>
@@ -257,7 +257,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </div>
         </div>
 
-        <Separator />
+        <Separator className="my-8" /> {/* Increased vertical spacing */}
 
         {/* Water Resource Section */}
         <div>
@@ -270,7 +270,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
               </span>
             </div>
             <Progress value={waterAnalysis.score} className="w-full" />
-            <p className="text-sm text-center font-medium text-muted-foreground">{waterAnalysis.borewellSuitability}</p>
+            <p className="text-sm text-center font-medium text-muted-foreground mt-2">{waterAnalysis.borewellSuitability}</p> {/* Added top margin */}
           </div>
           <div className="mt-4 space-y-2">
             <h4 className="font-medium">Key Recommendations:</h4>
@@ -280,7 +280,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </div>
         </div>
 
-        <Separator />
+        <Separator className="my-8" /> {/* Increased vertical spacing */}
 
         {/* Economic Opportunity Section */}
         <div>
