@@ -10,9 +10,9 @@ interface ThematicMapProps {
 }
 
 const LegendItem = ({ color, label }: { color: string; label: string }) => (
-  <div className="flex items-center space-x-2">
-    <div className="w-4 h-4 rounded" style={{ backgroundColor: color }}></div>
-    <span className="text-sm">{label}</span>
+  <div className="flex items-center space-x-3 py-1"> {/* Added py-1 for vertical spacing */}
+    <div className="w-5 h-5 rounded-sm border border-gray-300 dark:border-gray-700" style={{ backgroundColor: color }}></div> {/* Larger swatch, added border */}
+    <span className="text-sm text-muted-foreground">{label}</span>
   </div>
 );
 
@@ -38,25 +38,25 @@ const MapLegend = () => {
 
   return (
     <div className="absolute bottom-4 right-4 z-[1000]">
-      <Card className="bg-card/80 backdrop-blur-sm">
-        <CardHeader className="p-3">
-          <CardTitle className="text-base">Map Legend</CardTitle>
+      <Card className="bg-card/80 backdrop-blur-sm max-w-[200px]"> {/* Added max-w for better control */}
+        <CardHeader className="p-3 pb-2">
+          <CardTitle className="text-base font-semibold">Map Legend</CardTitle>
         </CardHeader>
-        <CardContent className="p-3 pt-0 space-y-3">
+        <CardContent className="p-3 pt-0 space-y-4"> {/* Increased space-y for sections */}
           <div>
-            <h4 className="font-semibold text-sm mb-1">Soil Type</h4>
+            <h4 className="font-semibold text-sm mb-2">Soil Type</h4> {/* Increased mb */}
             {Object.entries(soilColors).map(([label, color]) => (
               <LegendItem key={label} color={color} label={label} />
             ))}
           </div>
           <div>
-            <h4 className="font-semibold text-sm mb-1">Water Availability</h4>
+            <h4 className="font-semibold text-sm mb-2">Water Availability</h4> {/* Increased mb */}
             {Object.entries(waterColors).map(([label, color]) => (
               <LegendItem key={label} color={color} label={label} />
             ))}
           </div>
           <div>
-            <h4 className="font-semibold text-sm mb-1">Claim Status</h4>
+            <h4 className="font-semibold text-sm mb-2">Claim Status</h4> {/* Increased mb */}
             {Object.entries(statusColors).map(([label, color]) => (
               <LegendItem key={label} color={color} label={label} />
             ))}
