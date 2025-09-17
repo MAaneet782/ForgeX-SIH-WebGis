@@ -25,51 +25,44 @@ const excelSerialToDate = (serial: number) => {
   return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate());
 };
 
-// Approximate bounding boxes for allowed states
-const STATE_BOUNDS = {
-  MP: { minLat: 21.15, maxLat: 26.90, minLon: 74.00, maxLon: 82.80 }, // Madhya Pradesh
-  Odisha: { minLat: 17.70, maxLat: 22.75, minLon: 81.30, maxLon: 87.50 }, // Odisha
-  Tripura: { minLat: 22.60, maxLat: 24.50, minLon: 91.00, maxLon: 92.50 }, // Tripura
-  Telangana: { minLat: 15.80, maxLat: 19.50, minLon: 77.20, maxLon: 81.50 }, // Telangana
+// Approximate bounding boxes for allowed states (simplified for India)
+const INDIA_BOUNDS = {
+  minLat: 6.0, maxLat: 37.0, minLon: 68.0, maxLon: 98.0,
 };
 
-const isWithinStateBounds = (lat: number, lon: number): boolean => {
-  for (const stateKey in STATE_BOUNDS) {
-    // @ts-ignore
-    const bounds = STATE_BOUNDS[stateKey];
-    if (lat >= bounds.minLat && lat <= bounds.maxLat &&
-        lon >= bounds.minLon && lon <= bounds.maxLon) {
-      return true;
-    }
-  }
-  return false;
+const isWithinIndiaBounds = (lat: number, lon: number): boolean => {
+  return lat >= INDIA_BOUNDS.minLat && lat <= INDIA_BOUNDS.maxLat &&
+         lon >= INDIA_BOUNDS.minLon && lon <= INDIA_BOUNDS.maxLon;
 };
 
-// Helper to create a random polygon around a center point (with reduced size)
+// Helper to create a polygon around a center point with size based on area
 const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) => {
-    // Ensure lat/lon are valid numbers
-    if (isNaN(lat) || isNaN(lon)) {
+    // Ensure lat/lon are valid numbers, fallback to a central Indian point if not
+    if (isNaN(lat) || isNaN(lon) || !isWithinIndiaBounds(lat, lon)) {
       lat = 22.5937; // Default latitude for India (within MP bounds)
       lon = 78.9629; // Default longitude for India (within MP bounds)
     }
 
-    // Define a very small base delta for polygon points in degrees
-    const baseDelta = 0.00005; // Significantly reduced base delta for very small polygons
-    // Scale the delta based on the area, but keep it extremely small
-    const scaleFactor = Math.cbrt(Math.max(0.01, areaInAcres)) * 0.02; // Even smaller multiplier
-    const deltaLat = baseDelta * scaleFactor;
-    const deltaLon = baseDelta * scaleFactor;
+    const areaSqMeters = areaInAcres * 4046.86; // 1 acre = 4046.86 sq meters
+    const minSideLengthMeters = 50; // Minimum side length for visibility (e.g., 50m for a small plot)
+    const calculatedSideLengthMeters = Math.sqrt(areaSqMeters);
+    const sideLengthMeters = Math.max(minSideLengthMeters, calculatedSideLengthMeters);
 
-    const points = 5;
-    const coords = [];
-    for (let i = 0; i < points; i++) {
-        const angle = (i / points) * 2 * Math.PI;
-        const randomFactor = 0.9 + Math.random() * 0.2; // Slight randomness
-        const newLat = lat + Math.cos(angle) * deltaLat * randomFactor;
-        const newLon = lon + Math.sin(angle) * deltaLon * randomFactor;
-        coords.push([newLon, newLat]); // GeoJSON expects [longitude, latitude]
-    }
-    coords.push(coords[0]); // Close the polygon
+    // Approximate conversion factors for degrees to meters
+    const metersPerDegreeLat = 111139; // At equator
+    const metersPerDegreeLon = 111320 * Math.cos(lat * Math.PI / 180); // Varies by latitude
+
+    const deltaLatDegrees = (sideLengthMeters / 2) / metersPerDegreeLat;
+    const deltaLonDegrees = (sideLengthMeters / 2) / metersPerDegreeLon;
+
+    // Create a simple square-like polygon
+    const coords = [
+        [lon - deltaLonDegrees, lat - deltaLatDegrees],
+        [lon + deltaLonDegrees, lat - deltaLatDegrees],
+        [lon + deltaLonDegrees, lat + deltaLatDegrees],
+        [lon - deltaLonDegrees, lat + deltaLatDegrees],
+        [lon - deltaLonDegrees, lat - deltaLatDegrees], // Close the polygon
+    ];
     return { type: "Polygon", coordinates: [coords] };
 };
 
@@ -164,8 +157,8 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
       .filter(row => getCellValue(row, ['patta holder', 'Patta Holder', 'holder name', 'Holder Name'])) // Filter out empty rows based on holder name
       .map(row => {
         let geometry: any = null;
-        let parsedLat = 22.5937; // Default latitude for India (within MP bounds)
-        let parsedLon = 78.9629; // Default longitude for India (within MP bounds)
+        let parsedLat: number | null = null;
+        let parsedLon: number | null = null;
 
         // Priority 1: Check for full GeoJSON geometry string
         const rawGeoJson = getCellValue(row, ['geometry', 'geojson', 'Geometry', 'GeoJSON']);
@@ -174,7 +167,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
             const parsedGeoJson = JSON.parse(rawGeoJson);
             if (parsedGeoJson.type === 'Polygon' && Array.isArray(parsedGeoJson.coordinates)) {
               geometry = parsedGeoJson;
-              // Attempt to get a centroid for state validation
+              // Attempt to get a centroid for validation
               const firstCoord = parsedGeoJson.coordinates[0][0]; // [lon, lat]
               if (firstCoord && firstCoord.length === 2) {
                 parsedLon = firstCoord[0];
@@ -192,30 +185,36 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
           if (rawCoords) {
             const parts = String(rawCoords).split(',').map(s => parseFloat(s.trim()));
             if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-              let lat = parts[0];
-              let lon = parts[1];
+              let latCandidate = parts[0];
+              let lonCandidate = parts[1];
 
-              // Heuristic check: if the first value is > 90, it's likely longitude.
-              if (Math.abs(lat) > 90 && Math.abs(lon) <= 90) {
-                [lat, lon] = [lon, lat]; // Swap them
+              // Heuristic check: if first value is likely longitude (e.g., > 90 or < -90)
+              // and second value is likely latitude (e.g., between -90 and 90)
+              if ((Math.abs(latCandidate) > 90 && Math.abs(lonCandidate) <= 90) ||
+                  (Math.abs(latCandidate) <= 90 && Math.abs(lonCandidate) > 180)) { // Also catch if lon is too large
+                // Assume it's lon, lat and swap
+                parsedLat = lonCandidate;
+                parsedLon = latCandidate;
+              } else {
+                // Assume it's lat, lon
+                parsedLat = latCandidate;
+                parsedLon = lonCandidate;
               }
-              parsedLat = lat;
-              parsedLon = lon;
             } else {
               console.warn(`Invalid coordinates for row: ${JSON.stringify(row)}. Using default center.`);
             }
           }
         }
 
-        // Validate coordinates against state bounds
-        if (!isWithinStateBounds(parsedLat, parsedLon)) {
-          console.warn(`Coordinates ${parsedLat}, ${parsedLon} are outside allowed state bounds for row: ${JSON.stringify(row)}. Using default center for MP.`);
-          parsedLat = 22.5937; // Default center of India (latitude, within MP)
-          parsedLon = 78.9629; // Default longitude for India (within MP)
+        // Final validation and fallback for parsedLat/parsedLon
+        if (parsedLat === null || parsedLon === null || !isWithinIndiaBounds(parsedLat, parsedLon)) {
+          console.warn(`Coordinates ${parsedLat}, ${parsedLon} are outside India bounds or invalid for row: ${JSON.stringify(row)}. Using default central Indian coordinates.`);
+          parsedLat = 22.5937; // Default central Indian latitude
+          parsedLon = 78.9629; // Default central Indian longitude
         }
 
         const areaInHectares = parseFloat(getCellValue(row, ['area (ha)', 'Area (ha)', 'area', 'Area']) || '0');
-        const areaInAcres = areaInHectares * 2.47105;
+        const areaInAcres = isNaN(areaInHectares) ? 1 : areaInHectares * 2.47105; // Default to 1 acre if invalid
         const updatedDateSerial = getCellValue(row, ['updated', 'Updated', 'date', 'Date']);
         const updatedDate = excelSerialToDate(updatedDateSerial);
         
@@ -241,13 +240,13 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
           village: getCellValue(row, ['village', 'Village']),
           district: getCellValue(row, ['district', 'District']) || 'Unknown',
           state: getCellValue(row, ['state', 'State']),
-          area: isNaN(areaInAcres) ? 0 : areaInAcres,
+          area: areaInAcres,
           status: status,
           document_name: getCellValue(row, ['document name', 'Document Name']),
           soil_type: soilType,
           water_availability: waterAvailability,
           estimated_crop_value: estimatedCropValue,
-          geometry: geometry || createPolygonFromCenter(parsedLat, parsedLon, isNaN(areaInAcres) ? 1 : areaInAcres),
+          geometry: geometry || createPolygonFromCenter(parsedLat, parsedLon, areaInAcres),
           created_at: updatedDate || new Date(),
         };
       });
