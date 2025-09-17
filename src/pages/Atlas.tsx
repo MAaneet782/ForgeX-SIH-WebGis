@@ -17,6 +17,9 @@ import DataVisualization from "@/components/DataVisualization";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Define the consistent type for new claim input
+export type NewClaimInput = Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry' | 'id' | 'created_at'> & { coordinates: string; documentName?: string };
+
 // --- Supabase Data Fetching ---
 const fetchClaims = async (): Promise<Claim[]> => {
   const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
@@ -53,7 +56,7 @@ const IndexPageContent = () => {
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
 
   const addClaimMutation = useMutation({
-    mutationFn: async (newClaimData: Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry' | 'id' | 'created_at'> & { coordinates: string }) => { // Added 'created_at' to Omit
+    mutationFn: async (newClaimData: NewClaimInput) => { // Use the new consistent type here
       const toastId = showLoading("Adding new claim...");
       const { coordinates, ...rest } = newClaimData;
       

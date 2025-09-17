@@ -130,16 +130,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimDbId, on
             </LayerGroup>
           </LayersControl.BaseLayer>
           
-          {state.visibleLayers.claims && (
-            <LayersControl.Overlay checked name="FRA Claims">
-              <GeoJSON 
-                data={claimsData} 
-                onEachFeature={onEachFeature} 
-                style={styleClaimFeature}
-                key={selectedClaimDbId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
-              />
-            </LayersControl.Overlay>
-          )}
+          {/* Reordered layers: Water and Agri first, then Claims on top */}
           {state.visibleLayers.water && (
             <LayersControl.Overlay checked name="Water Bodies">
               <GeoJSON data={waterData} style={waterStyle} />
@@ -148,6 +139,16 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimDbId, on
           {state.visibleLayers.agri && (
             <LayersControl.Overlay checked name="Agricultural Land">
               <GeoJSON data={agriData} style={agriStyle} />
+            </LayersControl.Overlay>
+          )}
+          {state.visibleLayers.claims && (
+            <LayersControl.Overlay checked name="FRA Claims">
+              <GeoJSON 
+                data={claimsData} 
+                onEachFeature={onEachFeature} 
+                style={styleClaimFeature}
+                key={selectedClaimDbId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
+              />
             </LayersControl.Overlay>
           )}
         </LayersControl>

@@ -25,6 +25,7 @@ import { useState } from "react";
 import OcrScanner from "./OcrScanner";
 import { ScanLine } from "lucide-react";
 import type { Claim } from "@/data/mockClaims"; // Import Claim type to use its enums
+import type { NewClaimInput } from "@/pages/Atlas"; // Import the new type
 
 const formSchema = z.object({
   holderName: z.string().min(2, { message: "Holder name must be at least 2 characters." }),
@@ -49,10 +50,9 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 // Define the type for the data that AddClaimForm actually emits
-type AddClaimFormData = Omit<FormValues, 'document'> & { documentName?: string };
-
+// This type now directly matches NewClaimInput from Atlas.tsx
 type AddClaimFormProps = {
-  onAddClaim: (claim: AddClaimFormData) => void;
+  onAddClaim: (claim: NewClaimInput) => void;
   onClose: () => void;
 };
 
@@ -76,7 +76,8 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
   function onSubmit(values: FormValues) {
     const { document, ...rest } = values;
     const documentName = document?.[0]?.name;
-    onAddClaim({ ...rest, documentName });
+    // Cast to NewClaimInput to satisfy the type
+    onAddClaim({ ...rest, documentName } as NewClaimInput);
     onClose();
   }
 

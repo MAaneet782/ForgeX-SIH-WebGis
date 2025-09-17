@@ -35,6 +35,7 @@ import { Download, Info, ArrowUpDown, Upload, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import ExcelImportDialog from "./ExcelImportDialog";
 import * as z from "zod"; // Import z for schema definition
+import type { NewClaimInput } from "@/pages/Atlas"; // Import the new type
 
 // Define the schema for the data that AddClaimForm emits
 const addClaimFormSchema = z.object({
@@ -50,11 +51,12 @@ const addClaimFormSchema = z.object({
   documentName: z.string().optional(),
 });
 
-type AddClaimFormData = z.infer<typeof addClaimFormSchema>;
+// The type for data emitted by AddClaimForm, now directly NewClaimInput
+// type AddClaimFormData = z.infer<typeof addClaimFormSchema>; // No longer needed, use NewClaimInput directly
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: AddClaimFormData) => void; // Updated type here
+  onAddClaim: (claim: NewClaimInput) => void; // Updated type here
   onGenerateReport: () => void;
   onZoomToClaim: (dbId: string) => void; // Expects dbId for map zoom
   onDeleteClaim: (dbId: string) => void; // Expects dbId for deleting claims
@@ -217,7 +219,7 @@ const ClaimsData = ({
                         <Badge variant="outline" className={cn("border-transparent font-semibold", rightType.className)}>{rightType.text}</Badge>
                       </TableCell>
                       <TableCell className="py-2">{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
-                      <TableCell className="py-2">
+                      <TableCell className="text-center py-2">
                         <div className="flex items-center justify-center gap-2">
                           <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}> {/* Navigate using user-facing ID */}
                             <Info className="mr-2 h-4 w-4" />
