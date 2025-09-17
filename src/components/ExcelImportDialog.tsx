@@ -138,14 +138,14 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
     const generatedIdsInBatch = new Set<string>();
 
     const generateUniqueClaimId = (baseId?: string): string => {
-      let newId = baseId || `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+      let newId = baseId || `C-${crypto.randomUUID()}`; // Use crypto.randomUUID for robust uniqueness
       let counter = 0;
       while (existingClaimIds.has(newId) || generatedIdsInBatch.has(newId)) {
         counter++;
-        newId = `C${Date.now()}-${Math.floor(Math.random() * 100000)}`; 
+        newId = `C-${crypto.randomUUID()}`; // Regenerate if collision
         if (counter > 100) { 
             console.warn("Too many ID collisions, falling back to a more robust random ID.");
-            newId = `C${Date.now()}-${Math.floor(Math.random() * 10000000)}`;
+            newId = `C-${crypto.randomUUID()}`;
             break;
         }
       }
@@ -222,7 +222,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
         const soilType: Claim['soilType'] = soilTypes.includes(soilTypeRaw) ? soilTypeRaw : soilTypes[Math.floor(Math.random() * soilTypes.length)];
 
         const waterAvailabilityRaw = getCellValue(row, ['water availability', 'Water Availability', 'water']);
-        const waterAvailability: Claim['waterAvailability'] = waterAvailabilities.includes(waterAvailabilityRaw) ? waterAvailabilityRaw : waterAvailabilities[Math.floor(Math.random() * waterAvailabilities.length)];
+        const waterAvailability: Claim['waterAvailability'] = waterAvailabilities.includes(waterAvailabilityRaw) ? waterAvailabilities[waterAvailabilityRaw] : waterAvailabilities[Math.floor(Math.random() * waterAvailabilities.length)];
 
         const estimatedCropValueRaw = getCellValue(row, ['estimated crop value', 'Estimated Crop Value', 'crop value']);
         const estimatedCropValue = isNaN(parseFloat(estimatedCropValueRaw)) ? (Math.floor(Math.random() * 20000) + 5000) : parseFloat(estimatedCropValueRaw);

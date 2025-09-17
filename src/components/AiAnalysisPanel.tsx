@@ -2,12 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import type { Claim } from "@/data/mockClaims";
-import { Leaf, Sprout, Droplets, DollarSign, Waves, Globe, Briefcase, CalendarDays, BadgeIndianRupee, AlertCircle, Package, Lightbulb } from "lucide-react";
+import { Leaf, Sprout, Droplets, DollarSign, Waves, Globe, Briefcase, CalendarDays, BadgeIndianRupee, AlertCircle, Package, Lightbulb, FlaskConical, HeartPulse, Microscope, Tally1, Thermometer, CloudRain, Droplet, Sun, Wind, CheckCircle2, XCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { type AnalysisResult } from "@/lib/ai-analysis";
+import { type AnalysisResult, type SoilParameters, type SoilHealthAssessment, type SoilRecommendation } from "@/lib/ai-analysis";
 import { supabase } from "@/lib/supabaseClient";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge"; // Added missing import
 
 interface AiAnalysisPanelProps {
   claim: Claim;
@@ -23,6 +25,15 @@ const iconMap: { [key: string]: React.ElementType } = {
   CalendarDays,
   BadgeIndianRupee,
   Leaf,
+};
+
+// --- Soil Parameter Icons ---
+const soilParamIcons: { [key: string]: React.ElementType } = {
+  N: FlaskConical, P: FlaskConical, K: FlaskConical,
+  pH: Microscope, EC: Tally1, OM: Leaf, CaCO3: FlaskConical,
+  Sand: Wind, Silt: Droplet, Clay: FlaskConical,
+  Temperature: Thermometer, Humidity: Droplet, Rainfall: CloudRain,
+  Mg: FlaskConical, Fe: FlaskConical, Zn: FlaskConical, Mn: FlaskConical,
 };
 
 // --- Skeleton Component ---
@@ -49,6 +60,16 @@ const AiAnalysisSkeleton = () => (
           <li><Skeleton className="h-4 w-4/5" /></li>
           <li><Skeleton className="h-4 w-3/5" /></li>
         </ul>
+      </div>
+      <Separator />
+      <div>
+        <Skeleton className="h-6 w-1/2 mb-4" />
+        <Skeleton className="h-48 w-full" />
+      </div>
+      <Separator />
+      <div>
+        <Skeleton className="h-6 w-1/2 mb-4" />
+        <Skeleton className="h-32 w-full" />
       </div>
     </CardContent>
   </Card>
@@ -107,7 +128,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
     );
   }
 
-  const { cropAnalysis, waterAnalysis, economicOpportunities } = analysis;
+  const { cropAnalysis, waterAnalysis, economicOpportunities, soilAnalysis } = analysis;
 
   return (
     <Card>
@@ -145,6 +166,94 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
                 </Card>
               );
             })}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* NEW: Soil Composition Section */}
+        <div>
+          <h3 className="font-semibold text-lg mb-4 flex items-center"><FlaskConical className="mr-2 h-5 w-5 text-gray-600" /> Soil Composition</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-sm">
+            {Object.entries(soilAnalysis.parameters).map(([key, value]) => {
+              const Icon = soilParamIcons[key] || FlaskConical;
+              let unit = '';
+              if (['N', 'P', 'K', 'Mg', 'Fe', 'Zn', 'Mn'].includes(key)) unit = ' ppm';
+              else if (['OM', 'CaCO3', 'Sand', 'Silt', 'Clay', 'Humidity'].includes(key)) unit = ' %';
+              else if (key === 'pH') unit = '';
+              else if (key === 'EC') unit = ' mS/cm';
+              else if (key === 'Temperature') unit = ' °C';
+              else if (key === 'Rainfall') unit = ' mm';
+
+              return (
+                <div key={key} className="flex items-center space-x-2 bg-muted/50 p-2 rounded-md">
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="font-medium">{key}:</p>
+                    <p className="text-muted-foreground">{value}{unit}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* NEW: Soil Health Assessment */}
+        <div>
+          <h3 className="font-semibold text-lg mb-4 flex items-center"><HeartPulse className="mr-2 h-5 w-5 text-red-600" /> Soil Health Assessment</h3>
+          <Card className="bg-muted/50">
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium">Overall Quality:</h4>
+                <Badge 
+                  className={
+                    soilAnalysis.healthAssessment.overallQuality === 'Excellent' ? 'bg-green-500' :
+                    soilAnalysis.healthAssessment.overallQuality === 'Good' ? 'bg-blue-500' :
+                    soilAnalysis.healthAssessment.overallQuality === 'Moderate' ? 'bg-yellow-500' :
+                    'bg-red-500'
+                  }
+                >
+                  {soilAnalysis.healthAssessment.overallQuality}
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium">Fertility Score:</h4>
+                <span className="font-bold text-lg">{soilAnalysis.healthAssessment.fertilityScore} / 100</span>
+              </div>
+              <Progress value={soilAnalysis.healthAssessment.fertilityScore} className="w-full" />
+              
+              <div className="space-y-2">
+                <h5 className="font-medium flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-green-600" /> Strengths:</h5>
+                <ul className="list-disc list-inside text-sm pl-4 text-muted-foreground">
+                  {soilAnalysis.healthAssessment.strengths.map((s, i) => <li key={i}>{s}</li>)}
+                </ul>
+              </div>
+              <div className="space-y-2">
+                <h5 className="font-medium flex items-center"><XCircle className="mr-2 h-4 w-4 text-red-600" /> Deficiencies:</h5>
+                <ul className="list-disc list-inside text-sm pl-4 text-muted-foreground">
+                  {soilAnalysis.healthAssessment.deficiencies.map((d, i) => <li key={i}>{d}</li>)}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Separator />
+
+        {/* NEW: Soil Health Recommendations */}
+        <div>
+          <h3 className="font-semibold text-lg mb-4 flex items-center"><Lightbulb className="mr-2 h-5 w-5 text-yellow-600" /> Soil Health Recommendations</h3>
+          <div className="space-y-4">
+            {soilAnalysis.recommendations.map((rec, i) => (
+              <Card key={i} className="bg-muted/50">
+                <CardContent className="pt-4 space-y-2">
+                  <p className="font-semibold">{rec.action} <Badge variant="secondary">{rec.category}</Badge></p>
+                  <p className="text-sm text-muted-foreground">{rec.details}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
 

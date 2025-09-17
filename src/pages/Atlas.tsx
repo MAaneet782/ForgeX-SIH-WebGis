@@ -54,7 +54,9 @@ const IndexPageContent = () => {
     mutationFn: async (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => {
       const toastId = showLoading("Adding new claim...");
       const { coordinates, ...rest } = newClaimData;
-      const claim_id = `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+      
+      // Generate a truly unique ID using crypto.randomUUID()
+      const claim_id = crypto.randomUUID();
       
       const newClaimRecord = {
         claim_id,

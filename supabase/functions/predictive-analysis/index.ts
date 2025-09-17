@@ -96,11 +96,158 @@ const getEconomicOpportunities = (claim: Claim) => {
     return opportunities;
 }
 
+// --- NEW: Soil Analysis Logic ---
+interface SoilParameters {
+  N: number; // Nitrogen (ppm)
+  P: number; // Phosphorus (ppm)
+  K: number; // Potassium (ppm)
+  pH: number; // pH level
+  EC: number; // Electrical Conductivity (mS/cm)
+  OM: number; // Organic Matter (%)
+  CaCO3: number; // Calcium Carbonate (%)
+  Sand: number; // Sand (%)
+  Silt: number; // Silt (%)
+  Clay: number; // Clay (%)
+  Temperature: number; // Temperature (°C)
+  Humidity: number; // Humidity (%)
+  Rainfall: number; // Rainfall (mm)
+  Mg: number; // Magnesium (ppm)
+  Fe: number; // Iron (ppm)
+  Zn: number; // Zinc (ppm)
+  Mn: number; // Manganese (ppm)
+}
+
+interface SoilHealthAssessment {
+  overallQuality: string;
+  fertilityScore: number;
+  strengths: string[];
+  deficiencies: string[];
+}
+
+interface SoilRecommendation {
+  category: string;
+  action: string;
+  details: string;
+}
+
+const getSoilAnalysis = (claim: Claim) => {
+  // Mock soil parameters based on soilType and waterAvailability
+  let N = 0, P = 0, K = 0, pH = 0, EC = 0, OM = 0, CaCO3 = 0, Sand = 0, Silt = 0, Clay = 0;
+  let Temperature = 25, Humidity = 60, Rainfall = 100; // Default environmental
+  let Mg = 0, Fe = 0, Zn = 0, Mn = 0;
+
+  switch (claim.soilType) {
+    case 'Alluvial':
+      N = 150 + Math.random() * 50; P = 25 + Math.random() * 10; K = 200 + Math.random() * 50;
+      pH = 7.0 + Math.random() * 0.5; EC = 0.8 + Math.random() * 0.2; OM = 1.5 + Math.random() * 0.5;
+      CaCO3 = 5 + Math.random() * 2; Sand = 40 + Math.random() * 10; Silt = 35 + Math.random() * 10; Clay = 25 + Math.random() * 5;
+      Mg = 100 + Math.random() * 20; Fe = 15 + Math.random() * 5; Zn = 0.8 + Math.random() * 0.2; Mn = 5 + Math.random() * 2;
+      break;
+    case 'Clay':
+      N = 100 + Math.random() * 40; P = 30 + Math.random() * 10; K = 180 + Math.random() * 40;
+      pH = 6.5 + Math.random() * 0.5; EC = 0.6 + Math.random() * 0.2; OM = 2.0 + Math.random() * 0.5;
+      CaCO3 = 3 + Math.random() * 1; Sand = 20 + Math.random() * 5; Silt = 30 + Math.random() * 5; Clay = 50 + Math.random() * 10;
+      Mg = 120 + Math.random() * 20; Fe = 20 + Math.random() * 5; Zn = 0.6 + Math.random() * 0.2; Mn = 4 + Math.random() * 2;
+      break;
+    case 'Loamy':
+      N = 120 + Math.random() * 40; P = 20 + Math.random() * 10; K = 150 + Math.random() * 40;
+      pH = 6.8 + Math.random() * 0.5; EC = 0.7 + Math.random() * 0.2; OM = 1.8 + Math.random() * 0.5;
+      CaCO3 = 4 + Math.random() * 2; Sand = 50 + Math.random() * 10; Silt = 30 + Math.random() * 5; Clay = 20 + Math.random() * 5;
+      Mg = 90 + Math.random() * 20; Fe = 12 + Math.random() * 5; Zn = 0.7 + Math.random() * 0.2; Mn = 6 + Math.random() * 2;
+      break;
+    case 'Laterite':
+      N = 80 + Math.random() * 30; P = 15 + Math.random() * 5; K = 100 + Math.random() * 30;
+      pH = 5.5 + Math.random() * 0.5; EC = 0.4 + Math.random() * 0.1; OM = 1.0 + Math.random() * 0.3;
+      CaCO3 = 1 + Math.random() * 0.5; Sand = 60 + Math.random() * 10; Silt = 20 + Math.random() * 5; Clay = 20 + Math.random() * 5;
+      Mg = 70 + Math.random() * 15; Fe = 25 + Math.random() * 5; Zn = 0.5 + Math.random() * 0.1; Mn = 3 + Math.random() * 1;
+      break;
+  }
+
+  // Adjust environmental factors based on water availability
+  if (claim.waterAvailability === 'High') {
+    Rainfall = 150 + Math.random() * 50; Humidity = 70 + Math.random() * 10;
+  } else if (claim.waterAvailability === 'Low') {
+    Rainfall = 50 + Math.random() * 20; Humidity = 40 + Math.random() * 10;
+  }
+
+  const parameters: SoilParameters = {
+    N: parseFloat(N.toFixed(1)), P: parseFloat(P.toFixed(1)), K: parseFloat(K.toFixed(1)),
+    pH: parseFloat(pH.toFixed(1)), EC: parseFloat(EC.toFixed(2)), OM: parseFloat(OM.toFixed(2)),
+    CaCO3: parseFloat(CaCO3.toFixed(2)), Sand: parseFloat(Sand.toFixed(1)), Silt: parseFloat(Silt.toFixed(1)), Clay: parseFloat(Clay.toFixed(1)),
+    Temperature: parseFloat(Temperature.toFixed(1)), Humidity: parseFloat(Humidity.toFixed(1)), Rainfall: parseFloat(Rainfall.toFixed(1)),
+    Mg: parseFloat(Mg.toFixed(1)), Fe: parseFloat(Fe.toFixed(1)), Zn: parseFloat(Zn.toFixed(2)), Mn: parseFloat(Mn.toFixed(2)),
+  };
+
+  // --- Soil Health Assessment ---
+  let overallQuality = "Moderate";
+  let fertilityScore = 60;
+  const strengths: string[] = [];
+  const deficiencies: string[] = [];
+
+  if (parameters.N > 150 && parameters.P > 25 && parameters.K > 180) strengths.push("Good NPK levels");
+  else deficiencies.push("Suboptimal NPK levels");
+
+  if (parameters.pH >= 6.0 && parameters.pH <= 7.5) strengths.push("Optimal pH");
+  else deficiencies.push("Suboptimal pH");
+
+  if (parameters.OM > 1.5) strengths.push("High organic matter");
+  else deficiencies.push("Low organic matter");
+
+  if (parameters.Clay > 30) strengths.push("Good water retention (high clay)");
+  if (parameters.Sand > 50) strengths.push("Good drainage (high sand)");
+
+  if (deficiencies.length === 0) {
+    overallQuality = "Excellent";
+    fertilityScore = 90 + Math.random() * 10;
+  } else if (deficiencies.length <= 2) {
+    overallQuality = "Good";
+    fertilityScore = 70 + Math.random() * 10;
+  } else if (deficiencies.length <= 4) {
+    overallQuality = "Moderate";
+    fertilityScore = 50 + Math.random() * 10;
+  } else {
+    overallQuality = "Poor";
+    fertilityScore = 30 + Math.random() * 10;
+  }
+
+  const healthAssessment: SoilHealthAssessment = {
+    overallQuality,
+    fertilityScore: parseFloat(fertilityScore.toFixed(0)),
+    strengths: strengths.length > 0 ? strengths : ["No major strengths identified."],
+    deficiencies: deficiencies.length > 0 ? deficiencies : ["No major deficiencies identified."],
+  };
+
+  // --- Actionable Recommendations ---
+  const recommendations: SoilRecommendation[] = [];
+
+  if (parameters.N < 100) recommendations.push({ category: "Nutrient Management", action: "Apply Nitrogen-rich fertilizers", details: "Consider adding urea or compost to boost nitrogen levels for leafy growth." });
+  if (parameters.P < 20) recommendations.push({ category: "Nutrient Management", action: "Incorporate Phosphorus supplements", details: "Use diammonium phosphate (DAP) or rock phosphate to improve root development." });
+  if (parameters.K < 120) recommendations.push({ category: "Nutrient Management", action: "Enhance Potassium content", details: "Apply muriate of potash (MOP) or wood ash to support flowering and fruiting." });
+  if (parameters.pH < 6.0) recommendations.push({ category: "pH Correction", action: "Apply liming materials", details: "Add agricultural lime to raise pH and reduce soil acidity." });
+  if (parameters.pH > 7.5) recommendations.push({ category: "pH Correction", action: "Use acidifying agents", details: "Incorporate elemental sulfur or organic matter to lower pH." });
+  if (parameters.OM < 1.5) recommendations.push({ category: "Organic Matter Improvement", action: "Add organic amendments", details: "Regularly apply farmyard manure, compost, or green manure to increase organic matter." });
+  if (claim.waterAvailability === 'Low') recommendations.push({ category: "Water Management", action: "Implement water-saving irrigation", details: "Adopt drip irrigation or sprinklers and consider drought-resistant crop varieties." });
+  if (parameters.Fe < 10) recommendations.push({ category: "Micronutrient Supplement", action: "Apply Iron chelates", details: "Address iron deficiency with foliar sprays or soil application of iron chelates." });
+  if (parameters.Zn < 0.6) recommendations.push({ category: "Micronutrient Supplement", action: "Supplement Zinc", details: "Use zinc sulfate or zinc chelate to correct zinc deficiency, crucial for enzyme activity." });
+
+  if (recommendations.length === 0) {
+    recommendations.push({ category: "General", action: "Maintain current practices", details: "Your soil health is good; continue with sustainable farming methods." });
+  }
+
+  return {
+    parameters,
+    healthAssessment,
+    recommendations,
+  };
+};
+
+
 const runPredictiveAnalysis = (claim: Claim) => {
   return {
     cropAnalysis: getCropAnalysis(claim.soilType),
     waterAnalysis: getWaterAnalysis(claim.waterAvailability),
     economicOpportunities: getEconomicOpportunities(claim),
+    soilAnalysis: getSoilAnalysis(claim), // Include new soil analysis
   };
 };
 
