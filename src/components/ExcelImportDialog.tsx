@@ -36,11 +36,10 @@ const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) 
     // Define a small base delta for polygon points in degrees
     // This ensures the polygon is always small and localized.
     // The actual size will be scaled by areaInAcres.
-    const baseDelta = 0.001; // Approximately 111 meters at the equator
-
+    const baseDelta = 0.0005; // Reduced base delta
     // Scale the delta based on the area, but keep it small
-    // Using Math.cbrt for a more gradual scaling effect for area
-    const scaleFactor = Math.cbrt(Math.max(0.1, areaInAcres)) * 0.5; // Scale by cube root of area, min 0.1 acres, then halve it
+    // Using Math.cbrt for a more gradual scaling effect for area, with a significantly reduced multiplier
+    const scaleFactor = Math.cbrt(Math.max(0.1, areaInAcres)) * 0.1; 
     const deltaLat = baseDelta * scaleFactor;
     const deltaLon = baseDelta * scaleFactor;
 
