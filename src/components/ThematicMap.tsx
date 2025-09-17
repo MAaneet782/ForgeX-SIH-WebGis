@@ -30,6 +30,12 @@ const MapLegend = () => {
     Low: '#ff7f0e',
   };
 
+  const statusColors = {
+    Approved: '#22c55e', // Green
+    Pending: '#facc15',  // Yellow
+    Rejected: '#ef4444', // Red
+  };
+
   return (
     <div className="absolute bottom-4 right-4 z-[1000]">
       <Card className="bg-card/80 backdrop-blur-sm">
@@ -46,6 +52,12 @@ const MapLegend = () => {
           <div>
             <h4 className="font-semibold text-sm mb-1">Water Availability</h4>
             {Object.entries(waterColors).map(([label, color]) => (
+              <LegendItem key={label} color={color} label={label} />
+            ))}
+          </div>
+          <div>
+            <h4 className="font-semibold text-sm mb-1">Claim Status</h4>
+            {Object.entries(statusColors).map(([label, color]) => (
               <LegendItem key={label} color={color} label={label} />
             ))}
           </div>
@@ -83,6 +95,18 @@ const ThematicMap = ({ claims, geoJsonData }: ThematicMapProps) => {
     return { color: color, weight: 1, fillColor: color, fillOpacity: 0.6 };
   };
 
+  const styleStatusFeature = (feature?: Feature): PathOptions => {
+    const claimId = feature?.properties?.id;
+    const claim = claims.find(c => c.id === claimId);
+    const statusColors = {
+      Approved: '#22c55e', // Green
+      Pending: '#facc15',  // Yellow
+      Rejected: '#ef4444', // Red
+    };
+    const color = claim ? statusColors[claim.status] || '#cccccc' : '#cccccc';
+    return { color: color, weight: 1, fillColor: color, fillOpacity: 0.6 };
+  };
+
   return (
     <div className="relative h-full w-full rounded-lg overflow-hidden">
       <MapContainer center={center} zoom={5} className="h-full w-full">
@@ -103,6 +127,13 @@ const ThematicMap = ({ claims, geoJsonData }: ThematicMapProps) => {
               data={geoJsonData} 
               style={styleWaterFeature}
               key={'water-layer-' + claims.length}
+            />
+          </LayersControl.Overlay>
+          <LayersControl.Overlay name="Claim Status">
+            <GeoJSON 
+              data={geoJsonData} 
+              style={styleStatusFeature}
+              key={'status-layer-' + claims.length}
             />
           </LayersControl.Overlay>
         </LayersControl>
