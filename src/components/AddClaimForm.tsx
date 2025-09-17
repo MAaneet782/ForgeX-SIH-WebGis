@@ -24,6 +24,7 @@ import { SheetFooter } from "@/components/ui/sheet";
 import { useState } from "react";
 import OcrScanner from "./OcrScanner";
 import { ScanLine } from "lucide-react";
+import type { Claim } from "@/data/mockClaims"; // Import Claim type to use its enums
 
 const formSchema = z.object({
   holderName: z.string().min(2, { message: "Holder name must be at least 2 characters." }),
@@ -32,8 +33,8 @@ const formSchema = z.object({
   state: z.string().min(2, { message: "State name must be at least 2 characters." }),
   area: z.coerce.number().nonnegative({ message: "Area must be a non-negative number." }),
   status: z.enum(["Approved", "Pending", "Rejected"]),
-  soilType: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite']),
-  waterAvailability: z.enum(['High', 'Medium', 'Low']),
+  soilType: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite', 'Unknown']), // Use Claim's soilType enum
+  waterAvailability: z.enum(['High', 'Medium', 'Low', 'Unknown']), // Use Claim's waterAvailability enum
   coordinates: z.string().refine((val) => {
     try {
       const parsed = JSON.parse(val);
@@ -47,8 +48,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Define the type for the data that AddClaimForm actually emits
+type AddClaimFormData = Omit<FormValues, 'document'> & { documentName?: string };
+
 type AddClaimFormProps = {
-  onAddClaim: (claim: Omit<FormValues, 'document'> & { documentName?: string }) => void;
+  onAddClaim: (claim: AddClaimFormData) => void;
   onClose: () => void;
 };
 
@@ -107,8 +111,8 @@ const AddClaimForm = ({ onAddClaim, onClose }: AddClaimFormProps) => {
             <FormField control={form.control} name="state" render={({ field }) => ( <FormItem><FormLabel>State</FormLabel><FormControl><Input placeholder="Enter state" {...field} /></FormControl><FormMessage /></FormItem> )} />
             <FormField control={form.control} name="area" render={({ field }) => ( <FormItem><FormLabel>Area (acres)</FormLabel><FormControl><Input type="number" placeholder="Enter area" {...field} /></FormControl><FormMessage /></FormItem> )} />
             <FormField control={form.control} name="status" render={({ field }) => ( <FormItem><FormLabel>Status</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Approved">Approved</SelectItem><SelectItem value="Pending">Pending</SelectItem><SelectItem value="Rejected">Rejected</SelectItem></SelectContent></Select><FormMessage /></FormItem> )} />
-            <FormField control={form.control} name="soilType" render={({ field }) => ( <FormItem><FormLabel>Soil Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Alluvial">Alluvial</SelectItem><SelectItem value="Clay">Clay</SelectItem><SelectItem value="Loamy">Loamy</SelectItem><SelectItem value="Laterite">Laterite</SelectItem></SelectContent></Select><FormMessage /></FormItem> )} />
-            <FormField control={form.control} name="waterAvailability" render={({ field }) => ( <FormItem><FormLabel>Water Availability</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="High">High</SelectItem><SelectItem value="Medium">Medium</SelectItem><SelectItem value="Low">Low</SelectItem></SelectContent></Select><FormMessage /></FormItem> )} />
+            <FormField control={form.control} name="soilType" render={({ field }) => ( <FormItem><FormLabel>Soil Type</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="Alluvial">Alluvial</SelectItem><SelectItem value="Clay">Clay</SelectItem><SelectItem value="Loamy">Loamy</SelectItem><SelectItem value="Laterite">Laterite</SelectItem><SelectItem value="Unknown">Unknown</SelectItem></SelectContent></Select><FormMessage /></FormItem> )} />
+            <FormField control={form.control} name="waterAvailability" render={({ field }) => ( <FormItem><FormLabel>Water Availability</FormLabel><Select onValueChange={field.onChange} value={field.value}><FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl><SelectContent><SelectItem value="High">High</SelectItem><SelectItem value="Medium">Medium</SelectItem><SelectItem value="Low">Low</SelectItem><SelectItem value="Unknown">Unknown</SelectItem></SelectContent></Select><FormMessage /></FormItem> )} />
           </div>
           <FormField 
             control={form.control} 

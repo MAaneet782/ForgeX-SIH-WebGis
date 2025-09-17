@@ -47,6 +47,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
     geometry: item.geometry,
+    created_at: new Date(item.created_at), // Map created_at
   }));
 };
 
@@ -161,7 +162,7 @@ const Analytics = () => {
       </Button>
       
       <header>
-        <h1 className="text-3xl font-bold">Advanced Analytics</h1>
+        <h1 className="3xl font-bold">Advanced Analytics</h1>
         <p className="text-muted-foreground">Economic and agricultural insights from FRA claims data.</p>
       </header>
 

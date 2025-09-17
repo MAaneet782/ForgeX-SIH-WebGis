@@ -37,6 +37,7 @@ const fetchClaimById = async (userFacingClaimId: string): Promise<Claim> => {
     waterAvailability: data.water_availability,
     estimatedCropValue: data.estimated_crop_value,
     geometry: data.geometry,
+    created_at: new Date(data.created_at), // Map created_at
   };
 };
 

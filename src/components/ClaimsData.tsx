@@ -34,10 +34,27 @@ import { cn } from "@/lib/utils";
 import { Download, Info, ArrowUpDown, Upload, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import ExcelImportDialog from "./ExcelImportDialog";
+import * as z from "zod"; // Import z for schema definition
+
+// Define the schema for the data that AddClaimForm emits
+const addClaimFormSchema = z.object({
+  holderName: z.string(),
+  village: z.string(),
+  district: z.string(),
+  state: z.string(),
+  area: z.coerce.number(),
+  status: z.enum(["Approved", "Pending", "Rejected"]),
+  soilType: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite', 'Unknown']),
+  waterAvailability: z.enum(['High', 'Medium', 'Low', 'Unknown']),
+  coordinates: z.string(),
+  documentName: z.string().optional(),
+});
+
+type AddClaimFormData = z.infer<typeof addClaimFormSchema>;
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => void;
+  onAddClaim: (claim: AddClaimFormData) => void; // Updated type here
   onGenerateReport: () => void;
   onZoomToClaim: (dbId: string) => void; // Expects dbId for map zoom
   onDeleteClaim: (dbId: string) => void; // Expects dbId for deleting claims

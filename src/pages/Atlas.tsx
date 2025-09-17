@@ -35,6 +35,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
     geometry: item.geometry,
+    created_at: new Date(item.created_at), // Map created_at
   }));
 };
 
@@ -52,7 +53,7 @@ const IndexPageContent = () => {
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
 
   const addClaimMutation = useMutation({
-    mutationFn: async (newClaimData: Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => {
+    mutationFn: async (newClaimData: Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry' | 'id' | 'created_at'> & { coordinates: string }) => { // Added 'created_at' to Omit
       const toastId = showLoading("Adding new claim...");
       const { coordinates, ...rest } = newClaimData;
       
@@ -72,6 +73,7 @@ const IndexPageContent = () => {
         water_availability: rest.waterAvailability,
         estimated_crop_value: Math.floor(Math.random() * (25000 - 5000 + 1)) + 5000,
         geometry: JSON.parse(coordinates),
+        created_at: new Date(), // Add created_at
       };
 
       const { data, error } = await supabase.from('claims').insert([newClaimRecord]).select('id, claim_id').single(); // Select DB's primary key 'id'
@@ -213,7 +215,7 @@ const IndexPageContent = () => {
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-2xl font-bold">Data Analysis</h2>
+              <h2 className="2xl font-bold">Data Analysis</h2>
               <DataVisualization claims={claims} />
             </div>
           </main>

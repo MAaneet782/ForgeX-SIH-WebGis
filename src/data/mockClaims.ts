@@ -10,10 +10,11 @@ export type Claim = {
   area: number;
   status: 'Approved' | 'Pending' | 'Rejected';
   documentName?: string;
-  soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite';
-  waterAvailability: 'High' | 'Medium' | 'Low';
+  soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite' | 'Unknown'; // Added 'Unknown'
+  waterAvailability: 'High' | 'Medium' | 'Low' | 'Unknown'; // Added 'Unknown'
   estimatedCropValue: number; // in INR
   geometry?: Geometry;
+  created_at?: Date; // Added created_at field
 };
 
 export const waterBodiesGeoJson: FeatureCollection = {

@@ -29,6 +29,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
     geometry: item.geometry,
+    created_at: new Date(item.created_at), // Map created_at
   }));
 };
 
