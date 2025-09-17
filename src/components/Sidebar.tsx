@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart3, BookCopy } from "lucide-react";
+import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart3, BookCopy, UserCog } from "lucide-react";
 import { useDashboardState } from "@/context/DashboardStateContext";
 import { showInfo } from "@/utils/toast";
 import { cn } from "@/lib/utils";
@@ -95,6 +95,10 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
   };
 
   const navItems = {
+    "ROLES": [
+      { icon: UserCog, label: "RFO Dashboard", action: () => navigate('/rfo-dashboard') },
+      // { icon: Briefcase, label: "PDO Dashboard", action: () => navigate('/pdo-dashboard') }, // Will add this later
+    ],
     "MAP TOOLS": [
       { icon: Layers, label: "Layers Panel", action: onToggleLayersPanel },
       { icon: Map, label: "Basemap Switcher", action: () => showInfo("Use the control on the map to switch basemaps.") },

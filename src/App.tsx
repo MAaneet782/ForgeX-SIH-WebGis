@@ -11,6 +11,7 @@ import Analytics from "./pages/Analytics";
 import LoginPage from "./pages/Login";
 import SignupPage from "./pages/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RfoDashboard from "./pages/RfoDashboard"; // Import the new RFO Dashboard
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           <Route element={<ProtectedRoute />}>
             <Route path="/atlas" element={<Atlas />} />
             <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
+            <Route path="/rfo-dashboard" element={<RfoDashboard />} /> {/* New RFO Dashboard Route */}
           </Route>
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
