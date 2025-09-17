@@ -10,6 +10,8 @@ import { supabase } from "@/lib/supabaseClient";
 import type { Claim } from "@/data/mockClaims";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClaimLocationMap from "@/components/ClaimLocationMap";
+import { useMemo } from "react";
+import L from 'leaflet'; // Import Leaflet for geometry operations
 
 const fetchClaimById = async (userFacingClaimId: string): Promise<Claim> => {
   const { data, error } = await supabase
@@ -46,6 +48,19 @@ const ClaimDetail = () => {
     queryFn: () => fetchClaimById(claimId!),
     enabled: !!claimId,
   });
+
+  // Calculate the water index location (centroid of the claim's geometry)
+  const waterIndexLocation = useMemo(() => {
+    if (claim?.geometry) {
+      // @ts-ignore
+      const bounds = L.geoJSON(claim.geometry).getBounds();
+      if (bounds.isValid()) {
+        const center = bounds.getCenter();
+        return center; // Return LatLng object directly, which is a valid LatLngExpression
+      }
+    }
+    return undefined;
+  }, [claim?.geometry]);
 
   if (isLoading) {
     return (
@@ -111,7 +126,7 @@ const ClaimDetail = () => {
                 <CardTitle>Parcel Location</CardTitle>
               </CardHeader>
               <CardContent className="h-48 p-0">
-                <ClaimLocationMap geometry={claim.geometry!} />
+                <ClaimLocationMap geometry={claim.geometry!} waterIndexLocation={waterIndexLocation} />
               </CardContent>
             </Card>
           </div>
