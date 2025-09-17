@@ -18,10 +18,20 @@ import {
   SheetTrigger,
   SheetDescription,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
-import { Download, Info, ArrowUpDown, Upload } from "lucide-react";
+import { Download, Info, ArrowUpDown, Upload, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import ExcelImportDialog from "./ExcelImportDialog";
 
@@ -30,6 +40,7 @@ interface ClaimsDataProps {
   onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue' | 'geometry'> & { coordinates: string }) => void;
   onGenerateReport: () => void;
   onZoomToClaim: (id: string) => void;
+  onDeleteClaim: (id: string) => void; // New prop for deleting claims
 }
 
 type SortKey = keyof Claim | 'updated';
@@ -39,10 +50,13 @@ const ClaimsData = ({
   onAddClaim, 
   onGenerateReport,
   onZoomToClaim,
+  onDeleteClaim,
 }: ClaimsDataProps) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [claimToDelete, setClaimToDelete] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const getRightType = (status: Claim['status']) => {
@@ -106,6 +120,19 @@ const ClaimsData = ({
       <ArrowUpDown className="ml-2 h-4 w-4" />
     </Button>
   );
+
+  const handleDeleteClick = (claimId: string) => {
+    setClaimToDelete(claimId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (claimToDelete) {
+      onDeleteClaim(claimToDelete);
+      setClaimToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   return (
     <>
@@ -174,6 +201,13 @@ const ClaimsData = ({
                             <Info className="mr-2 h-4 w-4" />
                             Details
                           </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive" 
+                            onClick={(e) => { e.stopPropagation(); handleDeleteClick(claim.id); }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -185,6 +219,21 @@ const ClaimsData = ({
         </CardContent>
       </Card>
       <ExcelImportDialog isOpen={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} claims={claims} />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete claim <span className="font-semibold">{claimToDelete}</span> from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

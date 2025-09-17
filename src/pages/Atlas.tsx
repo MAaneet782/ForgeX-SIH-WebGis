@@ -86,6 +86,26 @@ const IndexPageContent = () => {
     },
   });
 
+  const deleteClaimMutation = useMutation({
+    mutationFn: async (claimId: string) => {
+      const toastId = showLoading(`Deleting claim ${claimId}...`);
+      const { error } = await supabase.from('claims').delete().eq('claim_id', claimId);
+      dismissToast(String(toastId));
+      if (error) throw new Error(error.message);
+      return claimId;
+    },
+    onSuccess: (deletedClaimId) => {
+      queryClient.invalidateQueries({ queryKey: ['claims'] });
+      showSuccess(`Claim ${deletedClaimId} deleted successfully.`);
+      if (selectedClaimId === deletedClaimId) {
+        setSelectedClaimId(null);
+      }
+    },
+    onError: (error) => {
+      showError(`Failed to delete claim: ${error.message}`);
+    },
+  });
+
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) =>
       claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -181,6 +201,7 @@ const IndexPageContent = () => {
                   onAddClaim={(claim) => addClaimMutation.mutate(claim)}
                   onGenerateReport={handleGenerateReport}
                   onZoomToClaim={handleZoomToClaim}
+                  onDeleteClaim={(claimId) => deleteClaimMutation.mutate(claimId)}
                 />
             </div>
 

@@ -26,8 +26,13 @@ const StatCard = ({ icon: Icon, title, value, description }: { icon: React.Eleme
   </Card>
 );
 
+const ALLOWED_STATES = ['Odisha', 'Madhya Pradesh', 'Tripura', 'Telangana'];
+
 const fetchClaims = async (): Promise<Claim[]> => {
-  const { data, error } = await supabase.from('claims').select('*');
+  const { data, error } = await supabase
+    .from('claims')
+    .select('*')
+    .in('state', ALLOWED_STATES); // Filter by allowed states
   if (error) throw new Error(error.message);
   return data.map(item => ({
     id: item.claim_id,
@@ -49,7 +54,7 @@ const PROFESSIONAL_COLORS = ['#4f46e5', '#0d9488', '#f59e0b', '#db2777', '#6b728
 
 const Analytics = () => {
   const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
-    queryKey: ['claims'],
+    queryKey: ['claims', 'filtered_analytics'], // Unique key for filtered claims
     queryFn: fetchClaims,
   });
 
