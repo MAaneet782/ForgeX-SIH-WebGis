@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 
-const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
+const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title: string, value: string }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -15,7 +15,6 @@ const StatCard = ({ icon: Icon, title, value, description }: { icon: React.Eleme
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold">{value}</div>
-      <p className="text-xs text-muted-foreground">{description}</p>
     </CardContent>
   </Card>
 );
@@ -141,9 +140,9 @@ const LandingPage = () => {
           </div>
 
           <div className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard icon={FileDigit} title="Records Digitized" value="1.2 M" description="+20.1% from last month" />
-            <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" description="+180.1 from last month" />
-            <StatCard icon={Users} title="Beneficiaries Served" value="850 K" description="+12% from last month" />
+            <StatCard icon={FileDigit} title="Records Digitized" value="1.2 M" />
+            <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" />
+            <StatCard icon={Users} title="Beneficiaries Served" value="850 K" />
           </div>
         </main>
       </div>

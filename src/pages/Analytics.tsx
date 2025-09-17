@@ -13,7 +13,7 @@ import ThematicMap from "@/components/ThematicMap";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
+const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title: string, value: string }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -21,7 +21,6 @@ const StatCard = ({ icon: Icon, title, value, description }: { icon: React.Eleme
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold">{value}</div>
-      <p className="text-xs text-muted-foreground">{description}</p>
     </CardContent>
   </Card>
 );
@@ -197,19 +196,16 @@ const Analytics = () => {
           icon={IndianRupee} 
           title="Total Estimated Crop Value" 
           value={`₹${(analyticsData.totalValue / 1000).toFixed(1)}k`}
-          description="Across all filtered claims"
         />
         <StatCard 
           icon={Map} 
           title="Total Area Mapped" 
           value={`${analyticsData.totalArea.toFixed(1)} acres`}
-          description="Total land under filtered claims"
         />
         <StatCard 
           icon={Users} 
           title="Total Claims" 
           value={`${analyticsData.totalClaims}`}
-          description="Number of households in filter"
         />
       </div>
 
