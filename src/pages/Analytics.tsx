@@ -108,6 +108,17 @@ const Analytics = () => {
     };
   }, [filteredClaims]);
 
+  const claimsByState = useMemo(() => {
+    const stateCounts = filteredClaims.reduce((acc, claim) => { // Changed to use filteredClaims
+      if (claim.state && claim.state !== 'Unknown') {
+        acc[claim.state] = (acc[claim.state] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(stateCounts).map(([name, value]) => ({ name, value }));
+  }, [filteredClaims]); // Changed dependency to filteredClaims
+
   const geoJsonData = useMemo((): FeatureCollection => {
     if (!filteredClaims) return { type: "FeatureCollection", features: [] };
     const features = filteredClaims
@@ -221,13 +232,13 @@ const Analytics = () => {
         </Card>
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Crop Value by Soil Type</CardTitle>
+            <CardTitle>Claims by State</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={350}>
-              <PieChart>
+              <PieChart margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                 <Pie
-                  data={analyticsData.valueBySoilType}
+                  data={claimsByState}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -237,11 +248,11 @@ const Analytics = () => {
                   nameKey="name"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
-                  {analyticsData.valueBySoilType.map((entry, index) => (
+                  {claimsByState.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={PROFESSIONAL_COLORS[index % PROFESSIONAL_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => `₹${value.toLocaleString()}`} wrapperClassName="rounded-lg border bg-background p-2 shadow-sm" />
+                <Tooltip formatter={(value: number) => `${value.toLocaleString()} claims`} wrapperClassName="rounded-lg border bg-background p-2 shadow-sm" />
                 <Legend />
               </PieChart>
             </ResponsiveContainer>
