@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl, LayerGroup } from 'react-leaflet';
 import { FeatureCollection, Feature, Geometry } from 'geojson';
-import { Layer, LatLngExpression, PathOptions } from 'leaflet';
+import { Layer, LatLngExpression, PathOptions, LatLngBoundsExpression } from 'leaflet';
 import { useEffect } from 'react';
 import L from 'leaflet';
 import { useDashboardState } from '@/context/DashboardStateContext';
@@ -14,6 +14,12 @@ interface GisMapProps {
   selectedClaimDbId: string | null; // Now expects dbId
   onClaimSelect: (dbId: string | null) => void; // Now emits dbId
 }
+
+// Define India's approximate geographical bounds
+const INDIA_BOUNDS: LatLngBoundsExpression = [
+  [6.0, 68.0], // Southwest coordinates (min Lat, min Lon)
+  [37.0, 98.0]  // Northeast coordinates (max Lat, max Lon)
+];
 
 const MapController = ({ selectedClaimDbId, data }: { selectedClaimDbId: string | null, data: FeatureCollection }) => {
   const map = useMap();
@@ -88,7 +94,14 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimDbId, on
 
   return (
     <div className="relative h-full w-full">
-      <MapContainer center={center} zoom={5} className="h-full w-full">
+      <MapContainer 
+        center={center} 
+        zoom={5} 
+        minZoom={5} // Prevent zooming out beyond India
+        maxBounds={INDIA_BOUNDS} // Restrict panning to India
+        maxBoundsViscosity={1.0} // Make bounds sticky
+        className="h-full w-full"
+      >
         <LayersControl position="topright">
           <LayersControl.BaseLayer checked name="Street Map">
             <TileLayer

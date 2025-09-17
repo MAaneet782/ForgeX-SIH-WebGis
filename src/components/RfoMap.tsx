@@ -1,11 +1,17 @@
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import { FeatureCollection, Feature, Geometry } from 'geojson';
-import { LatLngExpression, Layer, PathOptions } from 'leaflet';
+import { LatLngExpression, Layer, PathOptions, LatLngBoundsExpression } from 'leaflet';
 import L from 'leaflet'; // Import Leaflet for popup content
 
 interface RfoMapProps {
   claimsData: FeatureCollection;
 }
+
+// Define India's approximate geographical bounds
+const INDIA_BOUNDS: LatLngBoundsExpression = [
+  [6.0, 68.0], // Southwest coordinates (min Lat, min Lon)
+  [37.0, 98.0]  // Northeast coordinates (max Lat, max Lon)
+];
 
 const RfoMap = ({ claimsData }: RfoMapProps) => {
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
@@ -40,7 +46,14 @@ const RfoMap = ({ claimsData }: RfoMapProps) => {
 
   return (
     <div className="relative h-full w-full">
-      <MapContainer center={center} zoom={5} className="h-full w-full">
+      <MapContainer 
+        center={center} 
+        zoom={5} 
+        minZoom={5} // Prevent zooming out beyond India
+        maxBounds={INDIA_BOUNDS} // Restrict panning to India
+        maxBoundsViscosity={1.0} // Make bounds sticky
+        className="h-full w-full"
+      >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
