@@ -16,24 +16,33 @@ interface GisMapProps {
   onClaimSelect: (id: string | null) => void;
 }
 
-const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | null, data: FeatureCollection }) => {
+// Updated MapController to directly use the claims array
+const MapController = ({ selectedClaimId, claims }: { selectedClaimId: string | null, claims: Claim[] }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (selectedClaimId && data.type === 'FeatureCollection') {
-      const feature = data.features.find(
-        (f) => f.properties?.claimId === selectedClaimId
-      );
+    if (selectedClaimId) {
+      const selectedClaim = claims.find(c => c.id === selectedClaimId);
 
-      if (feature && feature.geometry) {
-        // @ts-ignore
-        const bounds = L.geoJSON(feature.geometry).getBounds();
-        if (bounds.isValid()) {
-          map.flyToBounds(bounds, { padding: [50, 50] });
+      if (selectedClaim && selectedClaim.geometry) {
+        try {
+          // @ts-ignore
+          const geoJsonLayer = L.geoJSON(selectedClaim.geometry);
+          const bounds = geoJsonLayer.getBounds();
+
+          if (bounds.isValid()) {
+            map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 }); // Added duration for animation
+          } else {
+            console.warn("Invalid bounds for selected claim geometry:", selectedClaim.id, selectedClaim.geometry);
+          }
+        } catch (e) {
+          console.error("Error processing GeoJSON for selected claim:", selectedClaim.id, e);
         }
+      } else {
+        console.log("Selected claim or its geometry not found for ID:", selectedClaimId);
       }
     }
-  }, [selectedClaimId, data, map]);
+  }, [selectedClaimId, claims, map]); // Depend on claims directly
 
   return null;
 };
@@ -140,7 +149,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
           </LayersControl.Overlay>
         )}
       </LayersControl>
-      <MapController selectedClaimId={selectedClaimId} data={claimsData} />
+      <MapController selectedClaimId={selectedClaimId} claims={claims} />
     </MapContainer>
   );
 };
