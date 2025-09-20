@@ -228,8 +228,8 @@ const IndexPageContent = () => {
   );
 
   return (
-    <div className="grid grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
-      <div className="col-span-full z-10">
+    <div className="grid grid-rows-[auto_1fr] lg:grid-cols-[280px_1fr] h-screen w-screen bg-background overflow-hidden">
+      <div className="col-span-full lg:col-span-2 z-10">
         <Header 
           searchTerm={searchTerm} 
           setSearchTerm={setSearchTerm} 
@@ -247,12 +247,12 @@ const IndexPageContent = () => {
             isOpen={isSidebarOpen}
             onOpenChange={setIsSidebarOpen}
           />
-          <main className="row-start-2 overflow-hidden">
-            <div className="h-full flex flex-col lg:flex-row">
+          <main className="row-start-2 col-span-full overflow-hidden">
+            <div className="h-full flex flex-col">
               <div className="flex-1 overflow-y-auto">
                 {mainContent}
               </div>
-              <div className="lg:w-1/3 p-4 border-t lg:border-t-0 lg:border-l border-border overflow-y-auto">
+              <div className="p-4 border-t border-border overflow-y-auto">
                 <DecisionSupportPanel claim={selectedClaim} />
               </div>
             </div>
@@ -260,14 +260,14 @@ const IndexPageContent = () => {
         </>
       ) : (
         <>
-          <div className="row-start-2">
+          <aside className="row-start-2 col-start-1">
             <Sidebar 
               onToggleLayersPanel={() => setIsLayersPanelOpen(true)} 
               onGenerateReport={handleGenerateReport} 
               onFindMyParcel={handleFindMyParcel} 
             />
-          </div>
-          <main className="row-start-2 overflow-hidden">
+          </aside>
+          <main className="row-start-2 col-start-2 overflow-hidden">
             <ResizablePanelGroup direction="horizontal">
               <ResizablePanel defaultSize={65} minSize={40}>
                 {mainContent}
