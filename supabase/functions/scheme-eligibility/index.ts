@@ -450,7 +450,7 @@ const calculateEligibility = (claim: ClaimForSchemes): SchemeDetail[] => {
     keyBenefits: [
       "Training in up to 5 trades per VTC, with ~20 trainees per trade.",
       "Stipend ~₹700/month per trainee, support for boarding/lodging, tools, raw materials.",
-      "Non-recurring grants (once every 5 years) for essential items (furniture, labs, hostels etc.): up to ₹20 lakh per school."
+      "Non-recurring grants for setting up VTCs (~₹0.48 lakh per trade for 5 years)."
     ],
     verificationProcess: [
       "ST/PVTG status verification.",
@@ -504,7 +504,7 @@ const calculateEligibility = (claim: ClaimForSchemes): SchemeDetail[] => {
   return schemes;
 };
 
-serve(async (req: Request) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -568,28 +568,12 @@ serve(async (req: Request) => {
 
     const eligibilityData = calculateEligibility(augmentedClaim);
 
-    // Always upsert the analysis results to the database
-    const { error: upsertError } = await supabaseClient
-      .from('scheme_eligibility_results')
-      .upsert(
-        {
-          claim_id: augmentedClaim.id,
-          eligibility_data: eligibilityData,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'claim_id' }
-      );
-
-    if (upsertError) {
-      console.error('Error upserting scheme eligibility results:', upsertError);
-    }
-
     return new Response(
       JSON.stringify({ schemes: eligibilityData }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
-  } catch (error: unknown) {
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     })
