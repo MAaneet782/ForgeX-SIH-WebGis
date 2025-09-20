@@ -3,9 +3,9 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import type { Claim } from "@/data/mockClaims";
 import { Leaf, Sprout, Droplets, DollarSign, Waves, Globe, Briefcase, CalendarDays, BadgeIndianRupee, AlertCircle, Package, Lightbulb, FlaskConical, HeartPulse, Microscope, Tally1, Thermometer, CloudRain, Droplet, Sun, Wind, CheckCircle2, XCircle } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query"; // Import useQuery
 import { Skeleton } from "@/components/ui/skeleton";
-import { type AnalysisResult, type SoilParameters, type SoilHealthAssessment, type SoilRecommendation } from "@/lib/ai-analysis";
+import { type AnalysisResult } from "@/lib/ai-analysis";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -78,56 +78,43 @@ const AiAnalysisSkeleton = () => (
 // --- Main Component ---
 const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
   const { supabase } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const getAnalysis = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        // 1. Try to fetch from Supabase cache first
-        const { data: cachedData, error: fetchError } = await supabase
-          .from('ai_analysis_results')
-          .select('analysis_data')
-          .eq('claim_id', claim.id)
-          .single();
+  const { data: analysis, isLoading, isError, error } = useQuery<AnalysisResult, Error>({
+    queryKey: ['aiAnalysis', claim.id],
+    queryFn: async () => {
+      // 1. Try to fetch from Supabase cache first
+      const { data: cachedData, error: fetchError } = await supabase
+        .from('ai_analysis_results')
+        .select('analysis_data')
+        .eq('claim_id', claim.id)
+        .single();
 
-        if (cachedData && cachedData.analysis_data) {
-          setAnalysis(cachedData.analysis_data as AnalysisResult);
-          setIsLoading(false);
-          return;
-        }
-
-        // 2. If not in cache or error fetching cache, invoke Edge Function
-        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
-          console.warn("Error fetching AI analysis from cache, invoking Edge Function:", fetchError.message);
-        }
-
-        const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
-          body: { claim },
-        });
-
-        if (functionError) throw functionError;
-        
-        setAnalysis(data);
-      } catch (e: any) {
-        console.error("Failed to fetch AI analysis:", e);
-        setError(e.message || "An unknown error occurred.");
-      } finally {
-        setIsLoading(false);
+      if (cachedData && cachedData.analysis_data) {
+        return cachedData.analysis_data as AnalysisResult;
       }
-    };
 
-    getAnalysis();
-  }, [claim, supabase]);
+      // 2. If not in cache or error fetching cache, invoke Edge Function
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
+        console.warn("Error fetching AI analysis from cache, invoking Edge Function:", fetchError.message);
+      }
+
+      const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
+        body: { claim },
+      });
+
+      if (functionError) throw functionError;
+      
+      return data as AnalysisResult;
+    },
+    staleTime: 1000 * 60 * 5, // Data considered fresh for 5 minutes
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+  });
 
   if (isLoading) {
     return <AiAnalysisSkeleton />;
   }
 
-  if (error || !analysis) {
+  if (isError || !analysis) {
     return (
       <Card>
         <CardHeader>
@@ -138,7 +125,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Analysis Failed</AlertTitle>
             <AlertDescription>
-              Could not retrieve predictive analysis. {error}
+              Could not retrieve predictive analysis. {error?.message || "An unknown error occurred."}
             </AlertDescription>
           </Alert>
         </CardContent>
