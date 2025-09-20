@@ -94,6 +94,10 @@ const ClaimDetail = () => {
       }
       
       console.log("AI analysis from Edge Function:", data);
+      // Add an explicit check for empty or null data from the edge function
+      if (!data) {
+        throw new Error("Predictive analysis function returned no data.");
+      }
       return data as AnalysisResult;
     },
     enabled: !!claim?.id, // Only run query if claim.id is available
@@ -119,6 +123,10 @@ const ClaimDetail = () => {
       }
       
       console.log("Scheme eligibility from Edge Function:", data.schemes);
+      // Add an explicit check for empty or null data from the edge function
+      if (!data || !data.schemes) {
+        throw new Error("Scheme eligibility function returned no data.");
+      }
       return data.schemes as SchemeDetail[];
     },
     enabled: !!claim, // Only run query if claim is available
