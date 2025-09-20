@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom"; // Removed useNavigate
 import {
   Table,
   TableBody,
@@ -61,7 +61,8 @@ const ClaimsData = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [claimToDeleteDbId, setClaimToDeleteDbId] = useState<string | null>(null);
   const [claimToDeleteUserFacingId, setClaimToDeleteUserFacingId] = useState<string | null>(null);
-  const navigate = useNavigate();
+  // Removed unused 'navigate' declaration
+  // const navigate = useNavigate();
 
   const getRightType = (status: Claim['status']) => {
     switch (status) {
