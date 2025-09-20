@@ -44,7 +44,8 @@ const SoilAnalysisSection = ({ soilAnalysis, isLoading, isError, error }: SoilAn
     );
   }
 
-  if (isError || !soilAnalysis) {
+  // Added check for soilAnalysis.composition to prevent 'undefined' errors
+  if (isError || !soilAnalysis || !soilAnalysis.composition) {
     return (
       <Card>
         <CardHeader>
