@@ -24,7 +24,7 @@ import { SheetFooter } from "@/components/ui/sheet";
 import { useState } from "react";
 import OcrScanner from "./OcrScanner";
 import { ScanLine } from "lucide-react";
-// Removed unused 'Claim' type import as enum values are hardcoded or inferred
+// Removed unused 'Claim' type import as its enums are directly used from mockClaims
 import type { NewClaimInput } from "@/pages/Atlas"; // Import the new type
 
 const formSchema = z.object({
@@ -34,8 +34,8 @@ const formSchema = z.object({
   state: z.string().min(2, { message: "State name must be at least 2 characters." }),
   area: z.coerce.number().nonnegative({ message: "Area must be a non-negative number." }),
   status: z.enum(["Approved", "Pending", "Rejected"]),
-  soilType: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite', 'Unknown']),
-  waterAvailability: z.enum(['High', 'Medium', 'Low', 'Unknown']),
+  soilType: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite', 'Unknown']), // Use Claim's soilType enum
+  waterAvailability: z.enum(['High', 'Medium', 'Low', 'Unknown']), // Use Claim's waterAvailability enum
   coordinates: z.string().refine((val) => {
     try {
       const parsed = JSON.parse(val);

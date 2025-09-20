@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom"; // Removed Link as it's not directly used here
+import { Link, useNavigate } from "react-router-dom";
 import {
   Table,
   TableBody,
@@ -34,11 +34,7 @@ import { cn } from "@/lib/utils";
 import { Download, Info, ArrowUpDown, Upload, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import ExcelImportDialog from "./ExcelImportDialog";
-// Removed unused z import
-// Removed unused addClaimFormSchema
 import type { NewClaimInput } from "@/pages/Atlas";
-
-// Removed addClaimFormSchema as it's not used here
 
 interface ClaimsDataProps {
   claims: Claim[];
@@ -208,9 +204,12 @@ const ClaimsData = ({
                       <TableCell className="py-2">{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                       <TableCell className="text-center py-2">
                         <div className="flex items-center justify-center gap-2">
-                          <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}>
-                            <Info className="mr-2 h-4 w-4" />
-                            Details
+                          {/* Explicitly using Link here */}
+                          <Button size="sm" asChild onClick={(e) => e.stopPropagation()}>
+                            <Link to={`/atlas/claim/${claim.id}`}>
+                              <Info className="mr-2 h-4 w-4" />
+                              Details
+                            </Link>
                           </Button>
                           <Button 
                             size="sm" 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-// Removed unused useQuery import
+// Removed unused 'useQuery'
 // import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
 import { mockClaims } from "@/data/mockClaims"; // Import mockClaims
 import type { Claim } from "@/data/mockClaims";
@@ -27,7 +27,7 @@ const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title
   </Card>
 );
 
-// Removed unused ALLOWED_STATES
+// Removed unused 'ALLOWED_STATES'
 const PROFESSIONAL_COLORS = ['#4f46e5', '#0d9488', '#f59e0b', '#db2777', '#6b7280', '#3b82f6'];
 
 const Analytics = () => {

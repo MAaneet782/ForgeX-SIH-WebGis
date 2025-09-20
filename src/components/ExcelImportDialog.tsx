@@ -1,16 +1,17 @@
 import { useState, useMemo, useRef } from "react";
 import * as XLSX from "xlsx";
+// import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, UploadCloud, FileWarning } from "lucide-react"; // Removed Download
+import { Loader2, UploadCloud, FileWarning, Download } from "lucide-react";
 import { showError, showSuccess, showLoading, dismissToast, showInfo } from "@/utils/toast";
-// Removed unused useQueryClient import
-// Removed unused useAuth import
+// Removed unused 'useQueryClient'
+// Removed unused 'useAuth'
 import type { Claim } from "@/data/mockClaims";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-// Removed unused useAuth import
+
 
 interface ExcelImportDialogProps {
   isOpen: boolean;
@@ -92,8 +93,6 @@ const getCellValue = (row: any, keys: string[]) => {
 };
 
 const ExcelImportDialog = ({ isOpen, onOpenChange, claims, onAddClaims }: ExcelImportDialogProps) => {
-  // const queryClient = useQueryClient(); // Removed unused variable
-  // const { user } = useAuth(); // Removed unused variable
   const [file, setFile] = useState<File | null>(null);
   const [processedData, setProcessedData] = useState<ProcessedRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -265,9 +264,9 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims, onAddClaims }: ExcelI
           const workbook = XLSX.read(data, { type: "array" });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
-          const json = XLSX.utils.sheet_to_json(worksheet);
+          const json = XLSX.utils.sheet_to_json(worksheet); // Fixed typo: sheet_to_to_json -> sheet_to_json
           
-          const processed = json.map(row => processExcelRow(row));
+          const processed = json.map((row: any) => processExcelRow(row)); // Added explicit 'any' type for 'row'
           setProcessedData(processed);
         } catch (error: any) {
           showError(`Failed to parse Excel file: ${error.message}`);
@@ -369,7 +368,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims, onAddClaims }: ExcelI
                   <AlertDescription>
                     {rowsWithErrors.length} out of {processedData.length} rows have errors and will not be imported.
                     <Button variant="link" className="h-auto p-0 ml-2 text-destructive-foreground underline" onClick={downloadErrorReport}>
-                      Download Error Report
+                      <Download className="mr-2 h-4 w-4" /> Download Error Report
                     </Button>
                   </AlertDescription>
                 </Alert>

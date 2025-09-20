@@ -1,6 +1,6 @@
 "use client"
 
-// Removed unused React import
+// Removed unused 'React' import
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { type ThemeProviderProps } from "next-themes/dist/types"
 

@@ -1,5 +1,5 @@
 import { MapContainer, TileLayer, GeoJSON, LayersControl } from 'react-leaflet';
-import { FeatureCollection, Feature } from 'geojson'; // Removed Geometry as it's not directly used
+import { FeatureCollection, Feature } from 'geojson'; // Removed unused 'Geometry'
 import { LatLngExpression, PathOptions } from 'leaflet';
 import type { Claim } from '@/data/mockClaims';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,14 +22,14 @@ const MapLegend = () => {
     Clay: '#8c564b',
     Loamy: '#7c6c5c',
     Laterite: '#d6616b',
-    Unknown: '#cccccc', // Added Unknown
+    Unknown: '#cccccc', // Added for TS7053 fix
   };
 
   const waterColors = {
     High: '#1f77b4',
     Medium: '#aec7e8',
     Low: '#ff7f0e',
-    Unknown: '#cccccc', // Added Unknown
+    Unknown: '#cccccc', // Added for TS7053 fix
   };
 
   const statusColors = {
@@ -80,7 +80,7 @@ const ThematicMap = ({ claims, geoJsonData }: ThematicMapProps) => {
       Clay: '#8c564b',
       Loamy: '#7c6c5c',
       Laterite: '#d6616b',
-      Unknown: '#cccccc', // Added Unknown
+      Unknown: '#cccccc', // Added for TS7053 fix
     };
     const color = claim ? soilColors[claim.soilType] || '#cccccc' : '#cccccc';
     return { color: color, weight: 1, fillColor: color, fillOpacity: 0.6 };
@@ -93,7 +93,7 @@ const ThematicMap = ({ claims, geoJsonData }: ThematicMapProps) => {
       High: '#1f77b4',
       Medium: '#aec7e8',
       Low: '#ff7f0e',
-      Unknown: '#cccccc', // Added Unknown
+      Unknown: '#cccccc', // Added for TS7053 fix
     };
     const color = claim ? waterColors[claim.waterAvailability] || '#cccccc' : '#cccccc';
     return { color: color, weight: 1, fillColor: color, fillOpacity: 0.6 };

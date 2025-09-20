@@ -1,6 +1,6 @@
 "use client"
 
-// Removed unused React import
+// Removed unused 'React' import
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
