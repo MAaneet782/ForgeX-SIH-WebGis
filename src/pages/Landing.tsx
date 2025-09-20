@@ -1,13 +1,12 @@
 import { Link } from "react-router-dom";
-import { Home, BookOpen, BarChart2, LogIn, HelpCircle, Search, Bell, Mail, User, Info, Map, TrendingUp, FileDigit, Users, Globe, LogOut } from "lucide-react";
+import { Home, BookOpen, BarChart2, LogIn, HelpCircle, Search, Bell, Mail, User, Info, Map, TrendingUp, FileDigit, Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/context/AuthContext";
 
-const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title: string, value: string }) => (
+const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
   <Card>
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
@@ -15,13 +14,12 @@ const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold">{value}</div>
+      <p className="text-xs text-muted-foreground">{description}</p>
     </CardContent>
   </Card>
 );
 
 const LandingPage = () => {
-  const { session, user, signOut } = useAuth();
-
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
       {/* Sidebar */}
@@ -33,11 +31,11 @@ const LandingPage = () => {
         <div className="p-4 border-b border-primary-foreground/20">
           <div className="flex items-center gap-3">
             <div className="bg-gray-200 text-gray-800 rounded-full h-10 w-10 flex items-center justify-center font-bold text-lg">
-              {session ? user?.email?.charAt(0).toUpperCase() : 'G'}
+              G
             </div>
             <div>
-              <p className="font-semibold">{session ? user?.email : 'Guest'}</p>
-              <p className="text-xs opacity-80">{session ? 'Official Access' : 'Public Access'}</p>
+              <p className="font-semibold">Guest</p>
+              <p className="text-xs opacity-80">Public Access</p>
             </div>
           </div>
         </div>
@@ -48,20 +46,14 @@ const LandingPage = () => {
           <Link to="/atlas" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
             <BookOpen className="mr-3 h-5 w-5" /> FRA Atlas
           </Link>
-          <Link to="/atlas/analytics" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
+          <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
             <BarChart2 className="mr-3 h-5 w-5" /> Analytics (Public)
           </Link>
         </nav>
         <div className="p-4 border-t border-primary-foreground/20 space-y-2">
-          {session ? (
-            <button onClick={signOut} className="w-full flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md text-left">
-              <LogOut className="mr-3 h-5 w-5" /> Logout
-            </button>
-          ) : (
-            <Link to="/login" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
-              <LogIn className="mr-3 h-5 w-5" /> Login
-            </Link>
-          )}
+          <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
+            <LogIn className="mr-3 h-5 w-5" /> Login
+          </Link>
           <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
             <HelpCircle className="mr-3 h-5 w-5" /> Help
           </Link>
@@ -75,7 +67,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-6 text-sm font-medium">
             <Link to="/" className="flex items-center gap-2 text-primary"><Home className="h-4 w-4" /> Home</Link>
             <Link to="/atlas" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><BookOpen className="h-4 w-4" /> Explore Atlas</Link>
-            <Link to="/atlas/analytics" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><BarChart2 className="h-4 w-4" /> Analytics</Link>
+            <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><BarChart2 className="h-4 w-4" /> Analytics</Link>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -87,19 +79,9 @@ const LandingPage = () => {
               <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs leading-none">0</Badge>
             </Button>
             <Button variant="ghost" size="icon"><Mail className="h-5 w-5" /></Button>
-            {session ? (
-              <Button variant="outline" className="flex items-center gap-2" asChild>
-                <Link to="/atlas">
-                  <User className="h-4 w-4" /> {user?.email?.split('@')[0]} <span className="text-xs">▼</span>
-                </Link>
-              </Button>
-            ) : (
-              <Button variant="outline" className="flex items-center gap-2" asChild>
-                <Link to="/login">
-                  <User className="h-4 w-4" /> Guest <span className="text-xs">▼</span>
-                </Link>
-              </Button>
-            )}
+            <Button variant="outline" className="flex items-center gap-2">
+              <User className="h-4 w-4" /> Guest <span className="text-xs">▼</span>
+            </Button>
           </div>
         </header>
 
@@ -109,7 +91,7 @@ const LandingPage = () => {
             <Info className="h-4 w-4 !text-blue-800 dark:!text-blue-300" />
             <AlertTitle>Heads up!</AlertTitle>
             <AlertDescription>
-              {session ? `You are logged in as ${user?.email}.` : 'You are viewing the public preview of the FRA Platform. Some features require login.'}
+              You are viewing the public preview of the FRA Platform. Some features require login.
             </AlertDescription>
           </Alert>
 
@@ -124,13 +106,13 @@ const LandingPage = () => {
                   <Link to="/atlas"><Map className="mr-2 h-5 w-5" /> Explore FRA Atlas</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link to="/atlas/analytics"><TrendingUp className="mr-2 h-5 w-5" /> View Analytics</Link>
+                  <Link to="/"><TrendingUp className="mr-2 h-5 w-5" /> View Analytics</Link>
                 </Button>
               </div>
             </div>
             <div className="lg:col-span-2">
-              <div className="rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300"> {/* Added hover effect */}
-                <img src="/modi-farmers.webp" alt="Prime Minister Modi with Indian farmers" className="w-full h-full object-cover" />
+              <div className="rounded-lg overflow-hidden shadow-lg">
+                <img src="https://images.unsplash.com/photo-1473123219393-5578b6b6e8a3?q=80&w=2070&auto=format&fit=crop" alt="Forest landscape" className="w-full h-full object-cover" />
               </div>
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 <Globe className="inline-block mr-1 h-4 w-4 text-green-500" />
@@ -140,9 +122,9 @@ const LandingPage = () => {
           </div>
 
           <div className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard icon={FileDigit} title="Records Digitized" value="1.2 M" />
-            <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" />
-            <StatCard icon={Users} title="Beneficiaries Served" value="850 K" />
+            <StatCard icon={FileDigit} title="Records Digitized" value="1.2 M" description="+20.1% from last month" />
+            <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" description="+180.1 from last month" />
+            <StatCard icon={Users} title="Beneficiaries Served" value="850 K" description="+12% from last month" />
           </div>
         </main>
       </div>

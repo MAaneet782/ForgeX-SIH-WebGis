@@ -19,7 +19,7 @@ interface SchemeInfoModalProps {
 const SchemeInfoModal = ({ isOpen, onOpenChange, title, children }: SchemeInfoModalProps) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="z-[9999]">
+      <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription asChild>

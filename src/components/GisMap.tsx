@@ -1,6 +1,6 @@
 import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl, LayerGroup } from 'react-leaflet';
 import { FeatureCollection, Feature, Geometry } from 'geojson';
-import { Layer, LatLngExpression, PathOptions, LatLngBoundsExpression } from 'leaflet';
+import { Layer, LatLngExpression, PathOptions } from 'leaflet';
 import { useEffect } from 'react';
 import L from 'leaflet';
 import { useDashboardState } from '@/context/DashboardStateContext';
@@ -11,23 +11,17 @@ interface GisMapProps {
   claimsData: FeatureCollection;
   waterData: FeatureCollection;
   agriData: FeatureCollection;
-  selectedClaimDbId: string | null; // Now expects dbId
-  onClaimSelect: (dbId: string | null) => void; // Now emits dbId
+  selectedClaimId: string | null;
+  onClaimSelect: (id: string | null) => void;
 }
 
-// Define India's approximate geographical bounds
-const INDIA_BOUNDS: LatLngBoundsExpression = [
-  [6.0, 68.0], // Southwest coordinates (min Lat, min Lon)
-  [37.0, 98.0]  // Northeast coordinates (max Lat, max Lon)
-];
-
-const MapController = ({ selectedClaimDbId, data }: { selectedClaimDbId: string | null, data: FeatureCollection }) => {
+const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | null, data: FeatureCollection }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (selectedClaimDbId && data.type === 'FeatureCollection') {
+    if (selectedClaimId && data.type === 'FeatureCollection') {
       const feature = data.features.find(
-        (f) => f.properties?.dbId === selectedClaimDbId // Match by dbId
+        (f) => f.properties?.claimId === selectedClaimId
       );
 
       if (feature && feature.geometry) {
@@ -38,12 +32,12 @@ const MapController = ({ selectedClaimDbId, data }: { selectedClaimDbId: string 
         }
       }
     }
-  }, [selectedClaimDbId, data, map]);
+  }, [selectedClaimId, data, map]);
 
   return null;
 };
 
-const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimDbId, onClaimSelect }: GisMapProps) => {
+const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onClaimSelect }: GisMapProps) => {
   const { state, isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState();
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
@@ -57,15 +51,15 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimDbId, on
 
       layer.on({
         click: () => {
-          onClaimSelect(feature.properties.dbId); // Emit dbId on click
+          onClaimSelect(feature.properties.claimId);
         },
       });
     }
   };
 
   const styleClaimFeature = (feature?: Feature): PathOptions => {
-    const claimDbId = feature?.properties?.dbId; // Use dbId for finding claim
-    const claim = claims.find(c => c.dbId === claimDbId);
+    const claimId = feature?.properties?.claimId;
+    const claim = claims.find(c => c.id === claimId);
     
     let style: PathOptions = { color: '#166534', weight: 2, fillOpacity: 0.3 }; // Default
 
@@ -82,7 +76,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimDbId, on
     }
 
     // Highlight for selection (overrides other styles)
-    if (claimDbId === selectedClaimDbId) { // Match by dbId
+    if (claimId === selectedClaimId) {
       style = { color: '#d97706', weight: 3, fillColor: '#f59e0b', fillOpacity: 0.6 };
     }
     
@@ -93,68 +87,58 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimDbId, on
   const agriStyle: PathOptions = { color: '#16a34a', weight: 2, fillColor: '#4ade80', fillOpacity: 0.4 };
 
   return (
-    <div className="relative h-full w-full">
-      <MapContainer 
-        center={center} 
-        zoom={5} 
-        minZoom={5} // Prevent zooming out beyond India
-        maxBounds={INDIA_BOUNDS} // Restrict panning to India
-        maxBoundsViscosity={1.0} // Make bounds sticky
-        className="h-full w-full"
-      >
-        <LayersControl position="topright">
-          <LayersControl.BaseLayer checked name="Street Map">
-            <TileLayer
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            />
-          </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Satellite">
+    <MapContainer center={center} zoom={5} className="h-full w-full">
+      <LayersControl position="topright">
+        <LayersControl.BaseLayer checked name="Street Map">
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Satellite">
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution="Tiles &copy; Esri"
+            maxZoom={18}
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Satellite + Labels">
+          <LayerGroup>
             <TileLayer
               url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
               attribution="Tiles &copy; Esri"
               maxZoom={18}
             />
-          </LayersControl.BaseLayer>
-          <LayersControl.BaseLayer name="Satellite + Labels">
-            <LayerGroup>
-              <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                attribution="Tiles &copy; Esri"
-                maxZoom={18}
-              />
-              <TileLayer
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-                maxZoom={18}
-              />
-            </LayerGroup>
-          </LayersControl.BaseLayer>
-          
-          {/* Reordered layers: Water and Agri first, then Claims on top */}
-          {state.visibleLayers.water && (
-            <LayersControl.Overlay checked name="Water Bodies">
-              <GeoJSON data={waterData} style={waterStyle} />
-            </LayersControl.Overlay>
-          )}
-          {state.visibleLayers.agri && (
-            <LayersControl.Overlay checked name="Agricultural Land">
-              <GeoJSON data={agriData} style={agriStyle} />
-            </LayersControl.Overlay>
-          )}
-          {state.visibleLayers.claims && (
-            <LayersControl.Overlay checked name="FRA Claims">
-              <GeoJSON 
-                data={claimsData} 
-                onEachFeature={onEachFeature} 
-                style={styleClaimFeature}
-                key={selectedClaimDbId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
-              />
-            </LayersControl.Overlay>
-          )}
-        </LayersControl>
-        <MapController selectedClaimDbId={selectedClaimDbId} data={claimsData} />
-      </MapContainer>
-    </div>
+            <TileLayer
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={18}
+            />
+          </LayerGroup>
+        </LayersControl.BaseLayer>
+        
+        {state.visibleLayers.claims && (
+          <LayersControl.Overlay checked name="FRA Claims">
+            <GeoJSON 
+              data={claimsData} 
+              onEachFeature={onEachFeature} 
+              style={styleClaimFeature}
+              key={selectedClaimId + JSON.stringify(state.activeFilters)} // Force re-render on selection/filter change
+            />
+          </LayersControl.Overlay>
+        )}
+        {state.visibleLayers.water && (
+          <LayersControl.Overlay checked name="Water Bodies">
+            <GeoJSON data={waterData} style={waterStyle} />
+          </LayersControl.Overlay>
+        )}
+        {state.visibleLayers.agri && (
+          <LayersControl.Overlay checked name="Agricultural Land">
+            <GeoJSON data={agriData} style={agriStyle} />
+          </LayersControl.Overlay>
+        )}
+      </LayersControl>
+      <MapController selectedClaimId={selectedClaimId} data={claimsData} />
+    </MapContainer>
   );
 };
 
