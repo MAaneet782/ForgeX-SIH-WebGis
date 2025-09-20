@@ -16,6 +16,7 @@ import ClaimInfoCard from "@/components/claim-detail/ClaimInfoCard";
 import ParcelLocationCard from "@/components/claim-detail/ParcelLocationCard";
 import SchemeEligibilitySection from "@/components/claim-detail/SchemeEligibilitySection";
 import AiAnalysisSection from "@/components/claim-detail/AiAnalysisSection";
+import SoilAnalysisSection from "@/components/claim-detail/SoilAnalysisSection"; // New import
 
 // --- Type Definitions for Scheme Eligibility ---
 interface SchemeDetail {
@@ -270,6 +271,20 @@ const ClaimDetail = () => {
             isLoading={isLoadingAnalysis} 
             isError={isErrorAnalysis} 
             error={analysisError} 
+          />
+        ) : (
+          unauthenticatedMessage
+        )}
+      </section>
+
+      {/* Soil Composition & Health Section */}
+      <section>
+        {user ? (
+          <SoilAnalysisSection
+            soilAnalysis={analysis?.soilAnalysis}
+            isLoading={isLoadingAnalysis}
+            isError={isErrorAnalysis}
+            error={analysisError}
           />
         ) : (
           unauthenticatedMessage

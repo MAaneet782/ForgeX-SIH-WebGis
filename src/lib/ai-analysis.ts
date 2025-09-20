@@ -1,12 +1,12 @@
 import type { Claim } from "@/data/mockClaims";
-import { Waves, Globe, Briefcase, DollarSign, CalendarDays, BadgeIndianRupee } from "lucide-react";
+import { Waves, Globe, Briefcase, DollarSign, CalendarDays, BadgeIndianRupee, LeafyGreen, Droplets, Thermometer, CloudRain, Sprout } from "lucide-react";
 
 // --- TYPE DEFINITIONS ---
 export interface CropRecommendation {
   name: string;
   sowingSeason: string;
   subsidyInfo: string;
-  iconName: string; // Changed from icon: React.ElementType
+  iconName: string;
 }
 
 export interface WaterAnalysis {
@@ -18,13 +18,52 @@ export interface WaterAnalysis {
 export interface EconomicOpportunity {
     name: string;
     description: string;
-    iconName: string; // Changed from icon: React.ElementType
+    iconName: string;
+}
+
+export interface SoilComposition {
+  n: number; // Nitrogen (ppm)
+  p: number; // Phosphorus (ppm)
+  k: number; // Potassium (ppm)
+  pH: number;
+  ec: number; // Electrical Conductivity (mS/cm)
+  om: number; // Organic Matter (%)
+  caco3: number; // Calcium Carbonate (%)
+  sand: number; // Sand (%)
+  silt: number; // Silt (%)
+  clay: number; // Clay (%)
+  temperature: number; // Temperature (°C)
+  humidity: number; // Humidity (%)
+  rainfall: number; // Rainfall (mm)
+  mg: number; // Magnesium (ppm)
+  fe: number; // Iron (ppm)
+  zn: number; // Zinc (ppm)
+  mn: number; // Manganese (ppm)
+}
+
+export interface SoilHealthAssessment {
+  overallScore: number; // e.g., 0-100
+  fertilityRating: 'Poor' | 'Moderate' | 'Good' | 'Excellent';
+  strengths: string[];
+  deficiencies: string[];
+}
+
+export interface SoilRecommendations {
+  healthImprovement: string[];
+  cropSuitability: string[];
+}
+
+export interface SoilAnalysis {
+  composition: SoilComposition;
+  healthAssessment: SoilHealthAssessment;
+  recommendations: SoilRecommendations;
 }
 
 export interface AnalysisResult {
   cropAnalysis: CropRecommendation[];
   waterAnalysis: WaterAnalysis;
   economicOpportunities: EconomicOpportunity[];
+  soilAnalysis: SoilAnalysis; // New soil analysis section
 }
 
 
@@ -116,6 +155,143 @@ const getEconomicOpportunities = (claim: Claim): EconomicOpportunity[] => {
     return opportunities;
 }
 
+/**
+ * Simulates a comprehensive soil analysis based on claim data.
+ */
+const getSoilAnalysis = (claim: Claim): SoilAnalysis => {
+  let n, p, k, pH, ec, om, caco3, sand, silt, clay, temp, humidity, rainfall, mg, fe, zn, mn;
+  let fertilityRating: SoilHealthAssessment['fertilityRating'] = 'Moderate';
+  let strengths: string[] = [];
+  let deficiencies: string[] = [];
+  let healthImprovement: string[] = [];
+  let cropSuitability: string[] = [];
+
+  // Base values, adjusted by soilType and waterAvailability
+  n = 120 + Math.random() * 40 - 20; // ppm
+  p = 25 + Math.random() * 10 - 5; // ppm
+  k = 180 + Math.random() * 60 - 30; // ppm
+  pH = 6.5 + Math.random() * 1 - 0.5;
+  ec = 0.8 + Math.random() * 0.4 - 0.2; // mS/cm
+  om = 1.5 + Math.random() * 1 - 0.5; // %
+  caco3 = 2 + Math.random() * 2 - 1; // %
+  sand = 40 + Math.random() * 20 - 10; // %
+  silt = 30 + Math.random() * 15 - 7.5; // %
+  clay = 30 + Math.random() * 15 - 7.5; // %
+  temp = 28 + Math.random() * 5 - 2.5; // °C
+  humidity = 70 + Math.random() * 10 - 5; // %
+  rainfall = 1200 + Math.random() * 400 - 200; // mm
+  mg = 150 + Math.random() * 50 - 25; // ppm
+  fe = 80 + Math.random() * 20 - 10; // ppm
+  zn = 1.5 + Math.random() * 0.5 - 0.25; // ppm
+  mn = 10 + Math.random() * 4 - 2; // ppm
+
+  // Adjustments based on soil type
+  switch (claim.soilType) {
+    case 'Alluvial':
+      n += 20; p += 5; k += 30; om += 0.5; sand -= 10; silt += 5; clay += 5;
+      strengths.push("Good nutrient retention and water holding capacity.");
+      deficiencies.push("Can be prone to waterlogging if drainage is poor.");
+      healthImprovement.push("Ensure proper drainage and consider green manure.");
+      cropSuitability.push("Rice, Wheat, Sugarcane, Jute.");
+      break;
+    case 'Clay':
+      n += 10; p += 2; k += 10; om += 0.2; sand -= 20; silt += 10; clay += 10; pH += 0.3;
+      strengths.push("High water and nutrient retention.");
+      deficiencies.push("Poor aeration, slow drainage, can become hard when dry.");
+      healthImprovement.push("Incorporate organic matter to improve structure and aeration.");
+      cropSuitability.push("Cotton, Sugarcane, Rice, Oilseeds.");
+      break;
+    case 'Loamy':
+      n += 15; p += 7; k += 20; om += 0.7; sand += 5; silt += 5; clay -= 10; pH -= 0.2;
+      strengths.push("Excellent balance of water retention, drainage, and aeration.");
+      deficiencies.push("May require regular nutrient replenishment.");
+      healthImprovement.push("Regular application of balanced fertilizers and compost.");
+      cropSuitability.push("Maize, Pulses, Vegetables, Fruits.");
+      break;
+    case 'Laterite':
+      n -= 30; p -= 10; k -= 40; om -= 0.8; pH -= 0.5; fe += 20; mn += 5;
+      strengths.push("Good for specific plantation crops.");
+      deficiencies.push("Low fertility, acidic, poor water retention.");
+      healthImprovement.push("Lime application to correct pH, heavy organic matter addition.");
+      cropSuitability.push("Cashew, Coffee, Tea, Rubber.");
+      break;
+  }
+
+  // Adjustments based on water availability
+  switch (claim.waterAvailability) {
+    case 'High':
+      humidity += 5; rainfall += 100;
+      strengths.push("Ample moisture for most crops.");
+      healthImprovement.push("Monitor for waterlogging, ensure good drainage.");
+      break;
+    case 'Medium':
+      humidity += 0; rainfall += 0;
+      strengths.push("Adequate moisture with proper management.");
+      healthImprovement.push("Implement efficient irrigation techniques (e.g., drip irrigation).");
+      break;
+    case 'Low':
+      humidity -= 10; rainfall -= 200;
+      deficiencies.push("Insufficient moisture, drought-prone.");
+      healthImprovement.push("Focus on drought-resistant crops, water harvesting, mulching.");
+      break;
+  }
+
+  // General health assessment based on parameters
+  let score = 0;
+  if (pH >= 6.0 && pH <= 7.5) score += 20; else if (pH >= 5.5 && pH <= 8.0) score += 10;
+  if (om >= 1.5) score += 20; else if (om >= 0.5) score += 10;
+  if (n > 100 && p > 20 && k > 150) score += 30; else if (n > 50 && p > 10 && k > 75) score += 15;
+  if (ec < 1.0) score += 10; // Low EC is generally good
+  if (sand > 20 && clay > 10 && silt > 10) score += 10; // Balanced texture
+  if (score > 80) fertilityRating = 'Excellent';
+  else if (score > 60) fertilityRating = 'Good';
+  else if (score > 40) fertilityRating = 'Moderate';
+  else fertilityRating = 'Poor';
+
+  if (pH < 6.0) deficiencies.push("Acidity (low pH)");
+  if (pH > 7.5) deficiencies.push("Alkalinity (high pH)");
+  if (om < 1.0) deficiencies.push("Low organic matter");
+  if (n < 100) deficiencies.push("Nitrogen deficiency");
+  if (p < 20) deficiencies.push("Phosphorus deficiency");
+  if (k < 150) deficiencies.push("Potassium deficiency");
+  if (ec > 1.5) deficiencies.push("High salinity (high EC)");
+
+  if (deficiencies.length === 0) strengths.push("Well-balanced nutrient profile.");
+  if (strengths.length === 0) strengths.push("No major strengths identified, but no critical issues.");
+
+  return {
+    composition: {
+      n: parseFloat(n.toFixed(1)),
+      p: parseFloat(p.toFixed(1)),
+      k: parseFloat(k.toFixed(1)),
+      pH: parseFloat(pH.toFixed(1)),
+      ec: parseFloat(ec.toFixed(2)),
+      om: parseFloat(om.toFixed(1)),
+      caco3: parseFloat(caco3.toFixed(1)),
+      sand: parseFloat(sand.toFixed(1)),
+      silt: parseFloat(silt.toFixed(1)),
+      clay: parseFloat(clay.toFixed(1)),
+      temperature: parseFloat(temp.toFixed(1)),
+      humidity: parseFloat(humidity.toFixed(1)),
+      rainfall: parseFloat(rainfall.toFixed(1)),
+      mg: parseFloat(mg.toFixed(1)),
+      fe: parseFloat(fe.toFixed(1)),
+      zn: parseFloat(zn.toFixed(2)),
+      mn: parseFloat(mn.toFixed(1)),
+    },
+    healthAssessment: {
+      overallScore: Math.min(100, Math.max(0, Math.round(score))),
+      fertilityRating,
+      strengths: Array.from(new Set(strengths)), // Remove duplicates
+      deficiencies: Array.from(new Set(deficiencies)), // Remove duplicates
+    },
+    recommendations: {
+      healthImprovement: Array.from(new Set(healthImprovement)), // Remove duplicates
+      cropSuitability: Array.from(new Set(cropSuitability)), // Remove duplicates
+    },
+  };
+};
+
 
 /**
  * Main function to run all predictive models and return a consolidated analysis.
@@ -125,5 +301,6 @@ export const runPredictiveAnalysis = (claim: Claim): AnalysisResult => {
     cropAnalysis: getCropAnalysis(claim.soilType),
     waterAnalysis: getWaterAnalysis(claim.waterAvailability),
     economicOpportunities: getEconomicOpportunities(claim),
+    soilAnalysis: getSoilAnalysis(claim), // Include soil analysis
   };
 };
