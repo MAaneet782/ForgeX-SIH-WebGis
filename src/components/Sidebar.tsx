@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf } from "lucide-react";
+import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart2, LogOut, Settings, User } from "lucide-react";
 import { useDashboardState } from "@/context/DashboardStateContext";
 import { showInfo } from "@/utils/toast";
 import { cn } from "@/lib/utils";
 import SchemeInfoModal from "./SchemeInfoModal";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 interface SidebarProps {
   onToggleLayersPanel: () => void;
@@ -16,6 +18,7 @@ interface SidebarProps {
 const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: SidebarProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: '', content: <></> });
+  const { user, supabase } = useAuth();
 
   const schemesContent = (
     <div className="space-y-4 text-sm">
@@ -73,6 +76,15 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
     setIsModalOpen(true);
   };
 
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      showInfo("Error logging out: " + error.message);
+    } else {
+      showInfo("Logged out successfully!");
+    }
+  };
+
   const navItems = {
     "MAP TOOLS": [
       { icon: Layers, label: "Layers Panel", action: onToggleLayersPanel },
@@ -87,36 +99,39 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
     ],
     "OFFICIALS": [
       { icon: FileText, label: "Generate Reports", action: onGenerateReport },
+      { icon: BarChart2, label: "Analytics Dashboard", action: () => window.location.href = '/atlas/analytics' },
     ],
   };
 
   return (
     <>
-      <aside className="bg-[#004d40] text-white flex flex-col h-full">
-        <div className="p-4 border-b border-white/20">
-          <h2 className="text-2xl font-bold">FRA Atlas</h2>
+      <aside className="bg-sidebar text-sidebar-foreground flex flex-col h-full border-r border-border">
+        <div className="p-4 border-b border-sidebar-border">
+          <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary-foreground">
+            <Leaf className="h-7 w-7 text-primary" /> FRA Atlas
+          </Link>
           <div className="flex items-center gap-3 mt-4">
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="Anita Devi" />
-              <AvatarFallback>AD</AvatarFallback>
+            <Avatar className="h-9 w-9">
+              <AvatarImage src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"} alt={user?.user_metadata?.first_name || "User"} />
+              <AvatarFallback>{user?.user_metadata?.first_name?.charAt(0) || user?.email?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold">Anita Devi</p>
-              <p className="text-xs text-gray-300">Local Government Official</p>
+              <p className="font-semibold text-sm">{user?.user_metadata?.first_name || user?.email || "Guest User"}</p>
+              <p className="text-xs text-muted-foreground">Local Government Official</p>
             </div>
           </div>
         </div>
         <nav className="flex-grow p-4 space-y-6 overflow-y-auto">
           {Object.entries(navItems).map(([section, items]) => (
             <div key={section}>
-              <h3 className="text-xs font-bold tracking-wider text-gray-400 uppercase mb-2">{section}</h3>
+              <h3 className="text-xs font-bold tracking-wider text-muted-foreground uppercase mb-2">{section}</h3>
               <ul className="space-y-1">
                 {items.map((item) => (
                   <li key={item.label}>
                     <Button 
                       variant="ghost" 
                       onClick={item.action}
-                      className="w-full justify-start text-white hover:bg-white/10 hover:text-white"
+                      className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     >
                       <item.icon className="mr-3 h-5 w-5" />
                       {item.label}
@@ -127,6 +142,29 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
             </div>
           ))}
         </nav>
+        <div className="p-4 border-t border-sidebar-border">
+          <Button 
+            variant="ghost" 
+            onClick={() => showInfo("Opening profile settings...")}
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1"
+          >
+            <User className="mr-3 h-5 w-5" /> Profile
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={() => showInfo("Opening settings...")}
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1"
+          >
+            <Settings className="mr-3 h-5 w-5" /> Settings
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={handleLogout}
+            className="w-full justify-start text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
+          >
+            <LogOut className="mr-3 h-5 w-5" /> Logout
+          </Button>
+        </div>
       </aside>
       <SchemeInfoModal 
         isOpen={isModalOpen} 

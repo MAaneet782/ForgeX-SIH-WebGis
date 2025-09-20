@@ -20,6 +20,7 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/AuthContext";
 
 // --- Supabase Data Fetching ---
 const fetchClaims = async (): Promise<Claim[]> => {
@@ -45,15 +46,17 @@ const fetchClaims = async (): Promise<Claim[]> => {
 const IndexPageContent = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { user, isLoading: isLoadingAuth } = useAuth();
 
   const { data: supabaseClaims = [], isLoading, isError } = useQuery<Claim[]>({
     queryKey: ['claims'],
     queryFn: fetchClaims,
+    enabled: !!user, // Only fetch claims if user is logged in
   });
 
   // Combine Supabase claims with local mock claims
-  const combinedClaims = useMemo<Claim[]>(() => { // Explicitly type the return of useMemo as Claim[]
-    const uniqueClaimsMap = new globalThis.Map<string, Claim>(); // Changed here
+  const combinedClaims = useMemo<Claim[]>(() => {
+    const uniqueClaimsMap = new globalThis.Map<string, Claim>();
 
     // Add Supabase claims, they take precedence
     supabaseClaims.forEach(claim => uniqueClaimsMap.set(claim.id, claim));
@@ -93,6 +96,7 @@ const IndexPageContent = () => {
         estimated_crop_value: Math.floor(Math.random() * (25000 - 5000 + 1)) + 5000,
         geometry: JSON.parse(coordinates),
         created_at: new Date().toISOString(), // Ensure created_at is set for new claims
+        user_id: user?.id, // Associate claim with logged-in user
       };
 
       const { error } = await supabase.from('claims').insert([newClaimRecord]);
@@ -150,7 +154,7 @@ const IndexPageContent = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingAuth) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="space-y-4">
@@ -175,7 +179,7 @@ const IndexPageContent = () => {
         <ResizablePanelGroup direction="horizontal">
           <ResizablePanel defaultSize={65} minSize={40}>
             <div className="h-full overflow-y-auto p-6 space-y-6">
-              <header className="flex items-center justify-between">
+              <header className="flex items-center justify-between mb-6">
                 <div>
                   <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
                   <p className="text-muted-foreground">Live Data from Supabase Database</p>

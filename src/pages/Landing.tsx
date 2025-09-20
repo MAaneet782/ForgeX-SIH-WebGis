@@ -1,13 +1,16 @@
 import { Link } from "react-router-dom";
-import { Home, BookOpen, BarChart2, LogIn, HelpCircle, Search, Bell, Mail, User, Info, Map, TrendingUp, FileDigit, Users, Globe } from "lucide-react";
+import { Home, BookOpen, BarChart2, LogIn, HelpCircle, Search, Bell, Mail, User, Info, Map, TrendingUp, FileDigit, Users, Globe, Leaf, DollarSign } from "lucide-react"; // Added DollarSign
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added CardDescription
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { ForestBackground } from "@/components/ForestBackground";
 
 const StatCard = ({ icon: Icon, title, value, description }: { icon: React.ElementType, title: string, value: string, description: string }) => (
-  <Card>
+  <Card className="hover:shadow-lg transition-shadow duration-300">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
       <CardTitle className="text-sm font-medium">{title}</CardTitle>
       <Icon className="h-5 w-5 text-muted-foreground" />
@@ -21,113 +24,107 @@ const StatCard = ({ icon: Icon, title, value, description }: { icon: React.Eleme
 
 const LandingPage = () => {
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-primary text-primary-foreground flex flex-col">
-        <div className="p-6 border-b border-primary-foreground/20">
-          <h1 className="text-2xl font-bold">FRA Platform</h1>
-          <p className="text-sm opacity-80">Empowering communities</p>
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Header */}
+      <header className="bg-card border-b p-3 flex items-center justify-between flex-wrap gap-2 z-10">
+        <div className="flex items-center gap-6 text-sm font-medium">
+          <Link to="/" className="flex items-center gap-2 text-primary font-semibold"><Leaf className="h-5 w-5" /> FRA Platform</Link>
+          <Link to="/atlas" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"><Map className="h-4 w-4" /> Explore Atlas</Link>
+          <Link to="/atlas/analytics" className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"><BarChart2 className="h-4 w-4" /> Analytics</Link>
         </div>
-        <div className="p-4 border-b border-primary-foreground/20">
-          <div className="flex items-center gap-3">
-            <div className="bg-gray-200 text-gray-800 rounded-full h-10 w-10 flex items-center justify-center font-bold text-lg">
-              G
-            </div>
-            <div>
-              <p className="font-semibold">Guest</p>
-              <p className="text-xs opacity-80">Public Access</p>
-            </div>
+        <div className="flex items-center gap-4">
+          <div className="relative hidden sm:block">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Search site" className="pl-9 h-9" />
           </div>
-        </div>
-        <nav className="flex-grow p-4 space-y-2">
-          <Link to="/" className="flex items-center px-4 py-2 bg-primary-foreground/10 rounded-md">
-            <Home className="mr-3 h-5 w-5" /> Home
-          </Link>
-          <Link to="/atlas" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
-            <BookOpen className="mr-3 h-5 w-5" /> FRA Atlas
-          </Link>
-          <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
-            <BarChart2 className="mr-3 h-5 w-5" /> Analytics (Public)
-          </Link>
-        </nav>
-        <div className="p-4 border-t border-primary-foreground/20 space-y-2">
-          <Link to="/login" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md"> {/* Updated link */}
-            <LogIn className="mr-3 h-5 w-5" /> Login
-          </Link>
-          <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
-            <HelpCircle className="mr-3 h-5 w-5" /> Help
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs leading-none">0</Badge>
+          </Button>
+          <Button variant="ghost" size="icon"><Mail className="h-5 w-5" /></Button>
+          <ThemeToggle />
+          <Link to="/login">
+            <Button variant="outline" className="flex items-center gap-2">
+              <LogIn className="h-4 w-4" /> Login
+            </Button>
           </Link>
         </div>
-      </aside>
+      </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-card border-b p-3 flex items-center justify-between flex-wrap gap-2">
-          <div className="flex items-center gap-6 text-sm font-medium">
-            <Link to="/" className="flex items-center gap-2 text-primary"><Home className="h-4 w-4" /> Home</Link>
-            <Link to="/atlas" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><BookOpen className="h-4 w-4" /> Explore Atlas</Link>
-            <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><BarChart2 className="h-4 w-4" /> Analytics</Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search site" className="pl-9 h-9" />
-            </div>
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs leading-none">0</Badge>
-            </Button>
-            <Button variant="ghost" size="icon"><Mail className="h-5 w-5" /></Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <User className="h-4 w-4" /> Guest <span className="text-xs">▼</span>
-            </Button>
-          </div>
-        </header>
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 relative z-10">
+        <Alert className="mb-8 bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-500/50 dark:text-blue-300">
+          <Info className="h-4 w-4 !text-blue-800 dark:!text-blue-300" />
+          <AlertTitle>Heads up!</AlertTitle>
+          <AlertDescription>
+            You are viewing the public preview of the FRA Platform. Some features require login.
+          </AlertDescription>
+        </Alert>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <Alert className="mb-8 bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/30 dark:border-blue-500/50 dark:text-blue-300">
-            <Info className="h-4 w-4 !text-blue-800 dark:!text-blue-300" />
-            <AlertTitle>Heads up!</AlertTitle>
-            <AlertDescription>
-              You are viewing the public preview of the FRA Platform. Some features require login.
-            </AlertDescription>
-          </Alert>
-
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-            <div className="lg:col-span-3 flex flex-col justify-center">
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Forest Rights Act Digital Platform</h1>
-              <p className="text-lg text-muted-foreground mb-8">
-                A unified platform to digitize claims, map community lands, and deliver benefits to FRA Patta Holders with transparency and accountability.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" asChild>
-                  <Link to="/atlas"><Map className="mr-2 h-5 w-5" /> Explore FRA Atlas</Link>
-                </Button>
-                <Button size="lg" variant="outline" asChild>
-                  <Link to="/"><TrendingUp className="mr-2 h-5 w-5" /> View Analytics</Link>
-                </Button>
-              </div>
-            </div>
-            <div className="lg:col-span-2">
-              <div className="rounded-lg overflow-hidden shadow-lg">
-                <img src="https://images.unsplash.com/photo-1473123219393-5578b6b6e8a3?q=80&w=2070&auto=format&fit=crop" alt="Forest landscape" className="w-full h-full object-cover" />
-              </div>
-              <p className="text-sm text-muted-foreground mt-2 text-center">
-                <Globe className="inline-block mr-1 h-4 w-4 text-green-500" />
-                Supporting communities through data and maps
-              </p>
+        <section className="relative py-16 md:py-24 text-center">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+              Empowering Forest Communities with <span className="text-primary">Digital Land Rights</span>
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
+              A unified platform to digitize claims, map community lands, and deliver benefits to FRA Patta Holders with transparency and accountability.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
+              <Button size="lg" asChild className="px-8 py-6 text-lg">
+                <Link to="/atlas"><Map className="mr-2 h-5 w-5" /> Explore FRA Atlas</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild className="px-8 py-6 text-lg">
+                <Link to="/atlas/analytics"><TrendingUp className="mr-2 h-5 w-5" /> View Analytics</Link>
+              </Button>
             </div>
           </div>
+        </section>
 
-          <div className="mt-12 md:mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <StatCard icon={FileDigit} title="Records Digitized" value="1.2 M" description="+20.1% from last month" />
-            <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" description="+180.1 from last month" />
-            <StatCard icon={Users} title="Beneficiaries Served" value="850 K" description="+12% from last month" />
+        <section className="mt-16 md:mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <StatCard icon={FileDigit} title="Records Digitized" value="1.2 Million" description="+20.1% from last month" />
+          <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" description="+180.1 from last month" />
+          <StatCard icon={Users} title="Beneficiaries Served" value="850 Thousand" description="+12% from last month" />
+        </section>
+
+        <section className="mt-16 md:mt-24 py-16 bg-card rounded-lg shadow-xl max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center mb-10">Key Features</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-8">
+            <Card className="text-center p-6">
+              <Map className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="mb-2">Interactive GIS Map</CardTitle>
+              <CardDescription>Visualize land claims, water bodies, and agricultural areas with rich geospatial data.</CardDescription>
+            </Card>
+            <Card className="text-center p-6">
+              <BarChart2 className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="mb-2">Advanced Analytics</CardTitle>
+              <CardDescription>Gain insights into crop value, soil types, and demographic data across districts.</CardDescription>
+            </Card>
+            <Card className="text-center p-6">
+              <Info className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="mb-2">AI-Powered Decision Support</CardTitle>
+              <CardDescription>Receive intelligent recommendations for crop suitability, water management, and economic opportunities.</CardDescription>
+            </Card>
+            <Card className="text-center p-6">
+              <DollarSign className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="mb-2">Scheme Eligibility</CardTitle>
+              <CardDescription>Automated assessment of eligibility for various government welfare schemes.</CardDescription>
+            </Card>
+            <Card className="text-center p-6">
+              <FileDigit className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="mb-2">Digitized Claims Management</CardTitle>
+              <CardDescription>Efficiently manage and track land claims with digital documentation.</CardDescription>
+            </Card>
+            <Card className="text-center p-6">
+              <Globe className="h-12 w-12 text-primary mx-auto mb-4" />
+              <CardTitle className="mb-2">Community Empowerment</CardTitle>
+              <CardDescription>Foster transparency and accountability in land rights and resource management.</CardDescription>
+            </Card>
           </div>
-        </main>
-      </div>
+        </section>
+      </main>
+
+      {/* Forest Background */}
+      <ForestBackground />
     </div>
   );
 };

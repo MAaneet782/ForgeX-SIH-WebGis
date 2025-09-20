@@ -59,6 +59,7 @@ const ClaimDetail = () => {
   const { data: supabaseClaims = [], isLoading: isLoadingSupabaseClaims, isError: isErrorSupabaseClaims } = useQuery<Claim[]>({
     queryKey: ['claims'],
     queryFn: fetchClaims,
+    enabled: !!user, // Only fetch claims if user is logged in
   });
 
   const combinedClaims = useMemo(() => {
