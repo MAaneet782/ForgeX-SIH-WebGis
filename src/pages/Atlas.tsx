@@ -39,6 +39,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
     soilType: item.soil_type,
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
+    created_at: item.created_at, // Added created_at
   }));
 };
 
@@ -75,6 +76,7 @@ const IndexPageContent = () => {
         water_availability: rest.waterAvailability,
         estimated_crop_value: Math.floor(Math.random() * (25000 - 5000 + 1)) + 5000,
         geometry: JSON.parse(coordinates),
+        created_at: new Date().toISOString(), // Ensure created_at is set for new claims
       };
 
       const { error } = await supabase.from('claims').insert([newClaimRecord]);
