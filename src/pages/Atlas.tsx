@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
+import { waterBodiesGeoJson, agriLandGeoJson, mockClaims as localMockClaims } from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import ClaimsData from "@/components/ClaimsData";
@@ -25,8 +25,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 const fetchClaims = async (): Promise<Claim[]> => {
   const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
-  // The database stores 'id' as a number, but we use a custom 'claim_id' string.
-  // Let's map the database response to our Claim type.
   return data.map(item => ({
     id: item.claim_id,
     holderName: item.holder_name,
@@ -39,7 +37,8 @@ const fetchClaims = async (): Promise<Claim[]> => {
     soilType: item.soil_type,
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
-    created_at: item.created_at, // Added created_at
+    created_at: item.created_at,
+    geometry: item.geometry, // Ensure geometry is included
   }));
 };
 
@@ -47,10 +46,27 @@ const IndexPageContent = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
+  const { data: supabaseClaims = [], isLoading, isError } = useQuery<Claim[]>({
     queryKey: ['claims'],
     queryFn: fetchClaims,
   });
+
+  // Combine Supabase claims with local mock claims
+  const combinedClaims = useMemo<Claim[]>(() => { // Explicitly type the return of useMemo as Claim[]
+    const uniqueClaimsMap = new globalThis.Map<string, Claim>(); // Changed here
+
+    // Add Supabase claims, they take precedence
+    supabaseClaims.forEach(claim => uniqueClaimsMap.set(claim.id, claim));
+
+    // Add local mock claims, but only if their ID doesn't already exist
+    localMockClaims.forEach(claim => {
+      if (!uniqueClaimsMap.has(claim.id)) {
+        uniqueClaimsMap.set(claim.id, claim);
+      }
+    });
+
+    return Array.from(uniqueClaimsMap.values());
+  }, [supabaseClaims]);
 
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -95,24 +111,19 @@ const IndexPageContent = () => {
   });
 
   const filteredClaims = useMemo(() => {
-    return claims.filter((claim) =>
+    return combinedClaims.filter((claim) =>
       claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.village.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [claims, searchTerm]);
+  }, [combinedClaims, searchTerm]);
 
   const selectedClaim = useMemo(() => {
-    return claims.find(c => c.id === selectedClaimId) || null;
-  }, [claims, selectedClaimId]);
+    return combinedClaims.find(c => c.id === selectedClaimId) || null;
+  }, [combinedClaims, selectedClaimId]);
 
   const geoJsonData = useMemo((): FeatureCollection => {
-    const features = claims.map((claim): Feature => {
-      // We need to fetch the geometry for this part. For now, let's assume it's part of the claim object.
-      // This will require modifying the fetch function and Supabase table.
-      // Let's assume a placeholder geometry for now.
-      const claimWithGeo = claims.find(c => c.id === claim.id);
-      // @ts-ignore - In a real scenario, geometry would be fetched.
-      const geometry = claimWithGeo?.geometry || { type: "Polygon", coordinates: [[[0,0]]] };
+    const features = combinedClaims.map((claim): Feature => {
+      const geometry = claim.geometry || { type: "Polygon", coordinates: [[[0,0]]] }; // Fallback geometry
       return {
         type: "Feature",
         properties: { claimId: claim.id, holderName: claim.holderName },
@@ -120,7 +131,7 @@ const IndexPageContent = () => {
       };
     });
     return { type: "FeatureCollection", features };
-  }, [claims]);
+  }, [combinedClaims]);
 
   const handleZoomToClaim = (claimId: string) => {
     setSelectedClaimId(claimId);
@@ -128,15 +139,14 @@ const IndexPageContent = () => {
   };
 
   const handleGenerateReport = () => {
-    // This function remains the same
     showSuccess("Report generated successfully!");
   };
 
   const handleFindMyParcel = () => {
-    if (claims.length > 0) {
-      const parcelId = claims[0].id;
+    if (combinedClaims.length > 0) {
+      const parcelId = combinedClaims[0].id;
       setSelectedClaimId(parcelId);
-      showInfo(`Locating parcel for ${claims[0].holderName} (ID: ${parcelId})`);
+      showInfo(`Locating parcel for ${combinedClaims[0].holderName} (ID: ${parcelId})`);
     }
   };
 
@@ -177,14 +187,14 @@ const IndexPageContent = () => {
                 </ToggleGroup>
               </header>
               
-              <DashboardStats claims={claims} />
-              <DataVisualization claims={claims} />
+              <DashboardStats claims={combinedClaims} />
+              <DataVisualization claims={combinedClaims} />
               
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold">Claims Explorer</h2>
                 <div className={cn("rounded-lg overflow-hidden border", viewMode === 'table' ? 'hidden' : 'block', viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
                   <GisMap 
-                    claims={claims}
+                    claims={combinedClaims} 
                     claimsData={geoJsonData} 
                     waterData={waterBodiesGeoJson}
                     agriData={agriLandGeoJson}

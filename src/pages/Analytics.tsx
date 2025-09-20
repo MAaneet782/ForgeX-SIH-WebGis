@@ -37,7 +37,8 @@ const fetchClaims = async (): Promise<Claim[]> => {
     soilType: item.soil_type,
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
-    created_at: item.created_at, // Added created_at
+    created_at: item.created_at,
+    geometry: item.geometry, // Ensure geometry is included
   }));
 };
 

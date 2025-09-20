@@ -2,12 +2,14 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { mockClaims as localMockClaims } from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
 import L from 'leaflet';
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
+import { useAuth } from "@/context/AuthContext";
 import { type AnalysisResult } from "@/lib/ai-analysis";
+import { supabase } from "@/lib/supabaseClient";
 
 // Import new modular components
 import ClaimInfoCard from "@/components/claim-detail/ClaimInfoCard";
@@ -28,20 +30,51 @@ interface SchemeDetail {
   reason: string;
 }
 
+// Re-use the fetchClaims function for consistency
+const fetchClaims = async (): Promise<Claim[]> => {
+  const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return data.map(item => ({
+    id: item.claim_id,
+    holderName: item.holder_name,
+    village: item.village,
+    district: item.district,
+    state: item.state,
+    area: item.area,
+    status: item.status,
+    documentName: item.document_name,
+    soilType: item.soil_type,
+    waterAvailability: item.water_availability,
+    estimatedCropValue: item.estimated_crop_value,
+    created_at: item.created_at,
+    geometry: item.geometry,
+  }));
+};
+
 const ClaimDetail = () => {
   const { claimId } = useParams<{ claimId: string }>();
-  const { user, supabase, isLoading: isLoadingAuth } = useAuth(); // Use useAuth hook
+  const { user, supabase, isLoading: isLoadingAuth } = useAuth();
 
-  const [claims, setClaims] = useState<Claim[]>([]);
-  useEffect(() => {
-    import("@/data/mockClaims").then(module => {
-      setClaims(module.mockClaims);
+  // Fetch claims from Supabase and combine with local mock claims
+  const { data: supabaseClaims = [], isLoading: isLoadingSupabaseClaims, isError: isErrorSupabaseClaims } = useQuery<Claim[]>({
+    queryKey: ['claims'],
+    queryFn: fetchClaims,
+  });
+
+  const combinedClaims = useMemo(() => {
+    const uniqueClaimsMap = new Map<string, Claim>();
+    supabaseClaims.forEach(claim => uniqueClaimsMap.set(claim.id, claim));
+    localMockClaims.forEach(claim => {
+      if (!uniqueClaimsMap.has(claim.id)) {
+        uniqueClaimsMap.set(claim.id, claim);
+      }
     });
-  }, []);
+    return Array.from(uniqueClaimsMap.values());
+  }, [supabaseClaims]);
 
-  const claim = useMemo(() => claims.find(c => c.id === claimId), [claims, claimId]);
-  const isLoadingClaim = claims.length === 0;
-  const isErrorClaim = !claim && !isLoadingClaim;
+  const claim = useMemo(() => combinedClaims.find(c => c.id === claimId), [combinedClaims, claimId]);
+  const isLoadingClaim = isLoadingSupabaseClaims;
+  const isErrorClaim = isErrorSupabaseClaims || !claim;
 
   const waterIndexLocation = useMemo(() => {
     if (claim?.geometry) {
@@ -76,7 +109,7 @@ const ClaimDetail = () => {
       }
 
       // 2. If not in cache or error fetching cache, invoke Edge Function
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
+      if (fetchError && fetchError.code !== 'PGRST116') {
         console.warn("Error fetching AI analysis from cache, invoking Edge Function:", fetchError.message);
       } else if (fetchError && fetchError.code === 'PGRST116') {
         console.log("AI analysis not found in Supabase cache, invoking Edge Function.");
@@ -94,15 +127,14 @@ const ClaimDetail = () => {
       }
       
       console.log("AI analysis from Edge Function:", data);
-      // Add an explicit check for empty or null data from the edge function
       if (!data) {
         throw new Error("Predictive analysis function returned no data.");
       }
       return data as AnalysisResult;
     },
-    enabled: !!claim?.id && !!user, // Only run query if claim.id and user are available
-    staleTime: Infinity, // Data is always fresh once fetched
-    gcTime: Infinity,    // Keep data in cache indefinitely
+    enabled: !!claim?.id && !!user,
+    staleTime: Infinity,
+    gcTime: Infinity,
     refetchOnWindowFocus: false,
   });
 
@@ -116,7 +148,7 @@ const ClaimDetail = () => {
 
       // 1. Try to fetch from Supabase cache first
       const { data: cachedData, error: fetchError } = await supabase
-        .from('scheme_eligibility_cache') // Use the new cache table
+        .from('scheme_eligibility_cache')
         .select('eligibility_data')
         .eq('claim_id', claim.id)
         .single();
@@ -127,7 +159,7 @@ const ClaimDetail = () => {
       }
 
       // 2. If not in cache or error fetching cache, invoke Edge Function
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
+      if (fetchError && fetchError.code !== 'PGRST116') {
         console.warn("Error fetching scheme eligibility from cache, invoking Edge Function:", fetchError.message);
       } else if (fetchError && fetchError.code === 'PGRST116') {
         console.log("Scheme eligibility not found in Supabase cache, invoking Edge Function.");
@@ -145,13 +177,12 @@ const ClaimDetail = () => {
       }
       
       console.log("Scheme eligibility from Edge Function:", data.schemes);
-      // Add an explicit check for empty or null data from the edge function
       if (!data || !data.schemes) {
         throw new Error("Scheme eligibility function returned no data.");
       }
       return data.schemes as SchemeDetail[];
     },
-    enabled: !!claim?.id && !!user, // Only run query if claim.id and user are available
+    enabled: !!claim?.id && !!user,
     staleTime: Infinity,
     gcTime: Infinity,
     refetchOnWindowFocus: false,
@@ -161,7 +192,7 @@ const ClaimDetail = () => {
   console.log("ClaimDetail Render - isLoadingSchemes:", isLoadingSchemes, "isErrorSchemes:", isErrorSchemes, "schemesError:", schemesError, "schemes data:", schemes);
 
 
-  if (isLoadingClaim || isLoadingAuth || !user) { // Added isLoadingAuth check
+  if (isLoadingClaim || isLoadingAuth || !user) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
         <Skeleton className="h-10 w-48 mb-4" />
