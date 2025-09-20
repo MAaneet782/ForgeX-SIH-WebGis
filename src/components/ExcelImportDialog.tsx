@@ -10,6 +10,7 @@ import { showError, showSuccess, showLoading, dismissToast, showInfo } from "@/u
 import { useQueryClient } from "@tanstack/react-query";
 import type { Claim } from "@/data/mockClaims";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 interface ExcelImportDialogProps {
   isOpen: boolean;
@@ -94,6 +95,7 @@ const getCellValue = (row: any, keys: string[]) => {
 
 const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogProps) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth(); // Get the current user
   const [file, setFile] = useState<File | null>(null);
   const [processedData, setProcessedData] = useState<ProcessedRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -294,6 +296,10 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
   }, [processedData]);
 
   const handleImport = async () => {
+    if (!user?.id) {
+      showError("You must be logged in to import claims.");
+      return;
+    }
     if (validClaimsToImport.length === 0) {
       showError("No valid claims to import.");
       return;
@@ -302,13 +308,25 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
     const toastId = showLoading(`Importing ${validClaimsToImport.length} claims... This may take a moment.`);
 
     try {
+      // Add user_id to each claim before upserting
+      const claimsWithUserId = validClaimsToImport.map(claim => ({
+        ...claim,
+        user_id: user.id, // Assign the current user's ID
+        claim_id: claim?.id, // Map frontend 'id' to backend 'claim_id'
+        holder_name: claim?.holderName,
+        document_name: claim?.documentName,
+        soil_type: claim?.soilType,
+        water_availability: claim?.waterAvailability,
+        estimated_crop_value: claim?.estimatedCropValue,
+      }));
+
       // Use upsert to update existing claims or insert new ones based on 'claim_id'
-      const { error } = await supabase.from('claims').upsert(validClaimsToImport, { onConflict: 'claim_id', ignoreDuplicates: false });
+      const { error } = await supabase.from('claims').upsert(claimsWithUserId, { onConflict: 'claim_id', ignoreDuplicates: false });
       if (error) throw error;
       
       dismissToast(toastId);
       showSuccess(`${validClaimsToImport.length} claims imported successfully! ${rowsWithErrors.length > 0 ? `(${rowsWithErrors.length} rows had errors and were skipped.)` : ''}`);
-      queryClient.invalidateQueries({ queryKey: ['claims'] });
+      queryClient.invalidateQueries({ queryKey: ['claims', user.id] }); // Invalidate with user.id
       onOpenChange(false);
       setFile(null);
       setProcessedData([]);
