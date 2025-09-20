@@ -23,7 +23,7 @@ import {
   Thermometer,
   CloudRain,
   Droplet,
-  Sun,
+  // Removed unused Sun import
   Wind,
   CheckCircle2,
   XCircle,

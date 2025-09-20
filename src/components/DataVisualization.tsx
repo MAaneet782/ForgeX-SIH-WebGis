@@ -50,7 +50,7 @@ const DataVisualization = ({ claims }: DataVisualizationProps) => {
               <Tooltip wrapperClassName="rounded-lg border bg-background p-2 shadow-sm" />
               <Legend />
               <Bar dataKey="count" name="Number of Claims">
-                {claimsByStatus.map((entry, index) => (
+                {claimsByStatus.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={STATUS_COLORS[index % STATUS_COLORS.length]} />
                 ))}
               </Bar>
@@ -76,7 +76,7 @@ const DataVisualization = ({ claims }: DataVisualizationProps) => {
                 nameKey="name"
                 label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
               >
-                {claimsByState.map((entry, index) => (
+                {claimsByState.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={PROFESSIONAL_COLORS[index % PROFESSIONAL_COLORS.length]} />
                 ))}
               </Pie>

@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // Removed Link as it's not directly used here
 import {
   Table,
   TableBody,
@@ -34,21 +34,11 @@ import { cn } from "@/lib/utils";
 import { Download, Info, ArrowUpDown, Upload, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import ExcelImportDialog from "./ExcelImportDialog";
-import * as z from "zod";
+// Removed unused z import
+// Removed unused addClaimFormSchema
 import type { NewClaimInput } from "@/pages/Atlas";
 
-const addClaimFormSchema = z.object({
-  holderName: z.string(),
-  village: z.string(),
-  district: z.string(),
-  state: z.string(),
-  area: z.coerce.number(),
-  status: z.enum(["Approved", "Pending", "Rejected"]),
-  soilType: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite', 'Unknown']),
-  waterAvailability: z.enum(['High', 'Medium', 'Low', 'Unknown']),
-  coordinates: z.string(),
-  documentName: z.string().optional(),
-});
+// Removed addClaimFormSchema as it's not used here
 
 interface ClaimsDataProps {
   claims: Claim[];

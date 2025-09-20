@@ -1,8 +1,8 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+// Removed unused useQuery import
 // import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
 import { mockClaims } from "@/data/mockClaims"; // Import mockClaims
-import type { Claim } from "@/data/mockClaims";
+// Removed unused Claim type import
 import type { FeatureCollection, Geometry, Feature } from "geojson";
 import RfoMap from "@/components/RfoMap";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { useAuth } from "@/context/AuthContext";
+import type { Claim } from "@/data/mockClaims"; // Re-added Claim type as it's used in filteredClaims
 
 const RfoDashboard = () => {
   const { user } = useAuth();
@@ -22,11 +23,12 @@ const RfoDashboard = () => {
   const isError = false; // No longer fetching from Supabase
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
+  // Removed unused isLayersPanelOpen state and setter
+  // const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false); // Keeping for sidebar prop, but not directly used in this file's JSX
 
   const filteredClaims = useMemo(() => {
     if (!claims) return [];
-    return claims.filter((claim) =>
+    return claims.filter((claim: Claim) => // Explicitly type claim here
       claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.village.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -74,7 +76,8 @@ const RfoDashboard = () => {
       
       <ResizablePanelGroup direction="horizontal" className="flex-grow">
         <ResizablePanel defaultSize={18} minSize={15} maxSize={25}>
-          <Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} />
+          {/* onToggleLayersPanel is still passed, but the state it would toggle is removed from this component */}
+          <Sidebar onToggleLayersPanel={() => { /* No-op or handle in Sidebar directly */ }} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} />
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={82} minSize={50}>

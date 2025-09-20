@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, GeoJSON } from 'react-leaflet';
 import { FeatureCollection, Feature, Geometry } from 'geojson';
 import { LatLngExpression, Layer, PathOptions, LatLngBoundsExpression } from 'leaflet';
-import L from 'leaflet'; // Import Leaflet for popup content
+// Removed unused L import
 
 interface RfoMapProps {
   claimsData: FeatureCollection;

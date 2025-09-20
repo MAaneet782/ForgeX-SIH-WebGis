@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+// Removed unused React import
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 

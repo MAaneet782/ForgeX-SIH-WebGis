@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query"; // Removed useQuery and useQueryClient
 import { waterBodiesGeoJson, agriLandGeoJson, mockClaims as initialMockClaims } from "@/data/mockClaims"; // Import mockClaims
 import type { Claim } from "@/data/mockClaims";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
@@ -10,7 +10,7 @@ import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import LayersPanel from "@/components/LayersPanel";
 import { DashboardStateProvider } from "@/context/DashboardStateContext";
-import { showError, showSuccess, showInfo, showLoading, dismissToast } from "@/utils/toast";
+import { showError, showSuccess, showInfo } from "@/utils/toast"; // Removed showLoading and dismissToast
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import DashboardStats from "@/components/DashboardStats";
 import DataVisualization from "@/components/DataVisualization";
@@ -22,7 +22,7 @@ import { useAuth } from "@/context/AuthContext";
 export type NewClaimInput = Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry' | 'id' | 'created_at'> & { coordinates: string; documentName?: string };
 
 const IndexPageContent = () => {
-  const queryClient = useQueryClient();
+  // Removed unused queryClient
   const navigate = useNavigate();
   const { user } = useAuth();
 

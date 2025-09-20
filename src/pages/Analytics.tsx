@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+// Removed unused useQuery import
 // import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
 import { mockClaims } from "@/data/mockClaims"; // Import mockClaims
 import type { Claim } from "@/data/mockClaims";
@@ -27,8 +27,7 @@ const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title
   </Card>
 );
 
-const ALLOWED_STATES = ['Odisha', 'Madhya Pradesh', 'Tripura', 'Telangana'];
-
+// Removed unused ALLOWED_STATES
 const PROFESSIONAL_COLORS = ['#4f46e5', '#0d9488', '#f59e0b', '#db2777', '#6b7280', '#3b82f6'];
 
 const Analytics = () => {
@@ -226,7 +225,7 @@ const Analytics = () => {
                   nameKey="name"
                   label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                 >
-                  {claimsByState.map((entry, index) => (
+                  {claimsByState.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={PROFESSIONAL_COLORS[index % PROFESSIONAL_COLORS.length]} />
                   ))}
                 </Pie>

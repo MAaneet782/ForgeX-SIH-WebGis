@@ -1,16 +1,16 @@
 import { useState, useMemo, useRef } from "react";
 import * as XLSX from "xlsx";
-// import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Loader2, UploadCloud, FileWarning, Download } from "lucide-react";
+import { Loader2, UploadCloud, FileWarning } from "lucide-react"; // Removed Download
 import { showError, showSuccess, showLoading, dismissToast, showInfo } from "@/utils/toast";
-import { useQueryClient } from "@tanstack/react-query";
+// Removed unused useQueryClient import
+// Removed unused useAuth import
 import type { Claim } from "@/data/mockClaims";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useAuth } from "@/context/AuthContext";
+// Removed unused useAuth import
 
 interface ExcelImportDialogProps {
   isOpen: boolean;
@@ -92,8 +92,8 @@ const getCellValue = (row: any, keys: string[]) => {
 };
 
 const ExcelImportDialog = ({ isOpen, onOpenChange, claims, onAddClaims }: ExcelImportDialogProps) => {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
+  // const queryClient = useQueryClient(); // Removed unused variable
+  // const { user } = useAuth(); // Removed unused variable
   const [file, setFile] = useState<File | null>(null);
   const [processedData, setProcessedData] = useState<ProcessedRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);

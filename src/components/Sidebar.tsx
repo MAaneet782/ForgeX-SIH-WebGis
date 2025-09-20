@@ -3,10 +3,10 @@ import { useNavigate, Link } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart3, BookCopy, UserCog } from "lucide-react";
-import { useDashboardState } from "@/context/DashboardStateContext";
-import { showInfo } from "@/utils/toast";
-import { cn } from "@/lib/utils";
+// Removed unused useDashboardState import
+// Removed unused cn import
 import SchemeInfoModal from "./SchemeInfoModal";
+import { showInfo } from "@/utils/toast";
 import { useAuth } from "@/context/AuthContext";
 
 interface SidebarProps {
