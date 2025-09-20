@@ -10,6 +10,7 @@ import L from 'leaflet';
 import { useAuth } from "@/context/AuthContext";
 import { type AnalysisResult } from "@/lib/ai-analysis";
 import { supabase } from "@/lib/supabaseClient";
+import { Card, CardContent } from "@/components/ui/card"; // Import Card and CardContent
 
 // Import new modular components
 import ClaimInfoCard from "@/components/claim-detail/ClaimInfoCard";
@@ -51,6 +52,18 @@ const fetchClaims = async (): Promise<Claim[]> => {
     geometry: item.geometry,
   }));
 };
+
+// Component for unauthenticated message
+const UnauthenticatedCard = () => (
+  <Card className="h-full flex items-center justify-center">
+    <CardContent className="text-center text-muted-foreground py-12">
+      <p className="mb-4">Please <Link to="/login" className="text-primary underline">log in</Link> to view this section.</p>
+      <Button asChild>
+        <Link to="/login">Go to Login</Link>
+      </Button>
+    </CardContent>
+  </Card>
+);
 
 const ClaimDetail = () => {
   const { claimId } = useParams<{ claimId: string }>();
@@ -212,16 +225,6 @@ const ClaimDetail = () => {
     );
   }
 
-  // If user is not logged in, show a message for AI analysis and scheme eligibility
-  const unauthenticatedMessage = (
-    <div className="text-center text-muted-foreground py-12">
-      <p className="mb-4">Please <Link to="/login" className="text-primary underline">log in</Link> to view AI analysis and scheme eligibility.</p>
-      <Button asChild>
-        <Link to="/login">Go to Login</Link>
-      </Button>
-    </div>
-  );
-
   if (isErrorClaim || !claim) {
     return (
       <div className="text-center p-8">
@@ -234,7 +237,7 @@ const ClaimDetail = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-8">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6"> {/* Reduced space-y-8 to space-y-6 */}
       <Button asChild variant="outline" className="mb-4">
         <Link to="/atlas"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
       </Button>
@@ -244,10 +247,14 @@ const ClaimDetail = () => {
         <p className="text-muted-foreground">Claim ID: {claim.id} | Village: {claim.village}</p>
       </header>
 
-      {/* Top Section: Claim Info, Parcel Location, Scheme Eligibility */}
-      <section className="grid lg:grid-cols-3 gap-6">
+      {/* Top Section: Claim Info, Parcel Location */}
+      <section className="grid lg:grid-cols-2 gap-6">
         <ClaimInfoCard claim={claim} />
         <ParcelLocationCard claim={claim} waterIndexLocation={waterIndexLocation} />
+      </section>
+
+      {/* Middle Section: Scheme Eligibility and AI Analysis */}
+      <section className="grid lg:grid-cols-2 gap-6">
         {user ? (
           <SchemeEligibilitySection 
             schemes={schemes} 
@@ -256,14 +263,8 @@ const ClaimDetail = () => {
             error={schemesError} 
           />
         ) : (
-          <div className="lg:col-span-1">
-            {unauthenticatedMessage}
-          </div>
+          <UnauthenticatedCard />
         )}
-      </section>
-
-      {/* AI-Powered Predictive Analysis Section */}
-      <section>
         {user ? (
           <AiAnalysisSection 
             claim={claim}
@@ -273,11 +274,11 @@ const ClaimDetail = () => {
             error={analysisError} 
           />
         ) : (
-          unauthenticatedMessage
+          <UnauthenticatedCard />
         )}
       </section>
 
-      {/* Soil Composition & Health Section */}
+      {/* Bottom Section: Soil Composition & Health Section */}
       <section>
         {user ? (
           <SoilAnalysisSection
@@ -287,7 +288,7 @@ const ClaimDetail = () => {
             error={analysisError}
           />
         ) : (
-          unauthenticatedMessage
+          <UnauthenticatedCard />
         )}
       </section>
     </div>

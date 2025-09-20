@@ -35,7 +35,7 @@ const AiAnalysisSection = ({ claim, analysis, isLoading, isError, error }: AiAna
           <CardTitle>AI-Powered Predictive Analysis</CardTitle>
           <CardDescription>Generating actionable insights for your land asset...</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-6"> {/* Changed space-y-8 to space-y-6 */}
           <div>
             <Skeleton className="h-6 w-1/2 mb-4" />
             <div className="space-y-4">
@@ -80,7 +80,7 @@ const AiAnalysisSection = ({ claim, analysis, isLoading, isError, error }: AiAna
         <CardTitle>AI-Powered Predictive Analysis</CardTitle>
         <CardDescription>Actionable insights to maximize the value of your land asset.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-8">
+      <CardContent className="space-y-6"> {/* Changed space-y-8 to space-y-6 */}
         {/* Soil & Crop Section */}
         <div>
           <h3 className="font-semibold text-lg mb-4 flex items-center"><Sprout className="mr-2 h-5 w-5 text-green-600" /> Crop Recommendations ({claim.soilType} Soil)</h3>
