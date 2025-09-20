@@ -106,8 +106,9 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
       
       return data as AnalysisResult;
     },
-    staleTime: 1000 * 60 * 5, // Data considered fresh for 5 minutes
-    refetchOnWindowFocus: false, // Don't refetch on window focus
+    staleTime: Infinity, // Data is always fresh once fetched
+    gcTime: Infinity,    // Keep data in cache indefinitely
+    refetchOnWindowFocus: false,
   });
 
   if (isLoading) {

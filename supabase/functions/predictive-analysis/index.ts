@@ -92,7 +92,7 @@ const getWaterAnalysis = (waterAvailability: Claim['waterAvailability']) => {
     case 'Unknown': // Handle 'Unknown' water availability gracefully
         return { borewellSuitability: 'Unknown', score: 50, recommendations: ["Water availability data is unknown. Conduct a site survey."] };
     default:
-        return { borewellSuitability: 'Low', score: 0, recommendations: [] };
+        return { borewellSuitwellity: 'Low', score: 0, recommendations: [] };
   }
 };
 
