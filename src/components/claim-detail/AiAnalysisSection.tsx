@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Leaf, Sprout, Droplets, DollarSign, CalendarDays, BadgeIndianRupee, Waves, Globe, Briefcase } from "lucide-react";
+import { Leaf, Sprout, Droplets, DollarSign, CalendarDays, BadgeIndianRupee, Waves, Globe, Briefcase, Lightbulb } from "lucide-react"; // Added Lightbulb
 import type { Claim } from "@/data/mockClaims";
 import type { AnalysisResult, CropRecommendation, WaterAnalysis, EconomicOpportunity } from "@/lib/ai-analysis";
 
