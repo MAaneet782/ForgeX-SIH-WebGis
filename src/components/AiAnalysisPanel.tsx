@@ -28,12 +28,12 @@ const iconMap: { [key: string]: React.ElementType } = {
 };
 
 // --- Soil Parameter Icons ---
-const soilParamIcons: { [key: string]: React.ReactNode } = {
-  N: <FlaskConical />, P: <FlaskConical />, K: <FlaskConical />,
-  pH: <Microscope />, EC: <Tally1 />, OM: <Leaf />, CaCO3: <FlaskConical />,
-  Sand: <Wind />, Silt: <Droplet />, Clay: <FlaskConical />,
-  Temperature: <Thermometer />, Humidity: <Droplet />, Rainfall: <CloudRain />,
-  Mg: <FlaskConical />, Fe: <FlaskConical />, Zn: <FlaskConical />, Mn: <FlaskConical />,
+const soilParamIcons: { [key: string]: React.ElementType } = {
+  N: FlaskConical, P: FlaskConical, K: FlaskConical,
+  pH: Microscope, EC: Tally1, OM: Leaf, CaCO3: FlaskConical,
+  Sand: Wind, Silt: Droplet, Clay: FlaskConical,
+  Temperature: Thermometer, Humidity: Droplet, Rainfall: CloudRain,
+  Mg: FlaskConical, Fe: FlaskConical, Zn: FlaskConical, Mn: FlaskConical,
 };
 
 // --- Skeleton Component ---
@@ -194,7 +194,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           <h3 className="font-semibold text-lg mb-4 flex items-center"><FlaskConical className="mr-2 h-5 w-5 text-gray-600" /> Soil Composition</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-sm">
             {Object.entries(soilAnalysis.parameters).map(([key, value]) => {
-              const IconComponent = soilParamIcons[key];
+              const Icon = soilParamIcons[key] || FlaskConical;
               let unit = '';
               if (['N', 'P', 'K', 'Mg', 'Fe', 'Zn', 'Mn'].includes(key)) unit = ' ppm';
               else if (['OM', 'CaCO3', 'Sand', 'Silt', 'Clay', 'Humidity'].includes(key)) unit = ' %';
@@ -205,7 +205,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
 
               return (
                 <div key={key} className="flex items-center space-x-2 bg-muted/50 p-2 rounded-md">
-                  <span className="h-4 w-4 text-muted-foreground">{IconComponent}</span>
+                  <Icon className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="font-medium">{key}:</p>
                     <p className="text-muted-foreground">{value}{unit}</p>
