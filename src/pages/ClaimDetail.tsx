@@ -59,31 +59,44 @@ const ClaimDetail = () => {
   const { data: analysis, isLoading: isLoadingAnalysis, isError: isErrorAnalysis, error: analysisError } = useQuery<AnalysisResult, Error>({
     queryKey: ['aiAnalysis', claim?.id],
     queryFn: async () => {
-      if (!claim?.id) throw new Error("Claim ID is missing for AI analysis.");
+      if (!claim?.id) {
+        console.log("Query skipped: Claim ID is missing.");
+        throw new Error("Claim ID is missing for AI analysis."); // This should be caught by `enabled` prop
+      }
 
       console.log("Attempting to fetch AI analysis for claim ID:", claim.id);
 
       // 1. Try to fetch from Supabase cache first
-      const { data: cachedData, error: fetchError } = await supabase
-        .from('ai_analysis_results')
-        .select('analysis_data')
-        .eq('claim_id', claim.id)
-        .single();
+      try {
+        const { data: cachedData, error: fetchError } = await supabase
+          .from('ai_analysis_results')
+          .select('analysis_data')
+          .eq('claim_id', claim.id)
+          .single();
 
-      if (cachedData && cachedData.analysis_data) {
-        console.log("AI analysis found in Supabase cache:", cachedData.analysis_data);
-        return cachedData.analysis_data as AnalysisResult;
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
+          console.warn("Error fetching AI analysis from cache (not 'no rows found'):", fetchError.message);
+          // Don't throw here, try edge function as fallback
+        }
+
+        if (cachedData && cachedData.analysis_data) {
+          console.log("AI analysis found in Supabase cache:", cachedData.analysis_data);
+          // Basic validation for cached data structure
+          if (typeof cachedData.analysis_data === 'object' && cachedData.analysis_data !== null && 'cropAnalysis' in cachedData.analysis_data) {
+            return cachedData.analysis_data as AnalysisResult;
+          } else {
+            console.warn("Cached AI analysis data is malformed, invoking Edge Function as fallback.");
+          }
+        } else {
+          console.log("AI analysis not found in Supabase cache, invoking Edge Function.");
+        }
+      } catch (cacheError: any) {
+        console.error("Unexpected error during cache fetch:", cacheError.message);
+        // Continue to invoke edge function as fallback
       }
+
 
       // 2. If not in cache or error fetching cache, invoke Edge Function
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
-        console.warn("Error fetching AI analysis from cache, invoking Edge Function:", fetchError.message);
-      } else if (fetchError && fetchError.code === 'PGRST116') {
-        console.log("AI analysis not found in Supabase cache, invoking Edge Function.");
-      } else {
-        console.log("No cached data, invoking Edge Function.");
-      }
-
       const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
         body: { claim },
       });
@@ -94,12 +107,19 @@ const ClaimDetail = () => {
       }
       
       console.log("AI analysis from Edge Function:", data);
-      return data as AnalysisResult;
+      // Validate data structure from edge function
+      if (typeof data === 'object' && data !== null && 'cropAnalysis' in data) {
+        return data as AnalysisResult;
+      } else {
+        console.error("Predictive analysis Edge Function returned malformed data:", data);
+        throw new Error("AI analysis data is malformed or empty.");
+      }
     },
     enabled: !!claim?.id, // Only run query if claim.id is available
     staleTime: Infinity, // Data is always fresh once fetched
     gcTime: Infinity,    // Keep data in cache indefinitely
     refetchOnWindowFocus: false,
+    retry: 1, // Retry once in case of transient network issues or cold start
   });
 
   // --- Scheme Eligibility Data Fetching ---
