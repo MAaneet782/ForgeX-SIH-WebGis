@@ -66,9 +66,12 @@ const ClaimsData = ({
     }
   };
 
-  const handleDetailsClick = (claimId: string) => {
-    onZoomToClaim(claimId); // Highlight on map
-    navigate(`/atlas/claim/${claimId}`); // Redirect to personal AI predictive dashboard
+  const handleDetailsNavigation = (claimId: string) => {
+    navigate(`/atlas/claim/${claimId}`); // Only navigate to personal AI predictive dashboard
+  };
+
+  const handleRowClick = (claimId: string) => {
+    onZoomToClaim(claimId); // Only highlight and zoom on map
   };
 
   return (
@@ -124,7 +127,7 @@ const ClaimsData = ({
                 return (
                   <TableRow 
                     key={claim.id} 
-                    onClick={() => handleDetailsClick(claim.id)} // Row click also navigates and zooms
+                    onClick={() => handleRowClick(claim.id)} // Row click only highlights on map
                     className="cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell className="font-medium">{claim.id}</TableCell>
@@ -137,7 +140,7 @@ const ClaimsData = ({
                     <TableCell>{getFormattedDate(claim.created_at)}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}> {/* Prevent row click from triggering */}
                       <div className="flex items-center justify-center gap-2">
-                        <Button size="sm" className="bg-[#004d40] hover:bg-[#00382e]" onClick={() => handleDetailsClick(claim.id)}>
+                        <Button size="sm" className="bg-[#004d40] hover:bg-[#00382e]" onClick={() => handleDetailsNavigation(claim.id)}>
                           <Info className="mr-2 h-4 w-4" />
                           Details
                         </Button>

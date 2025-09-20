@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import L from 'leaflet';
 import { useDashboardState } from '@/context/DashboardStateContext';
 import type { Claim } from '@/data/mockClaims';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 interface GisMapProps {
   claims: Claim[];
@@ -39,6 +40,7 @@ const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | nu
 
 const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onClaimSelect }: GisMapProps) => {
   const { state, isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState();
+  const navigate = useNavigate(); // Get navigate function
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
   const onEachFeature = (feature: Feature<Geometry, any>, layer: Layer) => {
@@ -51,7 +53,8 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
 
       layer.on({
         click: () => {
-          onClaimSelect(feature.properties.claimId);
+          onClaimSelect(feature.properties.claimId); // Still select for immediate visual feedback
+          navigate(`/atlas/claim/${feature.properties.claimId}`); // Navigate to personal dashboard
         },
       });
     }
