@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
-import { Home, BookOpen, BarChart2, LogIn, HelpCircle, Search, Bell, Mail, User, Info, Map, TrendingUp, FileDigit, Users, Globe, Leaf, DollarSign } from "lucide-react"; // Added DollarSign
+import { Home, BookOpen, BarChart2, LogIn, HelpCircle, Search, Bell, Mail, User, Info, Map, TrendingUp, FileDigit, Users, Globe, Leaf, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added CardDescription
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ForestBackground } from "@/components/ForestBackground";
@@ -77,6 +77,18 @@ const LandingPage = () => {
                 <Link to="/atlas/analytics"><TrendingUp className="mr-2 h-5 w-5" /> View Analytics</Link>
               </Button>
             </div>
+          </div>
+        </section>
+
+        {/* New section for the image */}
+        <section className="mt-16 md:mt-24 max-w-6xl mx-auto">
+          <div className="relative w-full h-auto overflow-hidden rounded-lg shadow-xl">
+            <img 
+              src="/farmers_modi.png" 
+              alt="Farmers with Prime Minister Modi" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
           </div>
         </section>
 
