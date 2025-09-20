@@ -60,6 +60,11 @@ const ClaimsData = ({
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
+  const handleRowClick = (claimId: string) => {
+    onZoomToClaim(claimId);
+    navigate(`/atlas/claim/${claimId}`);
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -107,7 +112,11 @@ const ClaimsData = ({
               {claims.map((claim) => {
                 const rightType = getRightType(claim.status);
                 return (
-                  <TableRow key={claim.id}>
+                  <TableRow 
+                    key={claim.id} 
+                    onClick={() => handleRowClick(claim.id)} 
+                    className="cursor-pointer hover:bg-muted/50"
+                  >
                     <TableCell className="font-medium">{claim.id}</TableCell>
                     <TableCell>{claim.holderName}</TableCell>
                     <TableCell>{claim.village}</TableCell>
@@ -116,7 +125,7 @@ const ClaimsData = ({
                       <Badge variant="outline" className={cn("border-transparent font-semibold", rightType.className)}>{rightType.text}</Badge>
                     </TableCell>
                     <TableCell>{getMockDate(claim.id)}</TableCell>
-                    <TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}> {/* Prevent row click from triggering */}
                       <div className="flex items-center justify-center gap-2">
                         <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onZoomToClaim(claim.id)}>
                           <Search className="h-4 w-4" />

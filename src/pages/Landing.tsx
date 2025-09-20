@@ -51,7 +51,7 @@ const LandingPage = () => {
           </Link>
         </nav>
         <div className="p-4 border-t border-primary-foreground/20 space-y-2">
-          <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
+          <Link to="/login" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md"> {/* Updated link */}
             <LogIn className="mr-3 h-5 w-5" /> Login
           </Link>
           <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">

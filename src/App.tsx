@@ -8,6 +8,7 @@ import Atlas from "./pages/Atlas";
 import NotFound from "./pages/NotFound";
 import ClaimDetail from "./pages/ClaimDetail";
 import Analytics from "./pages/Analytics";
+import Login from "./pages/Login"; // Import the new Login page
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/atlas" element={<Atlas />} />
           <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
           <Route path="/atlas/analytics" element={<Analytics />} />
+          <Route path="/login" element={<Login />} /> {/* New Login Route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
