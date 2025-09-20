@@ -17,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@/lib/utils";
 import { type AnalysisResult } from "@/lib/ai-analysis";
 
-// --- Type Definitions for Scheme Eligibility (updated to match Edge Function) ---
+// --- Type Definitions for Scheme Eligibility ---
 interface SchemeDetail {
   name: string;
   url: string;
@@ -256,8 +256,8 @@ const ClaimDetail = () => {
         <p className="text-muted-foreground">Claim ID: {claim.id} | Village: {claim.village}</p>
       </header>
 
-      {/* Claim Overview Section */}
-      <section className="grid lg:grid-cols-2 gap-6">
+      {/* Top Section: Claim Info, Parcel Location, Scheme Eligibility */}
+      <section className="grid lg:grid-cols-3 gap-6">
         <Card>
           <CardHeader>
             <CardTitle>Claim Information</CardTitle>
@@ -285,10 +285,96 @@ const ClaimDetail = () => {
             <ClaimLocationMap geometry={claim.geometry!} waterIndexLocation={waterIndexLocation} />
           </CardContent>
         </Card>
+
+        {/* Government Scheme Eligibility Section - Moved to top right */}
+        {isLoadingSchemes ? (
+          <SchemeEligibilitySkeleton />
+        ) : isErrorSchemes || !schemes ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Government Scheme Eligibility</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Eligibility Analysis Failed</AlertTitle>
+                <AlertDescription>
+                  Could not retrieve scheme eligibility. {schemesError?.message || "An unknown error occurred."}
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="lg:col-span-1"> {/* Ensure it takes one column */}
+            <CardHeader>
+              <CardTitle>Government Scheme Eligibility</CardTitle>
+              <CardDescription>Analysis of relevant government schemes based on claim details.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 max-h-[70vh] overflow-y-auto pr-2"> {/* Added max-height and overflow */}
+              <div className="space-y-4">
+                {schemes.map((scheme) => (
+                  <Card key={scheme.name} className="bg-card transition-all hover:shadow-md">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base font-semibold">{scheme.name}</CardTitle>
+                        <Badge 
+                          variant={scheme.isEligible ? 'default' : 'destructive'} 
+                          className={cn(
+                            scheme.isEligible && "bg-green-500 hover:bg-green-600 text-white"
+                          )}
+                        >
+                          {scheme.isEligible ? 'Eligible' : 'Not Eligible'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">{scheme.reason}</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4 text-sm">
+                      <Separator className="my-4" />
+                      <div className="space-y-2">
+                        <h5 className="font-medium flex items-center"><Info className="mr-2 h-4 w-4 text-blue-600" /> Scheme Overview</h5>
+                        <p className="pl-4 text-muted-foreground">{scheme.schemeOverview}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <h5 className="font-medium flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-green-600" /> Eligibility Conditions</h5>
+                        <ul className="list-disc list-inside pl-4 text-muted-foreground">
+                          {scheme.eligibilityConditions.map((condition, i) => <li key={i}>{condition}</li>)}
+                        </ul>
+                      </div>
+                      <div className="space-y-2">
+                        <h5 className="font-medium flex items-center"><IndianRupee className="mr-2 h-4 w-4 text-blue-600" /> Key Benefits</h5>
+                        <ul className="list-disc list-inside pl-4 text-muted-foreground">
+                          {scheme.keyBenefits.map((benefit, i) => <li key={i}>{benefit}</li>)}
+                        </ul>
+                      </div>
+                      <div className="space-y-2">
+                        <h5 className="font-medium flex items-center"><ShieldCheck className="mr-2 h-4 w-4 text-purple-600" /> Verification Process</h5>
+                        <ul className="list-disc list-inside pl-4 text-muted-foreground">
+                          {scheme.verificationProcess.map((process, i) => <li key={i}>{process}</li>)}
+                        </ul>
+                      </div>
+                      <div className="space-y-2">
+                        <h5 className="font-medium flex items-center"><Users className="mr-2 h-4 w-4 text-orange-600" /> Intended Coverage</h5>
+                        <p className="pl-4 text-muted-foreground">{scheme.intendedCoverage}</p>
+                      </div>
+                      <a 
+                        href={scheme.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-sm font-medium text-primary hover:underline flex items-center mt-4"
+                      >
+                        Visit Scheme Website <ArrowUpRight className="ml-1 h-4 w-4" />
+                      </a>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </section>
 
       {/* AI-Powered Predictive Analysis Section */}
-      <section>
+      <section className="lg:col-span-3"> {/* Ensure it spans full width */}
         {isLoadingAnalysis ? (
           <AiAnalysisSkeleton />
         ) : isErrorAnalysis || !analysis ? (
@@ -313,6 +399,45 @@ const ClaimDetail = () => {
               <CardDescription>Actionable insights to maximize the value of your land asset.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
+              {/* Crop Recommendations */}
+              {analysis.cropAnalysis && analysis.cropAnalysis.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-lg mb-4 flex items-center"><Sprout className="mr-2 h-5 w-5 text-green-600" /> Crop Recommendations ({claim.soilType} Soil)</h3>
+                  <div className="space-y-4">
+                    {analysis.cropAnalysis.map(crop => {
+                      const Icon = iconMap[crop.iconName] || Leaf;
+                      return (
+                        <Card key={crop.name} className="bg-muted/50">
+                          <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-base font-semibold flex items-center">{crop.name}</CardTitle> {/* Removed Leaf icon here */}
+                            <Icon className="h-5 w-5 text-muted-foreground" />
+                          </CardHeader>
+                          <CardContent className="space-y-3 pt-4">
+                            <div className="flex justify-between text-sm">
+                              <div className="flex items-center font-semibold"> {/* Added flex for icon and text */}
+                                <CalendarDays className="mr-1.5 h-4 w-4 text-muted-foreground" /> {/* CalendarDays icon */}
+                                <span>{crop.sowingSeason}</span>
+                              </div>
+                              <div className="flex items-center font-semibold">
+                                <Package className="mr-1.5 h-4 w-4 text-primary" />
+                                <span>{crop.potentialYield}</span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground">{crop.subsidyInfo}</p>
+                            <div className="flex items-start space-x-2 pt-2">
+                              <Lightbulb className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                              <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Recommendation:</span> {crop.recommendation}</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <Separator className="my-8" />
+
               {/* Soil Composition */}
               {analysis.soilAnalysis?.parameters && Object.keys(analysis.soilAnalysis.parameters).length > 0 && (
                 <div>
@@ -407,42 +532,6 @@ const ClaimDetail = () => {
 
               <Separator className="my-8" />
 
-              {/* Crop Recommendations */}
-              {analysis.cropAnalysis && analysis.cropAnalysis.length > 0 && (
-                <div>
-                  <h3 className="font-semibold text-lg mb-4 flex items-center"><Sprout className="mr-2 h-5 w-5 text-green-600" /> Crop Recommendations ({claim.soilType} Soil)</h3>
-                  <div className="space-y-4">
-                    {analysis.cropAnalysis.map(crop => {
-                      const Icon = iconMap[crop.iconName] || Leaf;
-                      return (
-                        <Card key={crop.name} className="bg-muted/50">
-                          <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-base font-medium flex items-center"><Leaf className="mr-2 h-4 w-4 text-green-500" />{crop.name}</CardTitle>
-                            <Icon className="h-5 w-5 text-muted-foreground" />
-                          </CardHeader>
-                          <CardContent className="space-y-3 pt-4">
-                            <div className="flex justify-between text-sm">
-                              <span className="font-semibold">{crop.sowingSeason}</span>
-                              <div className="flex items-center font-semibold">
-                                <Package className="mr-1.5 h-4 w-4 text-primary" />
-                                <span>{crop.potentialYield}</span>
-                              </div>
-                            </div>
-                            <p className="text-sm text-muted-foreground">{crop.subsidyInfo}</p>
-                            <div className="flex items-start space-x-2 pt-2">
-                              <Lightbulb className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                              <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">Recommendation:</span> {crop.recommendation}</p>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              <Separator className="my-8" />
-
               {/* Water Resource Section */}
               {analysis.waterAnalysis && (
                 <div>
@@ -488,94 +577,6 @@ const ClaimDetail = () => {
                   </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        )}
-      </section>
-
-      {/* Government Scheme Eligibility Section */}
-      <section>
-        {isLoadingSchemes ? (
-          <SchemeEligibilitySkeleton />
-        ) : isErrorSchemes || !schemes ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Government Scheme Eligibility</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Eligibility Analysis Failed</AlertTitle>
-                <AlertDescription>
-                  Could not retrieve scheme eligibility. {schemesError?.message || "An unknown error occurred."}
-                </AlertDescription>
-              </Alert>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Government Scheme Eligibility</CardTitle>
-              <CardDescription>Analysis of relevant government schemes based on claim details.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                {schemes.map((scheme) => (
-                  <Card key={scheme.name} className="bg-card transition-all hover:shadow-md">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-semibold">{scheme.name}</CardTitle>
-                        <Badge 
-                          variant={scheme.isEligible ? 'default' : 'destructive'} 
-                          className={cn(
-                            scheme.isEligible && "bg-green-500 hover:bg-green-600 text-white"
-                          )}
-                        >
-                          {scheme.isEligible ? 'Eligible' : 'Not Eligible'}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">{scheme.reason}</p>
-                    </CardHeader>
-                    <CardContent className="space-y-4 text-sm">
-                      <Separator className="my-4" />
-                      <div className="space-y-2">
-                        <h5 className="font-medium flex items-center"><Info className="mr-2 h-4 w-4 text-blue-600" /> Scheme Overview</h5>
-                        <p className="pl-4 text-muted-foreground">{scheme.schemeOverview}</p>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-medium flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-green-600" /> Eligibility Conditions</h5>
-                        <ul className="list-disc list-inside pl-4 text-muted-foreground">
-                          {scheme.eligibilityConditions.map((condition, i) => <li key={i}>{condition}</li>)}
-                        </ul>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-medium flex items-center"><IndianRupee className="mr-2 h-4 w-4 text-blue-600" /> Key Benefits</h5>
-                        <ul className="list-disc list-inside pl-4 text-muted-foreground">
-                          {scheme.keyBenefits.map((benefit, i) => <li key={i}>{benefit}</li>)}
-                        </ul>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-medium flex items-center"><ShieldCheck className="mr-2 h-4 w-4 text-purple-600" /> Verification Process</h5>
-                        <ul className="list-disc list-inside pl-4 text-muted-foreground">
-                          {scheme.verificationProcess.map((process, i) => <li key={i}>{process}</li>)}
-                        </ul>
-                      </div>
-                      <div className="space-y-2">
-                        <h5 className="font-medium flex items-center"><Users className="mr-2 h-4 w-4 text-orange-600" /> Intended Coverage</h5>
-                        <p className="pl-4 text-muted-foreground">{scheme.intendedCoverage}</p>
-                      </div>
-                      <a 
-                        href={scheme.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        className="text-sm font-medium text-primary hover:underline flex items-center mt-4"
-                      >
-                        Visit Scheme Website <ArrowUpRight className="ml-1 h-4 w-4" />
-                      </a>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
             </CardContent>
           </Card>
         )}
