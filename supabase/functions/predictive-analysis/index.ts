@@ -241,7 +241,7 @@ const getSoilAnalysis = (claim: Claim) => {
   // --- Actionable Recommendations ---
   const recommendations: SoilRecommendation[] = [];
 
-  if (parameters.N < 100) recommendations.push({ category: "Nutrient Management", action: "Apply Nitrogen-rich fertilizers", details: "Consider adding urea or compost to boost nitrogen levels for leafy growth." });
+  if (parameters.N < 100) recommendations.push({ category: "Nutient Management", action: "Apply Nitrogen-rich fertilizers", details: "Consider adding urea or compost to boost nitrogen levels for leafy growth." });
   if (parameters.P < 20) recommendations.push({ category: "Nutrient Management", action: "Incorporate Phosphorus supplements", details: "Use diammonium phosphate (DAP) or rock phosphate to improve root development." });
   if (parameters.K < 120) recommendations.push({ category: "Nutrient Management", action: "Enhance Potassium content", details: "Apply muriate of potash (MOP) or wood ash to support flowering and fruiting." });
   if (parameters.pH < 6.0) recommendations.push({ category: "pH Correction", action: "Apply liming materials", details: "Add agricultural lime to raise pH and reduce soil acidity." });
@@ -325,26 +325,20 @@ serve(async (req) => {
 
     const analysisResults = runPredictiveAnalysis(fullClaim);
 
-    // --- Conditional Upsert for Mock Claims ---
-    const isMockClaim = fullClaim.id.startsWith('C-MP-') || fullClaim.id.startsWith('C-OD-');
+    // Always upsert the analysis results to the database
+    const { error: upsertError } = await supabaseClient
+      .from('ai_analysis_results')
+      .upsert(
+        {
+          claim_id: fullClaim.id,
+          analysis_data: analysisResults,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'claim_id' }
+      );
 
-    if (!isMockClaim) { // Only upsert if it's not a mock claim
-      const { error: upsertError } = await supabaseClient
-        .from('ai_analysis_results')
-        .upsert(
-          {
-            claim_id: fullClaim.id,
-            analysis_data: analysisResults,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'claim_id' }
-        );
-
-      if (upsertError) {
-        console.error('Error upserting AI analysis results:', upsertError);
-      }
-    } else {
-      console.log(`Skipping upsert for mock claim: ${fullClaim.id}`);
+    if (upsertError) {
+      console.error('Error upserting AI analysis results:', upsertError);
     }
 
     return new Response(
