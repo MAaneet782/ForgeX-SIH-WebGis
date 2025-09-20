@@ -1,5 +1,3 @@
-/// <reference lib="deno.env" />
-/// <reference types="npm:@supabase/supabase-js/v2" />
 // @ts-ignore
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 // @ts-ignore
@@ -260,6 +258,9 @@ serve(async (req) => {
         status: 400,
       })
     }
+
+    // Simulate processing time for a real model
+    // await new Promise(resolve => setTimeout(resolve, 1500)); // REMOVED DELAY
 
     // --- Mocking additional claim properties for detailed eligibility ---
     // In a real application, these would come from a user profile or other data sources.

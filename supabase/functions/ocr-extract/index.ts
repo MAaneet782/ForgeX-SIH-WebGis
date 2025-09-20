@@ -1,5 +1,3 @@
-/// <reference lib="deno.env" />
-/// <reference types="npm:@supabase/supabase-js/v2" />
 // @ts-ignore
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 // @ts-ignore
@@ -57,7 +55,7 @@ serve(async (req) => {
       coordinates: '{"type":"Polygon","coordinates":[[[78.456, 22.123],[78.457, 22.123],[78.457, 22.124],[78.456, 22.124],[78.456, 22.123]]]}',
     };
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // await new Promise(resolve => setTimeout(resolve, 1500)); // REMOVED DELAY
 
     return new Response(
       JSON.stringify({ data: extractedData }),

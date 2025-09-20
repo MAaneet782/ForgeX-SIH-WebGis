@@ -1,5 +1,3 @@
-/// <reference lib="deno.env" />
-/// <reference types="npm:@supabase/supabase-js/v2" />
 // @ts-ignore
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts"
 // @ts-ignore
@@ -294,7 +292,7 @@ serve(async (req) => {
     }
 
     // Simulate processing time for a real model
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // await new Promise(resolve => setTimeout(resolve, 1500)); // REMOVED DELAY
 
     const analysisResults = runPredictiveAnalysis(claim);
 
