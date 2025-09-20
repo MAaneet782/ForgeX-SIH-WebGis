@@ -86,40 +86,32 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
     const getAnalysis = async () => {
       setIsLoading(true);
       setError(null);
-      const minDelay = new Promise(resolve => setTimeout(resolve, 200)); // Minimum 200ms loading time
-
       try {
-        const isMockClaim = claim.id.startsWith('C-MP-') || claim.id.startsWith('C-OD-');
-        let fetchedAnalysis: AnalysisResult | null = null;
+        // 1. Try to fetch from Supabase cache first
+        const { data: cachedData, error: fetchError } = await supabase
+          .from('ai_analysis_results')
+          .select('analysis_data')
+          .eq('claim_id', claim.id)
+          .single();
 
-        if (!isMockClaim) {
-          // 1. Try to fetch from Supabase cache first for non-mock claims
-          const { data: cachedData, error: fetchError } = await supabase
-            .from('ai_analysis_results')
-            .select('analysis_data')
-            .eq('claim_id', claim.id)
-            .single();
-
-          if (cachedData && cachedData.analysis_data) {
-            fetchedAnalysis = cachedData.analysis_data as AnalysisResult;
-          } else if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
-            console.warn("Error fetching AI analysis from cache, invoking Edge Function:", fetchError.message);
-          }
+        if (cachedData && cachedData.analysis_data) {
+          setAnalysis(cachedData.analysis_data as AnalysisResult);
+          setIsLoading(false);
+          return;
         }
 
-        // 2. If not found in cache (or is mock claim), invoke Edge Function
-        if (!fetchedAnalysis) {
-          const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
-            body: { claim },
-          });
-
-          if (functionError) throw functionError;
-          fetchedAnalysis = data;
+        // 2. If not in cache or error fetching cache, invoke Edge Function
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
+          console.warn("Error fetching AI analysis from cache, invoking Edge Function:", fetchError.message);
         }
+
+        const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
+          body: { claim },
+        });
+
+        if (functionError) throw functionError;
         
-        await minDelay; // Ensure minimum loading time
-        setAnalysis(fetchedAnalysis);
-
+        setAnalysis(data);
       } catch (e: any) {
         console.error("Failed to fetch AI analysis:", e);
         setError(e.message || "An unknown error occurred.");
