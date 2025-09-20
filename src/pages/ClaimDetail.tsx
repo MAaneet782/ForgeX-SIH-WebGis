@@ -17,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@/lib/utils";
 import { type AnalysisResult } from "@/lib/ai-analysis";
 
-// --- Type Definitions for Scheme Eligibility (moved from SchemeEligibility.tsx) ---
+// --- Type Definitions for Scheme Eligibility ---
 interface SchemeDetail {
   name: string;
   url: string;
@@ -29,7 +29,7 @@ interface SchemeDetail {
   reason: string; // Short reason for eligibility/ineligibility
 }
 
-// --- Icon Mapping for AI Analysis (moved from AiAnalysisPanel.tsx) ---
+// --- Icon Mapping for AI Analysis ---
 const iconMap: { [key: string]: React.ElementType } = {
   Waves,
   Globe,
@@ -40,7 +40,7 @@ const iconMap: { [key: string]: React.ElementType } = {
   Leaf,
 };
 
-// --- Soil Parameter Icons (moved from AiAnalysisPanel.tsx) ---
+// --- Soil Parameter Icons ---
 const soilParamIcons: { [key: string]: React.ElementType } = {
   N: FlaskConical, P: FlaskConical, K: FlaskConical,
   pH: Microscope, EC: Tally1, OM: Leaf, CaCO3: FlaskConical,
@@ -49,7 +49,7 @@ const soilParamIcons: { [key: string]: React.ElementType } = {
   Mg: FlaskConical, Fe: FlaskConical, Zn: FlaskConical, Mn: FlaskConical,
 };
 
-// --- Skeleton Components (adapted from AiAnalysisPanel.tsx and SchemeEligibility.tsx) ---
+// --- Skeleton Components ---
 const AiAnalysisSkeleton = () => (
   <Card>
     <CardHeader>
@@ -113,22 +113,17 @@ const ClaimDetail = () => {
   const { claimId } = useParams<{ claimId: string }>();
   const { user, supabase } = useAuth();
 
-  // Find the claim from local mockClaims (assuming mockClaims is imported from data/mockClaims)
-  // In a real app, this would be fetched from Supabase or a global state.
-  // For this demo, we'll use the mockClaims directly.
-  const [claims, setClaims] = useState<Claim[]>([]); // State to hold claims
+  const [claims, setClaims] = useState<Claim[]>([]);
   useEffect(() => {
-    // Simulate fetching claims, or directly use mockClaims
     import("@/data/mockClaims").then(module => {
       setClaims(module.mockClaims);
     });
   }, []);
 
   const claim = useMemo(() => claims.find(c => c.id === claimId), [claims, claimId]);
-  const isLoadingClaim = claims.length === 0; // Loading if mockClaims not yet loaded
-  const isErrorClaim = !claim && !isLoadingClaim; // If claim is not found after loading, consider it an error
+  const isLoadingClaim = claims.length === 0;
+  const isErrorClaim = !claim && !isLoadingClaim;
 
-  // Calculate the water index location (centroid of the claim's geometry)
   const waterIndexLocation = useMemo(() => {
     if (claim?.geometry) {
       // @ts-ignore
@@ -147,6 +142,8 @@ const ClaimDetail = () => {
     queryFn: async () => {
       if (!claim?.id) throw new Error("Claim ID is missing for AI analysis.");
 
+      console.log("Attempting to fetch AI analysis for claim ID:", claim.id);
+
       // 1. Try to fetch from Supabase cache first
       const { data: cachedData, error: fetchError } = await supabase
         .from('ai_analysis_results')
@@ -155,20 +152,29 @@ const ClaimDetail = () => {
         .single();
 
       if (cachedData && cachedData.analysis_data) {
+        console.log("AI analysis found in Supabase cache:", cachedData.analysis_data);
         return cachedData.analysis_data as AnalysisResult;
       }
 
       // 2. If not in cache or error fetching cache, invoke Edge Function
       if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
         console.warn("Error fetching AI analysis from cache, invoking Edge Function:", fetchError.message);
+      } else if (fetchError && fetchError.code === 'PGRST116') {
+        console.log("AI analysis not found in Supabase cache, invoking Edge Function.");
+      } else {
+        console.log("No cached data, invoking Edge Function.");
       }
 
       const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
         body: { claim },
       });
 
-      if (functionError) throw functionError;
+      if (functionError) {
+        console.error("Error invoking predictive-analysis Edge Function:", functionError);
+        throw functionError;
+      }
       
+      console.log("AI analysis from Edge Function:", data);
       return data as AnalysisResult;
     },
     enabled: !!claim?.id, // Only run query if claim.id is available
@@ -183,12 +189,17 @@ const ClaimDetail = () => {
     queryFn: async () => {
       if (!claim) throw new Error("Claim data is missing for scheme eligibility.");
 
+      console.log("Attempting to fetch scheme eligibility for claim ID:", claim.id);
       const { data, error: functionError } = await supabase.functions.invoke('scheme-eligibility', {
         body: { claim },
       });
 
-      if (functionError) throw functionError;
+      if (functionError) {
+        console.error("Error invoking scheme-eligibility Edge Function:", functionError);
+        throw functionError;
+      }
       
+      console.log("Scheme eligibility from Edge Function:", data.schemes);
       return data.schemes as SchemeDetail[];
     },
     enabled: !!claim, // Only run query if claim is available
@@ -196,6 +207,10 @@ const ClaimDetail = () => {
     gcTime: Infinity,
     refetchOnWindowFocus: false,
   });
+
+  console.log("ClaimDetail Render - isLoadingAnalysis:", isLoadingAnalysis, "isErrorAnalysis:", isErrorAnalysis, "analysisError:", analysisError, "analysis data:", analysis);
+  console.log("ClaimDetail Render - isLoadingSchemes:", isLoadingSchemes, "isErrorSchemes:", isErrorSchemes, "schemesError:", schemesError, "schemes data:", schemes);
+
 
   if (isLoadingClaim || !user) {
     return (
