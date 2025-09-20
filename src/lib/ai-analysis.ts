@@ -12,7 +12,7 @@ export interface CropRecommendation {
 }
 
 export interface WaterAnalysis {
-  borewellSuitability: 'Excellent' | 'Moderate' | 'Low' | 'Not Recommended';
+  borewellSuitability: 'Excellent' | 'Moderate' | 'Low' | 'Not Recommended' | 'Unknown';
   score: number;
   recommendations: string[];
 }

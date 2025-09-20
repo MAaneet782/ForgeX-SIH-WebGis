@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import type { Claim } from "@/data/mockClaims";
-import SchemeEligibility from "./SchemeEligibility";
+import { Link } from "react-router-dom"; // Import Link
 
 interface DecisionSupportPanelProps {
   claim: Claim | null;
@@ -14,7 +14,7 @@ const DecisionSupportPanel = ({ claim }: DecisionSupportPanelProps) => {
       <CardHeader>
         <CardTitle>Decision Support Panel</CardTitle>
         <CardDescription>
-          Details and scheme eligibility for the selected claim.
+          Details for the selected claim.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -31,7 +31,9 @@ const DecisionSupportPanel = ({ claim }: DecisionSupportPanelProps) => {
               </div>
             </div>
             <Separator />
-            <SchemeEligibility claim={claim} />
+            <div className="text-center text-muted-foreground py-4">
+              <p>For full AI analysis and scheme eligibility, view the <Link to={`/atlas/claim/${claim.id}`} className="text-primary underline">Claim Details page</Link>.</p>
+            </div>
           </div>
         ) : (
           <div className="text-center text-muted-foreground py-12">
