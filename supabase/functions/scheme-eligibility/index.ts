@@ -450,15 +450,15 @@ const calculateEligibility = (claim: ClaimForSchemes): SchemeDetail[] => {
     keyBenefits: [
       "Training in up to 5 trades per VTC, with ~20 trainees per trade.",
       "Stipend ~₹700/month per trainee, support for boarding/lodging, tools, raw materials.",
-      "Non-recurring grants for setting up VTCs (~₹0.48 lakh per trade for 5 years)."
+      "Non-recurring grants (once every 5 years) for essential items (furniture, labs, hostels etc.): up to ₹20 lakh per school."
     ],
-    verificationProcess: [
+    "verificationProcess": [
       "ST/PVTG status verification.",
       "Age verification for youth category.",
       "Residency in priority areas."
     ],
-    intendedCoverage: "ST youth in remote and backward areas.",
-    reason: skillDevReason.trim()
+    "intendedCoverage": "ST youth in remote and backward areas.",
+    "reason": skillDevReason.trim()
   });
 
   // --- 12) FRA 2006 (Detailed) ---
@@ -497,14 +497,14 @@ const calculateEligibility = (claim: ClaimForSchemes): SchemeDetail[] => {
       "District Level Committee (DLC) approval."
     ],
     intendedCoverage: "Potentially benefits 150+ million people across 40 million hectares of forest land.",
-    reason: fra2Reason.trim()
+    "reason": fra2Reason.trim()
   });
 
 
   return schemes;
 };
 
-serve(async (req) => {
+serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -534,18 +534,42 @@ serve(async (req) => {
   try {
     const { claim } = await req.json();
 
-    if (!claim || typeof claim.status === 'undefined' || typeof claim.area === 'undefined') {
-      return new Response(JSON.stringify({ error: 'Invalid claim data provided.' }), {
+    if (!claim || typeof claim.status === 'undefined' || typeof claim.area === 'undefined' || !claim.id) {
+      return new Response(JSON.stringify({ error: 'Invalid claim data or missing claim ID provided.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       })
+    }
+
+    // 1. Try to fetch from Supabase cache first
+    const { data: cachedData, error: fetchError } = await supabaseClient
+      .from('scheme_eligibility_cache')
+      .select('eligibility_data')
+      .eq('claim_id', claim.id)
+      .single();
+
+    if (cachedData && cachedData.eligibility_data) {
+      console.log("Scheme eligibility found in Supabase cache:", cachedData.eligibility_data);
+      return new Response(
+        JSON.stringify({ schemes: cachedData.eligibility_data }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 2. If not in cache or error fetching cache, compute eligibility
+    if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
+      console.warn("Error fetching scheme eligibility from cache, computing:", fetchError.message);
+    } else if (fetchError && fetchError.code === 'PGRST116') {
+      console.log("Scheme eligibility not found in Supabase cache, computing.");
+    } else {
+      console.log("No cached data, computing scheme eligibility.");
     }
 
     // --- Mocking additional claim properties for detailed eligibility ---
     // In a real application, these would come from a user profile or other data sources.
     const augmentedClaim: ClaimForSchemes = {
       ...claim,
-      isForestDweller: claim.holderName.toLowerCase().includes('bhil') || claim.holderName.toLowerCase().includes('gond') || claim.village.toLowerCase().includes('forest') || claim.state.toLowerCase().includes('odisha'),
+      isForestDweller: claim.holderName.toLowerCase().includes('bhil') || claim.holderName.toLowerCase().includes('gond') || claim.holderName.toLowerCase().includes('murmu') || claim.holderName.toLowerCase().includes('soren') || claim.village.toLowerCase().includes('forest') || claim.state.toLowerCase().includes('odisha'),
       isBelowPovertyLine: claim.estimatedCropValue < 10000 || claim.holderName.toLowerCase().includes('bpl'), // Example: low crop value implies BPL
       isTaxpayer: claim.estimatedCropValue > 50000, // Example: high crop value implies taxpayer
       isInstitutionalLandholder: claim.area > 50, // Example: very large area
@@ -557,23 +581,39 @@ serve(async (req) => {
       isPhysicallyChallenged: claim.holderName.toLowerCase().includes('divyang'),
       isBPLHousehold: claim.estimatedCropValue < 10000,
       isWidow: claim.holderName.toLowerCase().includes('devi') && claim.holderName.toLowerCase().includes('widow'),
-      isElderly: claim.holderName.toLowerCase().includes('dadi') || claim.holderName.toLowerCase().includes('baba') || claim.holderName.toLowerCase().includes('old'),
+      isElderly: claim.holderName.toLowerCase().includes('dadi') || claim.holderName.toLowerCase().includes('baba') || claim.holderName.toLowerCase().includes('old') || (new Date().getFullYear() - new Date(claim.created_at).getFullYear() > 60), // Added age check
       isManualScavenger: claim.holderName.toLowerCase().includes('safai'),
       isLandlessCasualLaborer: claim.area === 0 || claim.holderName.toLowerCase().includes('mazdoor'),
       isPVTG: claim.holderName.toLowerCase().includes('baiga') || claim.holderName.toLowerCase().includes('birhor'),
       isMinorForestProduceCollector: claim.village.toLowerCase().includes('forest') || claim.holderName.toLowerCase().includes('gatherer'),
-      isYouth: claim.holderName.toLowerCase().includes('kumar') || claim.holderName.toLowerCase().includes('kumari'),
+      isYouth: (new Date().getFullYear() - new Date(claim.created_at).getFullYear() < 35), // Example: less than 35 years since claim creation
     };
     // --- End Mocking ---
 
     const eligibilityData = calculateEligibility(augmentedClaim);
+
+    // Always upsert the eligibility results to the database
+    const { error: upsertError } = await supabaseClient
+      .from('scheme_eligibility_cache')
+      .upsert(
+        {
+          claim_id: claim.id,
+          eligibility_data: eligibilityData,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'claim_id' }
+      );
+
+    if (upsertError) {
+      console.error('Error upserting scheme eligibility results:', upsertError);
+    }
 
     return new Response(
       JSON.stringify({ schemes: eligibilityData }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'An unknown error occurred' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     })
