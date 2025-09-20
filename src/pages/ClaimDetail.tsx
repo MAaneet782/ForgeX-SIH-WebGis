@@ -17,12 +17,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@/lib/utils";
 import { type AnalysisResult } from "@/lib/ai-analysis";
 
-// --- Type Definitions for Scheme Eligibility ---
+// --- Type Definitions for Scheme Eligibility (updated to match Edge Function) ---
 interface SchemeDetail {
   name: string;
   url: string;
   isEligible: boolean;
   eligibilityConditions: string[];
+  schemeOverview: string; // New field
   keyBenefits: string[];
   verificationProcess: string[];
   intendedCoverage: string;
@@ -537,6 +538,10 @@ const ClaimDetail = () => {
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm">
                       <Separator className="my-4" />
+                      <div className="space-y-2">
+                        <h5 className="font-medium flex items-center"><Info className="mr-2 h-4 w-4 text-blue-600" /> Scheme Overview</h5>
+                        <p className="pl-4 text-muted-foreground">{scheme.schemeOverview}</p>
+                      </div>
                       <div className="space-y-2">
                         <h5 className="font-medium flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-green-600" /> Eligibility Conditions</h5>
                         <ul className="list-disc list-inside pl-4 text-muted-foreground">
