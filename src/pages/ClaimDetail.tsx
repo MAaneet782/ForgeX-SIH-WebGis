@@ -59,7 +59,7 @@ const ClaimDetail = () => {
   const { data: supabaseClaims = [], isLoading: isLoadingSupabaseClaims, isError: isErrorSupabaseClaims } = useQuery<Claim[]>({
     queryKey: ['claims'],
     queryFn: fetchClaims,
-    enabled: !!user, // Only fetch claims if user is logged in
+    enabled: !isLoadingAuth, // Fetch claims once auth state is known
   });
 
   const combinedClaims = useMemo(() => {
@@ -75,7 +75,7 @@ const ClaimDetail = () => {
 
   const claim = useMemo(() => combinedClaims.find(c => c.id === claimId), [combinedClaims, claimId]);
   const isLoadingClaim = isLoadingSupabaseClaims;
-  const isErrorClaim = isErrorSupabaseClaims || !claim;
+  const isErrorClaim = isErrorSupabaseClaims || (!claim && !isLoadingClaim); // Refined error check
 
   const waterIndexLocation = useMemo(() => {
     if (claim?.geometry) {
@@ -133,7 +133,7 @@ const ClaimDetail = () => {
       }
       return data as AnalysisResult;
     },
-    enabled: !!claim?.id && !!user,
+    enabled: !!claim?.id && !!user && !isLoadingAuth, // Only enabled if claim exists, user is logged in, and auth is not loading
     staleTime: Infinity,
     gcTime: Infinity,
     refetchOnWindowFocus: false,
@@ -183,17 +183,14 @@ const ClaimDetail = () => {
       }
       return data.schemes as SchemeDetail[];
     },
-    enabled: !!claim?.id && !!user,
+    enabled: !!claim?.id && !!user && !isLoadingAuth, // Only enabled if claim exists, user is logged in, and auth is not loading
     staleTime: Infinity,
     gcTime: Infinity,
     refetchOnWindowFocus: false,
   });
 
-  console.log("ClaimDetail Render - isLoadingAnalysis:", isLoadingAnalysis, "isErrorAnalysis:", isErrorAnalysis, "analysisError:", analysisError, "analysis data:", analysis);
-  console.log("ClaimDetail Render - isLoadingSchemes:", isLoadingSchemes, "isErrorSchemes:", isErrorSchemes, "schemesError:", schemesError, "schemes data:", schemes);
-
-
-  if (isLoadingClaim || isLoadingAuth || !user) {
+  // If authentication is still loading, show a full page skeleton
+  if (isLoadingAuth) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
         <Skeleton className="h-10 w-48 mb-4" />
@@ -213,6 +210,16 @@ const ClaimDetail = () => {
       </div>
     );
   }
+
+  // If user is not logged in, show a message for AI analysis and scheme eligibility
+  const unauthenticatedMessage = (
+    <div className="text-center text-muted-foreground py-12">
+      <p className="mb-4">Please <Link to="/login" className="text-primary underline">log in</Link> to view AI analysis and scheme eligibility.</p>
+      <Button asChild>
+        <Link to="/login">Go to Login</Link>
+      </Button>
+    </div>
+  );
 
   if (isErrorClaim || !claim) {
     return (
@@ -240,23 +247,33 @@ const ClaimDetail = () => {
       <section className="grid lg:grid-cols-3 gap-6">
         <ClaimInfoCard claim={claim} />
         <ParcelLocationCard claim={claim} waterIndexLocation={waterIndexLocation} />
-        <SchemeEligibilitySection 
-          schemes={schemes} 
-          isLoading={isLoadingSchemes} 
-          isError={isErrorSchemes} 
-          error={schemesError} 
-        />
+        {user ? (
+          <SchemeEligibilitySection 
+            schemes={schemes} 
+            isLoading={isLoadingSchemes} 
+            isError={isErrorSchemes} 
+            error={schemesError} 
+          />
+        ) : (
+          <div className="lg:col-span-1">
+            {unauthenticatedMessage}
+          </div>
+        )}
       </section>
 
       {/* AI-Powered Predictive Analysis Section */}
       <section>
-        <AiAnalysisSection 
-          claim={claim}
-          analysis={analysis} 
-          isLoading={isLoadingAnalysis} 
-          isError={isErrorAnalysis} 
-          error={analysisError} 
-        />
+        {user ? (
+          <AiAnalysisSection 
+            claim={claim}
+            analysis={analysis} 
+            isLoading={isLoadingAnalysis} 
+            isError={isErrorAnalysis} 
+            error={analysisError} 
+          />
+        ) : (
+          unauthenticatedMessage
+        )}
       </section>
     </div>
   );
