@@ -6,7 +6,7 @@ import type { Claim } from "@/data/mockClaims";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import ClaimsData from "@/components/ClaimsData";
 import GisMap from "@/components/GisMap";
-import { DashboardStateProvider } from "@/context/DashboardStateContext";
+import { useDashboardState } from "@/context/DashboardStateContext"; // Import useDashboardState
 import { showError, showSuccess, showInfo, showLoading, dismissToast } from "@/utils/toast";
 import DashboardStats from "@/components/DashboardStats";
 import DataVisualization from "@/components/DataVisualization";
@@ -51,6 +51,7 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
   const navigate = useNavigate();
   const { user, isLoading: isLoadingAuth } = useAuth();
   const isMobile = useIsMobile();
+  const { state: dashboardState, isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState(); // Use dashboard state
 
   const { data: supabaseClaims = [], isLoading, isError } = useQuery<Claim[]>({
     queryKey: ['claims'],
@@ -74,6 +75,20 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
 
     return Array.from(uniqueClaimsMap.values());
   }, [supabaseClaims]);
+
+  // Filter claims based on active dashboard filters
+  const filteredClaimsForDisplay = useMemo(() => {
+    return combinedClaims.filter(claim => {
+      const { lowWater, pending, mgnrega } = dashboardState.activeFilters;
+      
+      if (lowWater && !isLowWaterClaim(claim)) return false;
+      if (pending && !isPendingClaim(claim)) return false;
+      if (mgnrega && !isMgnregaEligible(claim)) return false;
+      
+      return true;
+    });
+  }, [combinedClaims, dashboardState.activeFilters, isLowWaterClaim, isPendingClaim, isMgnregaEligible]);
+
 
   const [viewMode, setViewMode] = useState("default");
 
@@ -116,14 +131,14 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
   });
 
   const filteredClaims = useMemo(() => {
-    return combinedClaims.filter((claim) =>
+    return filteredClaimsForDisplay.filter((claim) => // Apply search term to already filtered claims
       claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.village.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [combinedClaims, searchTerm]);
+  }, [filteredClaimsForDisplay, searchTerm]);
 
   const geoJsonData = useMemo((): FeatureCollection => {
-    const features = combinedClaims.map((claim): Feature => {
+    const features = filteredClaimsForDisplay.map((claim): Feature => { // Map also uses filtered claims
       const geometry = claim.geometry || { type: "Polygon", coordinates: [[[0,0]]] }; // Fallback geometry
       return {
         type: "Feature",
@@ -132,7 +147,7 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
       };
     });
     return { type: "FeatureCollection", features };
-  }, [combinedClaims]);
+  }, [filteredClaimsForDisplay]);
 
   const handleZoomToClaim = (claimId: string) => {
     setSelectedClaimId(claimId);
@@ -176,7 +191,9 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
       </header>
       
       {viewMode === 'default' || viewMode === 'table' ? (
-        <DashboardStats claims={combinedClaims} />
+        <>
+          <DashboardStats claims={filteredClaimsForDisplay} /> {/* Use filtered claims */}
+        </>
       ) : null}
 
       <div className="space-y-4">
@@ -184,7 +201,7 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
         {(viewMode === 'default' || viewMode === 'map') && (
           <div className={cn("rounded-lg overflow-hidden border", viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
             <GisMap 
-              claims={combinedClaims} 
+              claims={filteredClaimsForDisplay} // Map also uses filtered claims
               claimsData={geoJsonData} 
               waterData={waterBodiesGeoJson}
               agriData={agriLandGeoJson}
@@ -196,7 +213,7 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
         {(viewMode === 'default' || viewMode === 'table') && (
           <div>
             <ClaimsData 
-              claims={filteredClaims}
+              claims={filteredClaims} // Table uses search-filtered claims (which are already dashboard-filtered)
               onAddClaim={(claim) => addClaimMutation.mutate(claim)}
               onGenerateReport={handleGenerateReport}
               onZoomToClaim={handleZoomToClaim}
@@ -206,7 +223,9 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
       </div>
 
       {viewMode === 'default' || viewMode === 'table' ? (
-        <DataVisualization claims={combinedClaims} />
+        <>
+          <DataVisualization claims={filteredClaimsForDisplay} /> {/* Use filtered claims */}
+        </>
       ) : null}
     </div>
   );
