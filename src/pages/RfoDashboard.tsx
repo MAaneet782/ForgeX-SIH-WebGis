@@ -10,9 +10,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header"; // Reusing existing Header
 import Sidebar from "@/components/Sidebar"; // Reusing existing Sidebar
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 // --- Supabase Data Fetching ---
 const fetchClaims = async (): Promise<Claim[]> => {
+  // This function will now fetch all claims that the authenticated user has SELECT access to
+  // Based on the new RLS, authenticated users can SELECT all claims.
   const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
   return data.map(item => ({
@@ -34,9 +37,11 @@ const fetchClaims = async (): Promise<Claim[]> => {
 };
 
 const RfoDashboard = () => {
+  const { user } = useAuth(); // Get the current user
   const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
-    queryKey: ['claims'],
+    queryKey: ['claims', 'rfo_dashboard', user?.id], // Include user.id in query key
     queryFn: fetchClaims,
+    enabled: !!user?.id, // Only run query if user.id is available
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,7 +76,7 @@ const RfoDashboard = () => {
   const handleFindMyParcel = () => { /* RFO map doesn't auto-zoom on selection */ };
   const handleGenerateReport = () => { /* RFO map doesn't generate reports */ };
 
-  if (isLoading) {
+  if (isLoading || !user) { // Show loading if user is not yet loaded
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="space-y-4">

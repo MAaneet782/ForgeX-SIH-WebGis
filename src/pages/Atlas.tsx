@@ -16,13 +16,18 @@ import DashboardStats from "@/components/DashboardStats";
 import DataVisualization from "@/components/DataVisualization";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 // Define the consistent type for new claim input
 export type NewClaimInput = Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry' | 'id' | 'created_at'> & { coordinates: string; documentName?: string };
 
 // --- Supabase Data Fetching ---
-const fetchClaims = async (): Promise<Claim[]> => {
-  const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
+const fetchClaims = async (userId: string): Promise<Claim[]> => { // Now accepts userId
+  const { data, error } = await supabase
+    .from('claims')
+    .select('*')
+    .eq('user_id', userId) // Filter by user_id
+    .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
   return data.map(item => ({
     dbId: item.id, // Map DB's primary key 'id' to frontend 'dbId'
@@ -45,10 +50,12 @@ const fetchClaims = async (): Promise<Claim[]> => {
 const IndexPageContent = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { user } = useAuth(); // Get the current user
 
   const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
-    queryKey: ['claims'],
-    queryFn: fetchClaims,
+    queryKey: ['claims', user?.id], // Include user.id in query key
+    queryFn: () => fetchClaims(user!.id), // Pass user.id to fetchClaims
+    enabled: !!user?.id, // Only run query if user.id is available
   });
 
   const [selectedClaimDbId, setSelectedClaimDbId] = useState<string | null>(null); // Use dbId for map selection
@@ -57,6 +64,7 @@ const IndexPageContent = () => {
 
   const addClaimMutation = useMutation({
     mutationFn: async (newClaimData: NewClaimInput) => { // Use the new consistent type here
+      if (!user?.id) throw new Error("User not authenticated."); // Ensure user is logged in
       const toastId = showLoading("Adding new claim...");
       const { coordinates, ...rest } = newClaimData;
       
@@ -64,6 +72,7 @@ const IndexPageContent = () => {
       const userFacingClaimId = `C-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
       
       const newClaimRecord = {
+        user_id: user.id, // Assign the current user's ID
         claim_id: userFacingClaimId, // User-facing text ID
         holder_name: rest.holderName,
         village: rest.village,
@@ -85,7 +94,7 @@ const IndexPageContent = () => {
       return { dbId: data.id, userFacingId: data.claim_id }; // Return both IDs
     },
     onSuccess: ({ dbId, userFacingId }) => {
-      queryClient.invalidateQueries({ queryKey: ['claims'] });
+      queryClient.invalidateQueries({ queryKey: ['claims', user?.id] }); // Invalidate with user.id
       showSuccess(`Claim ${userFacingId} added. Redirecting to its dashboard for AI analysis.`);
       navigate(`/atlas/claim/${userFacingId}`); // Navigate using user-facing ID
     },
@@ -103,7 +112,7 @@ const IndexPageContent = () => {
       return dbId;
     },
     onSuccess: (deletedDbId) => {
-      queryClient.invalidateQueries({ queryKey: ['claims'] });
+      queryClient.invalidateQueries({ queryKey: ['claims', user?.id] }); // Invalidate with user.id
       showSuccess(`Claim deleted successfully.`);
       if (selectedClaimDbId === deletedDbId) {
         setSelectedClaimDbId(null);
@@ -158,7 +167,7 @@ const IndexPageContent = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !user) { // Show loading if user is not yet loaded
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="space-y-4">

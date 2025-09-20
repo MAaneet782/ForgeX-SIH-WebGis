@@ -12,16 +12,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ClaimLocationMap from "@/components/ClaimLocationMap";
 import { useMemo } from "react";
 import L from 'leaflet'; // Import Leaflet for geometry operations
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
-const fetchClaimById = async (userFacingClaimId: string): Promise<Claim> => {
+const fetchClaimById = async (userFacingClaimId: string, userId: string): Promise<Claim> => { // Now accepts userId
   const { data, error } = await supabase
     .from('claims')
     .select('*')
     .eq('claim_id', userFacingClaimId) // Query by user-facing claim_id
+    .eq('user_id', userId) // Filter by user_id to ensure ownership
     .single();
 
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Claim not found");
+  if (!data) throw new Error("Claim not found or you do not have access to it.");
 
   return {
     dbId: data.id, // Map DB's primary key 'id' to frontend 'dbId'
@@ -43,11 +45,12 @@ const fetchClaimById = async (userFacingClaimId: string): Promise<Claim> => {
 
 const ClaimDetail = () => {
   const { claimId } = useParams<{ claimId: string }>(); // This is the user-facing claim_id
+  const { user } = useAuth(); // Get the current user
 
   const { data: claim, isLoading, isError } = useQuery<Claim>({
-    queryKey: ['claim', claimId],
-    queryFn: () => fetchClaimById(claimId!),
-    enabled: !!claimId,
+    queryKey: ['claim', claimId, user?.id], // Include user.id in query key
+    queryFn: () => fetchClaimById(claimId!, user!.id), // Pass user.id to fetchClaimById
+    enabled: !!claimId && !!user?.id, // Only run query if both claimId and user.id are available
   });
 
   // Calculate the water index location (centroid of the claim's geometry)
@@ -63,7 +66,7 @@ const ClaimDetail = () => {
     return undefined;
   }, [claim?.geometry]);
 
-  if (isLoading) {
+  if (isLoading || !user) { // Show loading if user is not yet loaded
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
         <Skeleton className="h-10 w-48 mb-4" />
@@ -87,7 +90,7 @@ const ClaimDetail = () => {
   if (isError || !claim) {
     return (
       <div className="text-center p-8">
-        <h2 className="text-2xl font-bold">Claim not found</h2>
+        <h2 className="text-2xl font-bold">Claim not found or you do not have access.</h2>
         <Button asChild variant="link">
           <Link to="/atlas">Return to Dashboard</Link>
         </Button>

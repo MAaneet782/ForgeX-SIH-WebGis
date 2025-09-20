@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ThematicMap from "@/components/ThematicMap";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title: string, value: string }) => (
   <Card>
@@ -28,6 +29,8 @@ const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title
 const ALLOWED_STATES = ['Odisha', 'Madhya Pradesh', 'Tripura', 'Telangana'];
 
 const fetchClaims = async (): Promise<Claim[]> => {
+  // This function will now fetch all claims that the authenticated user has SELECT access to
+  // Based on the new RLS, authenticated users can SELECT all claims.
   const { data, error } = await supabase
     .from('claims')
     .select('*')
@@ -54,9 +57,11 @@ const fetchClaims = async (): Promise<Claim[]> => {
 const PROFESSIONAL_COLORS = ['#4f46e5', '#0d9488', '#f59e0b', '#db2777', '#6b7280', '#3b82f6'];
 
 const Analytics = () => {
+  const { user } = useAuth(); // Get the current user
   const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
-    queryKey: ['claims', 'filtered_analytics'], // Unique key for filtered claims
+    queryKey: ['claims', 'filtered_analytics', user?.id], // Include user.id in query key
     queryFn: fetchClaims,
+    enabled: !!user?.id, // Only run query if user.id is available
   });
 
   const [selectedState, setSelectedState] = useState<string>('all');
@@ -132,7 +137,7 @@ const Analytics = () => {
     return { type: "FeatureCollection", features };
   }, [filteredClaims]);
 
-  if (isLoading) {
+  if (isLoading || !user) { // Show loading if user is not yet loaded
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
         <Skeleton className="h-10 w-48 mb-4" />
