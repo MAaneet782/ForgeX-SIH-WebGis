@@ -110,9 +110,31 @@ const ClaimDetail = () => {
   const { data: schemes, isLoading: isLoadingSchemes, isError: isErrorSchemes, error: schemesError } = useQuery<SchemeDetail[], Error>({
     queryKey: ['schemeEligibility', claim?.id],
     queryFn: async () => {
-      if (!claim) throw new Error("Claim data is missing for scheme eligibility.");
+      if (!claim?.id) throw new Error("Claim ID is missing for scheme eligibility.");
 
       console.log("Attempting to fetch scheme eligibility for claim ID:", claim.id);
+
+      // 1. Try to fetch from Supabase cache first
+      const { data: cachedData, error: fetchError } = await supabase
+        .from('scheme_eligibility_results')
+        .select('eligibility_data')
+        .eq('claim_id', claim.id)
+        .single();
+
+      if (cachedData && cachedData.eligibility_data) {
+        console.log("Scheme eligibility found in Supabase cache:", cachedData.eligibility_data);
+        return cachedData.eligibility_data as SchemeDetail[];
+      }
+
+      // 2. If not in cache or error fetching cache, invoke Edge Function
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
+        console.warn("Error fetching scheme eligibility from cache, invoking Edge Function:", fetchError.message);
+      } else if (fetchError && fetchError.code === 'PGRST116') {
+        console.log("Scheme eligibility not found in Supabase cache, invoking Edge Function.");
+      } else {
+        console.log("No cached data, invoking Edge Function.");
+      }
+
       const { data, error: functionError } = await supabase.functions.invoke('scheme-eligibility', {
         body: { claim },
       });
@@ -129,7 +151,7 @@ const ClaimDetail = () => {
       }
       return data.schemes as SchemeDetail[];
     },
-    enabled: !!claim, // Only run query if claim is available
+    enabled: !!claim?.id, // Only run query if claim.id is available
     staleTime: Infinity,
     gcTime: Infinity,
     refetchOnWindowFocus: false,
