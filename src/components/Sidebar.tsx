@@ -8,17 +8,20 @@ import { cn } from "@/lib/utils";
 import SchemeInfoModal from "./SchemeInfoModal";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"; // Import Sheet components
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 interface SidebarProps {
   onToggleLayersPanel: () => void;
   onGenerateReport: () => void;
   onFindMyParcel: () => void;
+  isOpen?: boolean; // New prop for Sheet control
+  onOpenChange?: (isOpen: boolean) => void; // New prop for Sheet control
 }
 
-const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: SidebarProps) => {
+const SidebarContent = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel, user, supabase }: Omit<SidebarProps, 'isOpen' | 'onOpenChange'> & { user: any, supabase: any }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: '', content: <></> });
-  const { user, supabase } = useAuth();
 
   const schemesContent = (
     <div className="space-y-4 text-sm">
@@ -105,9 +108,9 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
 
   return (
     <>
-      <aside className="bg-sidebar text-sidebar-foreground flex flex-col h-full border-r border-border">
+      <div className="flex flex-col h-full">
         <div className="p-4 border-b border-sidebar-border">
-          <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary-foreground">
+          <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary-foreground transition-colors duration-200">
             <Leaf className="h-7 w-7 text-primary" /> FRA Atlas
           </Link>
           <div className="flex items-center gap-3 mt-4">
@@ -131,7 +134,7 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
                     <Button 
                       variant="ghost" 
                       onClick={item.action}
-                      className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200"
                     >
                       <item.icon className="mr-3 h-5 w-5" />
                       {item.label}
@@ -146,26 +149,26 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
           <Button 
             variant="ghost" 
             onClick={() => showInfo("Opening profile settings...")}
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200 mb-1"
           >
             <User className="mr-3 h-5 w-5" /> Profile
           </Button>
           <Button 
             variant="ghost" 
             onClick={() => showInfo("Opening settings...")}
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1"
+            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200 mb-1"
           >
             <Settings className="mr-3 h-5 w-5" /> Settings
           </Button>
           <Button 
             variant="ghost" 
             onClick={handleLogout}
-            className="w-full justify-start text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive"
+            className="w-full justify-start text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive transition-colors duration-200"
           >
             <LogOut className="mr-3 h-5 w-5" /> Logout
           </Button>
         </div>
-      </aside>
+      </div>
       <SchemeInfoModal 
         isOpen={isModalOpen} 
         onOpenChange={setIsModalOpen} 
@@ -174,6 +177,42 @@ const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: Side
         {modalContent.content}
       </SchemeInfoModal>
     </>
+  );
+};
+
+const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel, isOpen, onOpenChange }: SidebarProps) => {
+  const { user, supabase } = useAuth();
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <Sheet open={isOpen} onOpenChange={onOpenChange}>
+        <SheetContent side="left" className="w-[280px] p-0 bg-sidebar text-sidebar-foreground border-r border-border">
+          <SheetHeader className="p-4 border-b border-sidebar-border">
+            <SheetTitle className="text-primary-foreground">Navigation</SheetTitle>
+          </SheetHeader>
+          <SidebarContent 
+            onToggleLayersPanel={onToggleLayersPanel} 
+            onGenerateReport={onGenerateReport} 
+            onFindMyParcel={onFindMyParcel} 
+            user={user} 
+            supabase={supabase} 
+          />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <aside className="bg-sidebar text-sidebar-foreground flex flex-col h-full border-r border-border">
+      <SidebarContent 
+        onToggleLayersPanel={onToggleLayersPanel} 
+        onGenerateReport={onGenerateReport} 
+        onFindMyParcel={onFindMyParcel} 
+        user={user} 
+        supabase={supabase} 
+      />
+    </aside>
   );
 };
 

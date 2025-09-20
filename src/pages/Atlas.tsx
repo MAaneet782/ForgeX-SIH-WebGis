@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
+import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 // --- Supabase Data Fetching ---
 const fetchClaims = async (): Promise<Claim[]> => {
@@ -47,6 +48,7 @@ const IndexPageContent = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user, isLoading: isLoadingAuth } = useAuth();
+  const isMobile = useIsMobile(); // Use the hook
 
   const { data: supabaseClaims = [], isLoading, isError } = useQuery<Claim[]>({
     queryKey: ['claims'],
@@ -74,6 +76,7 @@ const IndexPageContent = () => {
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for mobile sidebar
   const [viewMode, setViewMode] = useState("default");
 
   const addClaimMutation = useMutation({
@@ -139,7 +142,9 @@ const IndexPageContent = () => {
 
   const handleZoomToClaim = (claimId: string) => {
     setSelectedClaimId(claimId);
-    setViewMode('map');
+    if (isMobile) {
+      setViewMode('map'); // Switch to map view on mobile when zooming
+    }
   };
 
   const handleGenerateReport = () => {
@@ -151,6 +156,9 @@ const IndexPageContent = () => {
       const parcelId = combinedClaims[0].id;
       setSelectedClaimId(parcelId);
       showInfo(`Locating parcel for ${combinedClaims[0].holderName} (ID: ${parcelId})`);
+      if (isMobile) {
+        setViewMode('map'); // Switch to map view on mobile when finding parcel
+      }
     }
   };
 
@@ -170,61 +178,110 @@ const IndexPageContent = () => {
     return <div className="text-red-500 text-center p-8">Error loading claims data. Make sure you have run the SQL script in your Supabase project.</div>;
   }
 
-  return (
-    <div className="grid grid-cols-[280px_1fr] grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
-      <div className="col-span-2 z-10"><Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFindMyParcel={handleFindMyParcel} /></div>
-      <div className="row-start-2"><Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} /></div>
+  const mainContent = (
+    <div className="h-full overflow-y-auto p-4 md:p-6 space-y-6">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
+          <p className="text-muted-foreground">Live Data from Supabase Database</p>
+        </div>
+        <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
+          <ToggleGroupItem value="default" aria-label="Default view" className="transition-colors duration-200"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
+          <ToggleGroupItem value="table" aria-label="Table view" className="transition-colors duration-200"><Table className="h-4 w-4" /></ToggleGroupItem>
+          <ToggleGroupItem value="map" aria-label="Map view" className="transition-colors duration-200"><Map className="h-4 w-4" /></ToggleGroupItem>
+        </ToggleGroup>
+      </header>
       
-      <main className="row-start-2 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={65} minSize={40}>
-            <div className="h-full overflow-y-auto p-6 space-y-6">
-              <header className="flex items-center justify-between mb-6">
-                <div>
-                  <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
-                  <p className="text-muted-foreground">Live Data from Supabase Database</p>
-                </div>
-                <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
-                  <ToggleGroupItem value="default" aria-label="Default view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
-                  <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4" /></ToggleGroupItem>
-                  <ToggleGroupItem value="map" aria-label="Map view"><Map className="h-4 w-4" /></ToggleGroupItem>
-                </ToggleGroup>
-              </header>
-              
-              <DashboardStats claims={combinedClaims} />
-              <DataVisualization claims={combinedClaims} />
-              
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Claims Explorer</h2>
-                <div className={cn("rounded-lg overflow-hidden border", viewMode === 'table' ? 'hidden' : 'block', viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
-                  <GisMap 
-                    claims={combinedClaims} 
-                    claimsData={geoJsonData} 
-                    waterData={waterBodiesGeoJson}
-                    agriData={agriLandGeoJson}
-                    selectedClaimId={selectedClaimId} 
-                    onClaimSelect={setSelectedClaimId}
-                  />
-                </div>
-                <div className={cn(viewMode === 'map' ? 'hidden' : 'block')}>
-                  <ClaimsData 
-                    claims={filteredClaims}
-                    onAddClaim={(claim) => addClaimMutation.mutate(claim)}
-                    onGenerateReport={handleGenerateReport}
-                    onZoomToClaim={handleZoomToClaim}
-                  />
-                </div>
+      {viewMode === 'default' || viewMode === 'table' ? (
+        <>
+          <DashboardStats claims={combinedClaims} />
+          <DataVisualization claims={combinedClaims} />
+        </>
+      ) : null}
+
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold">Claims Explorer</h2>
+        {(viewMode === 'default' || viewMode === 'map') && (
+          <div className={cn("rounded-lg overflow-hidden border", viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
+            <GisMap 
+              claims={combinedClaims} 
+              claimsData={geoJsonData} 
+              waterData={waterBodiesGeoJson}
+              agriData={agriLandGeoJson}
+              selectedClaimId={selectedClaimId} 
+              onClaimSelect={setSelectedClaimId}
+            />
+          </div>
+        )}
+        {(viewMode === 'default' || viewMode === 'table') && (
+          <div>
+            <ClaimsData 
+              claims={filteredClaims}
+              onAddClaim={(claim) => addClaimMutation.mutate(claim)}
+              onGenerateReport={handleGenerateReport}
+              onZoomToClaim={handleZoomToClaim}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="grid grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
+      <div className="col-span-full z-10">
+        <Header 
+          searchTerm={searchTerm} 
+          setSearchTerm={setSearchTerm} 
+          onFindMyParcel={handleFindMyParcel} 
+          onToggleSidebar={() => setIsSidebarOpen(true)} 
+        />
+      </div>
+      
+      {isMobile ? (
+        <>
+          <Sidebar 
+            onToggleLayersPanel={() => setIsLayersPanelOpen(true)} 
+            onGenerateReport={handleGenerateReport} 
+            onFindMyParcel={handleFindMyParcel} 
+            isOpen={isSidebarOpen}
+            onOpenChange={setIsSidebarOpen}
+          />
+          <main className="row-start-2 overflow-hidden">
+            <div className="h-full flex flex-col lg:flex-row">
+              <div className="flex-1 overflow-y-auto">
+                {mainContent}
+              </div>
+              <div className="lg:w-1/3 p-4 border-t lg:border-t-0 lg:border-l border-border overflow-y-auto">
+                <DecisionSupportPanel claim={selectedClaim} />
               </div>
             </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={35} minSize={25}>
-            <div className="h-full overflow-y-auto p-6">
-              <DecisionSupportPanel claim={selectedClaim} />
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </main>
+          </main>
+        </>
+      ) : (
+        <>
+          <div className="row-start-2">
+            <Sidebar 
+              onToggleLayersPanel={() => setIsLayersPanelOpen(true)} 
+              onGenerateReport={handleGenerateReport} 
+              onFindMyParcel={handleFindMyParcel} 
+            />
+          </div>
+          <main className="row-start-2 overflow-hidden">
+            <ResizablePanelGroup direction="horizontal">
+              <ResizablePanel defaultSize={65} minSize={40}>
+                {mainContent}
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+              <ResizablePanel defaultSize={35} minSize={25}>
+                <div className="h-full overflow-y-auto p-6">
+                  <DecisionSupportPanel claim={selectedClaim} />
+                </div>
+              </ResizablePanel>
+            </ResizablePanelGroup>
+          </main>
+        </>
+      )}
       
       <LayersPanel isOpen={isLayersPanelOpen} onOpenChange={setIsLayersPanelOpen} />
     </div>
