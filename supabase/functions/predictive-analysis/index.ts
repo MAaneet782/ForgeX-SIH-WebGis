@@ -10,6 +10,7 @@ const corsHeaders = {
 
 // --- TYPE DEFINITIONS (subset of frontend types) ---
 type Claim = {
+  id: string; // Added id for linking to analysis results
   soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite';
   waterAvailability: 'High' | 'Medium' | 'Low';
   area: number;
@@ -284,17 +285,31 @@ serve(async (req) => {
   try {
     const { claim } = await req.json();
 
-    if (!claim) {
-      return new Response(JSON.stringify({ error: 'Missing claim data in request body.' }), {
+    if (!claim || !claim.id) { // Ensure claim.id is present for upsert
+      return new Response(JSON.stringify({ error: 'Missing claim data or claim ID in request body.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       })
     }
 
-    // Simulate processing time for a real model
-    // await new Promise(resolve => setTimeout(resolve, 1500)); // REMOVED DELAY
-
     const analysisResults = runPredictiveAnalysis(claim);
+
+    // --- Upsert results into Supabase table ---
+    const { error: upsertError } = await supabaseClient
+      .from('ai_analysis_results')
+      .upsert(
+        {
+          claim_id: claim.id,
+          analysis_data: analysisResults,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'claim_id' } // Update if claim_id already exists
+      );
+
+    if (upsertError) {
+      console.error('Error upserting AI analysis results:', upsertError);
+      // Don't block the response, but log the error
+    }
 
     return new Response(
       JSON.stringify(analysisResults),

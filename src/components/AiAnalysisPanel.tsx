@@ -6,11 +6,10 @@ import { Leaf, Sprout, Droplets, DollarSign, Waves, Globe, Briefcase, CalendarDa
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type AnalysisResult, type SoilParameters, type SoilHealthAssessment, type SoilRecommendation } from "@/lib/ai-analysis";
-// import { supabase } from "@/lib/supabaseClient"; // No longer needed here
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge"; // Added missing import
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/context/AuthContext";
 
 interface AiAnalysisPanelProps {
   claim: Claim;
@@ -29,12 +28,12 @@ const iconMap: { [key: string]: React.ElementType } = {
 };
 
 // --- Soil Parameter Icons ---
-const soilParamIcons: { [key: string]: React.ElementType } = {
-  N: FlaskConical, P: FlaskConical, K: FlaskConical,
-  pH: Microscope, EC: Tally1, OM: Leaf, CaCO3: FlaskConical,
-  Sand: Wind, Silt: Droplet, Clay: FlaskConical,
-  Temperature: Thermometer, Humidity: Droplet, Rainfall: CloudRain,
-  Mg: FlaskConical, Fe: FlaskConical, Zn: FlaskConical, Mn: FlaskConical,
+const soilParamIcons: { [key: string]: React.ReactNode } = {
+  N: <FlaskConical />, P: <FlaskConical />, K: <FlaskConical />,
+  pH: <Microscope />, EC: <Tally1 />, OM: <Leaf />, CaCO3: <FlaskConical />,
+  Sand: <Wind />, Silt: <Droplet />, Clay: <FlaskConical />,
+  Temperature: <Thermometer />, Humidity: <Droplet />, Rainfall: <CloudRain />,
+  Mg: <FlaskConical />, Fe: <FlaskConical />, Zn: <FlaskConical />, Mn: <FlaskConical />,
 };
 
 // --- Skeleton Component ---
@@ -78,7 +77,7 @@ const AiAnalysisSkeleton = () => (
 
 // --- Main Component ---
 const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
-  const { supabase } = useAuth(); // Get session-aware supabase client
+  const { supabase } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +87,24 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
       setIsLoading(true);
       setError(null);
       try {
-        // Invoke the Supabase Edge Function using the session-aware client
+        // 1. Try to fetch from Supabase cache first
+        const { data: cachedData, error: fetchError } = await supabase
+          .from('ai_analysis_results')
+          .select('analysis_data')
+          .eq('claim_id', claim.id)
+          .single();
+
+        if (cachedData && cachedData.analysis_data) {
+          setAnalysis(cachedData.analysis_data as AnalysisResult);
+          setIsLoading(false);
+          return;
+        }
+
+        // 2. If not in cache or error fetching cache, invoke Edge Function
+        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 means 'no rows found'
+          console.warn("Error fetching AI analysis from cache, invoking Edge Function:", fetchError.message);
+        }
+
         const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
           body: { claim },
         });
@@ -105,7 +121,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
     };
 
     getAnalysis();
-  }, [claim, supabase]); // Add supabase to dependency array
+  }, [claim, supabase]);
 
   if (isLoading) {
     return <AiAnalysisSkeleton />;
@@ -171,14 +187,14 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </div>
         </div>
 
-        <Separator className="my-8" /> {/* Increased vertical spacing */}
+        <Separator className="my-8" />
 
         {/* NEW: Soil Composition Section */}
         <div>
           <h3 className="font-semibold text-lg mb-4 flex items-center"><FlaskConical className="mr-2 h-5 w-5 text-gray-600" /> Soil Composition</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 text-sm">
             {Object.entries(soilAnalysis.parameters).map(([key, value]) => {
-              const Icon = soilParamIcons[key] || FlaskConical;
+              const IconComponent = soilParamIcons[key];
               let unit = '';
               if (['N', 'P', 'K', 'Mg', 'Fe', 'Zn', 'Mn'].includes(key)) unit = ' ppm';
               else if (['OM', 'CaCO3', 'Sand', 'Silt', 'Clay', 'Humidity'].includes(key)) unit = ' %';
@@ -189,7 +205,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
 
               return (
                 <div key={key} className="flex items-center space-x-2 bg-muted/50 p-2 rounded-md">
-                  <Icon className="h-4 w-4 text-muted-foreground" />
+                  <span className="h-4 w-4 text-muted-foreground">{IconComponent}</span>
                   <div>
                     <p className="font-medium">{key}:</p>
                     <p className="text-muted-foreground">{value}{unit}</p>
@@ -200,7 +216,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </div>
         </div>
 
-        <Separator className="my-8" /> {/* Increased vertical spacing */}
+        <Separator className="my-8" />
 
         {/* NEW: Soil Health Assessment */}
         <div>
@@ -226,7 +242,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
               </div>
               <Progress value={soilAnalysis.healthAssessment.fertilityScore} className="w-full" />
               
-              <div className="space-y-2 mt-4"> {/* Added top margin */}
+              <div className="space-y-2 mt-4">
                 <h5 className="font-medium flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-green-600" /> Strengths:</h5>
                 <ul className="list-disc list-inside text-sm pl-4 text-muted-foreground">
                   {soilAnalysis.healthAssessment.strengths.map((s, i) => <li key={i}>{s}</li>)}
@@ -242,7 +258,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </Card>
         </div>
 
-        <Separator className="my-8" /> {/* Increased vertical spacing */}
+        <Separator className="my-8" />
 
         {/* NEW: Soil Health Recommendations */}
         <div>
@@ -259,7 +275,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </div>
         </div>
 
-        <Separator className="my-8" /> {/* Increased vertical spacing */}
+        <Separator className="my-8" />
 
         {/* Water Resource Section */}
         <div>
@@ -272,7 +288,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
               </span>
             </div>
             <Progress value={waterAnalysis.score} className="w-full" />
-            <p className="text-sm text-center font-medium text-muted-foreground mt-2">{waterAnalysis.borewellSuitability}</p> {/* Added top margin */}
+            <p className="text-sm text-center font-medium text-muted-foreground mt-2">{waterAnalysis.borewellSuitability}</p>
           </div>
           <div className="mt-4 space-y-2">
             <h4 className="font-medium">Key Recommendations:</h4>
@@ -282,7 +298,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
           </div>
         </div>
 
-        <Separator className="my-8" /> {/* Increased vertical spacing */}
+        <Separator className="my-8" />
 
         {/* Economic Opportunity Section */}
         <div>
