@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, Easing } from "framer-motion"; // Import Easing
 import React from "react";
 
 interface PageTransitionProps {
@@ -15,7 +15,7 @@ const pageVariants = {
     y: 0,
     transition: {
       duration: 0.3,
-      ease: "easeOut",
+      ease: "easeOut" as Easing, // Cast to Easing
     },
   },
   exit: {
@@ -23,7 +23,7 @@ const pageVariants = {
     y: -20,
     transition: {
       duration: 0.2,
-      ease: "easeIn",
+      ease: "easeIn" as Easing, // Cast to Easing
     },
   },
 };
