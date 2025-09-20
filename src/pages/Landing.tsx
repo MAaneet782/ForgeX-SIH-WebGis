@@ -84,8 +84,8 @@ const LandingPage = () => {
         <section className="mt-16 md:mt-24 max-w-6xl mx-auto">
           <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden rounded-lg shadow-xl">
             <img 
-              src="/farmers_modi.png" 
-              alt="Farmers working in a field" 
+              src="/modi-farmers.webp" 
+              alt="Prime Minister Modi with farmers" 
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
