@@ -3,11 +3,12 @@ import type { Claim } from "@/data/mockClaims";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+// import { supabase } from "@/lib/supabaseClient"; // No longer needed here
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 interface SchemeEligibilityProps {
   claim: Claim;
@@ -51,6 +52,7 @@ const detailIconMap: { [key: string]: React.ElementType } = {
 };
 
 const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
+  const { supabase } = useAuth(); // Get session-aware supabase client
   const [schemes, setSchemes] = useState<SchemeDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -63,7 +65,7 @@ const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
       setError(null);
 
       try {
-        // Pass the full claim object to the edge function
+        // Pass the full claim object to the edge function using the session-aware client
         const { data, error: functionError } = await supabase.functions.invoke('scheme-eligibility', {
           body: { claim },
         });
@@ -86,7 +88,7 @@ const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
     };
 
     fetchEligibility();
-  }, [claim]);
+  }, [claim, supabase]); // Add supabase to dependency array
 
   if (isLoading) {
     return <SchemeEligibilitySkeleton />;

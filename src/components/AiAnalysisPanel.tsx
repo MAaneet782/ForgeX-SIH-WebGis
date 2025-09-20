@@ -6,10 +6,11 @@ import { Leaf, Sprout, Droplets, DollarSign, Waves, Globe, Briefcase, CalendarDa
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { type AnalysisResult, type SoilParameters, type SoilHealthAssessment, type SoilRecommendation } from "@/lib/ai-analysis";
-import { supabase } from "@/lib/supabaseClient";
+// import { supabase } from "@/lib/supabaseClient"; // No longer needed here
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge"; // Added missing import
+import { useAuth } from "@/context/AuthContext"; // Import useAuth
 
 interface AiAnalysisPanelProps {
   claim: Claim;
@@ -77,6 +78,7 @@ const AiAnalysisSkeleton = () => (
 
 // --- Main Component ---
 const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
+  const { supabase } = useAuth(); // Get session-aware supabase client
   const [isLoading, setIsLoading] = useState(true);
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -86,7 +88,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
       setIsLoading(true);
       setError(null);
       try {
-        // Invoke the Supabase Edge Function instead of the local simulation
+        // Invoke the Supabase Edge Function using the session-aware client
         const { data, error: functionError } = await supabase.functions.invoke('predictive-analysis', {
           body: { claim },
         });
@@ -103,7 +105,7 @@ const AiAnalysisPanel = ({ claim }: AiAnalysisPanelProps) => {
     };
 
     getAnalysis();
-  }, [claim]);
+  }, [claim, supabase]); // Add supabase to dependency array
 
   if (isLoading) {
     return <AiAnalysisSkeleton />;
