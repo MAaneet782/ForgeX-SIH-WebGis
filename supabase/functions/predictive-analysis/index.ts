@@ -8,13 +8,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// --- TYPE DEFINITIONS (subset of frontend types) ---
-type Claim = {
+// Define a more comprehensive Claim type for scheme eligibility analysis
+interface Claim {
   id: string; // Added id for linking to analysis results
-  soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite';
-  waterAvailability: 'High' | 'Medium' | 'Low';
-  area: number;
-};
+  holderName: string; // Added for mock data check
+  village: string; // Added for mock data check
+  district: string; // Added for mock data check
+  state: string; // Added for mock data check
+  area: number; // in acres
+  status: 'Approved' | 'Pending' | 'Rejected';
+  estimatedCropValue: number; // in INR
+  soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite' | 'Unknown'; // Added 'Unknown'
+  waterAvailability: 'High' | 'Medium' | 'Low' | 'Unknown'; // Added 'Unknown'
+}
 
 // --- SIMULATED PREDICTIVE MODELS (moved from frontend) ---
 
@@ -44,6 +50,8 @@ const getCropAnalysis = (soilType: Claim['soilType']) => {
         { name: 'Coffee', sowingSeason: 'Plantation (June-July)', subsidyInfo: 'Subsidies and support provided by the Coffee Board of India.', iconName: 'BadgeIndianRupee', potentialYield: '0.7-1 ton/ha (Arabica)', recommendation: 'Requires specific altitude and rainfall. Best for hilly regions.' },
         { name: 'Rubber', sowingSeason: 'Plantation (June-July)', subsidyInfo: 'Support from the Rubber Board for new planting and replanting.', iconName: 'CalendarDays', potentialYield: '1.5-2 tons/ha', recommendation: 'Long-term investment. Requires high rainfall and humidity.' },
       ];
+    case 'Unknown': // Handle 'Unknown' soil type gracefully
+      return [{ name: 'General Crops', sowingSeason: 'Varies', subsidyInfo: 'General agricultural support schemes may apply.', iconName: 'Leaf', potentialYield: 'Varies', recommendation: 'Conduct soil testing for specific recommendations.' }];
     default:
       return [];
   }
@@ -81,6 +89,8 @@ const getWaterAnalysis = (waterAvailability: Claim['waterAvailability']) => {
             "Cultivate drought-resistant crops like millets."
         ],
       };
+    case 'Unknown': // Handle 'Unknown' water availability gracefully
+        return { borewellSuitability: 'Unknown', score: 50, recommendations: ["Water availability data is unknown. Conduct a site survey."] };
     default:
         return { borewellSuitability: 'Low', score: 0, recommendations: [] };
   }
@@ -164,6 +174,12 @@ const getSoilAnalysis = (claim: Claim) => {
       CaCO3 = 1 + Math.random() * 0.5; Sand = 60 + Math.random() * 10; Silt = 20 + Math.random() * 5; Clay = 20 + Math.random() * 5;
       Mg = 70 + Math.random() * 15; Fe = 25 + Math.random() * 5; Zn = 0.5 + Math.random() * 0.1; Mn = 3 + Math.random() * 1;
       break;
+    case 'Unknown': // Default for unknown soil type
+      N = 100 + Math.random() * 50; P = 20 + Math.random() * 10; K = 150 + Math.random() * 50;
+      pH = 6.5 + Math.random() * 1.0; EC = 0.6 + Math.random() * 0.3; OM = 1.2 + Math.random() * 0.5;
+      CaCO3 = 3 + Math.random() * 2; Sand = 40 + Math.random() * 20; Silt = 30 + Math.random() * 10; Clay = 30 + Math.random() * 10;
+      Mg = 90 + Math.random() * 30; Fe = 15 + Math.random() * 10; Zn = 0.7 + Math.random() * 0.3; Mn = 5 + Math.random() * 3;
+      break;
   }
 
   // Adjust environmental factors based on water availability
@@ -171,6 +187,8 @@ const getSoilAnalysis = (claim: Claim) => {
     Rainfall = 150 + Math.random() * 50; Humidity = 70 + Math.random() * 10;
   } else if (claim.waterAvailability === 'Low') {
     Rainfall = 50 + Math.random() * 20; Humidity = 40 + Math.random() * 10;
+  } else if (claim.waterAvailability === 'Unknown') {
+    Rainfall = 100 + Math.random() * 50; Humidity = 60 + Math.random() * 15;
   }
 
   const parameters: SoilParameters = {
@@ -228,7 +246,6 @@ const getSoilAnalysis = (claim: Claim) => {
   if (parameters.K < 120) recommendations.push({ category: "Nutrient Management", action: "Enhance Potassium content", details: "Apply muriate of potash (MOP) or wood ash to support flowering and fruiting." });
   if (parameters.pH < 6.0) recommendations.push({ category: "pH Correction", action: "Apply liming materials", details: "Add agricultural lime to raise pH and reduce soil acidity." });
   if (parameters.pH > 7.5) recommendations.push({ category: "pH Correction", action: "Use acidifying agents", details: "Incorporate elemental sulfur or organic matter to lower pH." });
-  if (parameters.OM < 1.5) recommendations.push({ category: "Organic Matter Improvement", action: "Add organic amendments", details: "Regularly apply farmyard manure, compost, or green manure to increase organic matter." });
   if (claim.waterAvailability === 'Low') recommendations.push({ category: "Water Management", action: "Implement water-saving irrigation", details: "Adopt drip irrigation or sprinklers and consider drought-resistant crop varieties." });
   if (parameters.Fe < 10) recommendations.push({ category: "Micronutrient Supplement", action: "Apply Iron chelates", details: "Address iron deficiency with foliar sprays or soil application of iron chelates." });
   if (parameters.Zn < 0.6) recommendations.push({ category: "Micronutrient Supplement", action: "Supplement Zinc", details: "Use zinc sulfate or zinc chelate to correct zinc deficiency, crucial for enzyme activity." });
@@ -285,30 +302,49 @@ serve(async (req) => {
   try {
     const { claim } = await req.json();
 
-    if (!claim || !claim.id) { // Ensure claim.id is present for upsert
+    if (!claim || !claim.id) {
       return new Response(JSON.stringify({ error: 'Missing claim data or claim ID in request body.' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       })
     }
 
-    const analysisResults = runPredictiveAnalysis(claim);
+    // Ensure claim object has all necessary properties for analysis, including 'Unknown' types
+    const fullClaim: Claim = {
+      id: claim.id,
+      holderName: claim.holderName || 'Unknown',
+      village: claim.village || 'Unknown',
+      district: claim.district || 'Unknown',
+      state: claim.state || 'Unknown',
+      area: claim.area || 0,
+      status: claim.status || 'Pending',
+      estimatedCropValue: claim.estimatedCropValue || 0,
+      soilType: claim.soilType || 'Unknown',
+      waterAvailability: claim.waterAvailability || 'Unknown',
+    };
 
-    // --- Upsert results into Supabase table ---
-    const { error: upsertError } = await supabaseClient
-      .from('ai_analysis_results')
-      .upsert(
-        {
-          claim_id: claim.id,
-          analysis_data: analysisResults,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'claim_id' } // Update if claim_id already exists
-      );
+    const analysisResults = runPredictiveAnalysis(fullClaim);
 
-    if (upsertError) {
-      console.error('Error upserting AI analysis results:', upsertError);
-      // Don't block the response, but log the error
+    // --- Conditional Upsert for Mock Claims ---
+    const isMockClaim = fullClaim.id.startsWith('C-MP-') || fullClaim.id.startsWith('C-OD-');
+
+    if (!isMockClaim) { // Only upsert if it's not a mock claim
+      const { error: upsertError } = await supabaseClient
+        .from('ai_analysis_results')
+        .upsert(
+          {
+            claim_id: fullClaim.id,
+            analysis_data: analysisResults,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'claim_id' }
+        );
+
+      if (upsertError) {
+        console.error('Error upserting AI analysis results:', upsertError);
+      }
+    } else {
+      console.log(`Skipping upsert for mock claim: ${fullClaim.id}`);
     }
 
     return new Response(
