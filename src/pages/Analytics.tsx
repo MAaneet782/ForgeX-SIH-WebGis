@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabaseClient";
+// import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
+import { mockClaims } from "@/data/mockClaims"; // Import mockClaims
 import type { Claim } from "@/data/mockClaims";
 import type { FeatureCollection, Geometry, Feature } from "geojson";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ThematicMap from "@/components/ThematicMap";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
+import { useAuth } from "@/context/AuthContext";
 
 const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title: string, value: string }) => (
   <Card>
@@ -28,41 +29,15 @@ const StatCard = ({ icon: Icon, title, value }: { icon: React.ElementType, title
 
 const ALLOWED_STATES = ['Odisha', 'Madhya Pradesh', 'Tripura', 'Telangana'];
 
-const fetchClaims = async (): Promise<Claim[]> => {
-  // This function will now fetch all claims that the authenticated user has SELECT access to
-  // Based on the new RLS, authenticated users can SELECT all claims.
-  const { data, error } = await supabase
-    .from('claims')
-    .select('*')
-    .in('state', ALLOWED_STATES); // Filter by allowed states
-  if (error) throw new Error(error.message);
-  return data.map(item => ({
-    dbId: item.id, // Map DB's primary key 'id' to frontend 'dbId'
-    id: item.claim_id, // Map DB's 'claim_id' (text) to frontend 'id' (user-facing)
-    holderName: item.holder_name,
-    village: item.village,
-    district: item.district,
-    state: item.state,
-    area: item.area,
-    status: item.status,
-    documentName: item.document_name,
-    soilType: item.soil_type,
-    waterAvailability: item.water_availability,
-    estimatedCropValue: item.estimated_crop_value,
-    geometry: item.geometry,
-    created_at: new Date(item.created_at), // Map created_at
-  }));
-};
-
 const PROFESSIONAL_COLORS = ['#4f46e5', '#0d9488', '#f59e0b', '#db2777', '#6b7280', '#3b82f6'];
 
 const Analytics = () => {
-  const { user } = useAuth(); // Get the current user
-  const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
-    queryKey: ['claims', 'filtered_analytics', user?.id], // Include user.id in query key
-    queryFn: fetchClaims,
-    enabled: !!user?.id, // Only run query if user.id is available
-  });
+  const { user } = useAuth();
+  
+  // Use local mockClaims instead of fetching from Supabase
+  const claims = mockClaims;
+  const isLoading = false; // No longer loading from Supabase
+  const isError = false; // No longer fetching from Supabase
 
   const [selectedState, setSelectedState] = useState<string>('all');
   const [selectedDistrict, setSelectedDistrict] = useState<string>('all');
@@ -103,7 +78,7 @@ const Analytics = () => {
     const valueBySoilType = filteredClaims.reduce((acc, claim) => {
       acc[claim.soilType] = (acc[claim.soilType] || 0) + claim.estimatedCropValue;
       return acc;
-    }, {} as Record<string, number>);
+    }, {} as Record<Claim['soilType'], number>);
 
     return {
       totalValue,
@@ -115,7 +90,7 @@ const Analytics = () => {
   }, [filteredClaims]);
 
   const claimsByState = useMemo(() => {
-    const stateCounts = filteredClaims.reduce((acc, claim) => { // Changed to use filteredClaims
+    const stateCounts = filteredClaims.reduce((acc, claim) => {
       if (claim.state && claim.state !== 'Unknown') {
         acc[claim.state] = (acc[claim.state] || 0) + 1;
       }
@@ -123,7 +98,7 @@ const Analytics = () => {
     }, {} as Record<string, number>);
 
     return Object.entries(stateCounts).map(([name, value]) => ({ name, value }));
-  }, [filteredClaims]); // Changed dependency to filteredClaims
+  }, [filteredClaims]);
 
   const geoJsonData = useMemo((): FeatureCollection => {
     if (!filteredClaims) return { type: "FeatureCollection", features: [] };
@@ -137,7 +112,7 @@ const Analytics = () => {
     return { type: "FeatureCollection", features };
   }, [filteredClaims]);
 
-  if (isLoading || !user) { // Show loading if user is not yet loaded
+  if (isLoading || !user) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
         <Skeleton className="h-10 w-48 mb-4" />

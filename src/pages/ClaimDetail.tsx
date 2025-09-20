@@ -6,52 +6,23 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import AiAnalysisPanel from "@/components/AiAnalysisPanel";
 import SchemeEligibility from "@/components/SchemeEligibility";
-import { supabase } from "@/lib/supabaseClient";
+// import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
+import { mockClaims } from "@/data/mockClaims"; // Import mockClaims
 import type { Claim } from "@/data/mockClaims";
 import { Skeleton } from "@/components/ui/skeleton";
 import ClaimLocationMap from "@/components/ClaimLocationMap";
 import { useMemo } from "react";
-import L from 'leaflet'; // Import Leaflet for geometry operations
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
-
-const fetchClaimById = async (userFacingClaimId: string, userId: string): Promise<Claim> => { // Now accepts userId
-  const { data, error } = await supabase
-    .from('claims')
-    .select('*')
-    .eq('claim_id', userFacingClaimId) // Query by user-facing claim_id
-    .eq('user_id', userId) // Filter by user_id to ensure ownership
-    .single();
-
-  if (error) throw new Error(error.message);
-  if (!data) throw new Error("Claim not found or you do not have access to it.");
-
-  return {
-    dbId: data.id, // Map DB's primary key 'id' to frontend 'dbId'
-    id: data.claim_id, // Map DB's 'claim_id' (text) to frontend 'id' (user-facing)
-    holderName: data.holder_name,
-    village: data.village,
-    district: data.district,
-    state: data.state,
-    area: data.area,
-    status: data.status,
-    documentName: data.document_name,
-    soilType: data.soil_type,
-    waterAvailability: data.water_availability,
-    estimatedCropValue: data.estimated_crop_value,
-    geometry: data.geometry,
-    created_at: new Date(data.created_at), // Map created_at
-  };
-};
+import L from 'leaflet';
+import { useAuth } from "@/context/AuthContext";
 
 const ClaimDetail = () => {
-  const { claimId } = useParams<{ claimId: string }>(); // This is the user-facing claim_id
-  const { user } = useAuth(); // Get the current user
+  const { claimId } = useParams<{ claimId: string }>();
+  const { user } = useAuth();
 
-  const { data: claim, isLoading, isError } = useQuery<Claim>({
-    queryKey: ['claim', claimId, user?.id], // Include user.id in query key
-    queryFn: () => fetchClaimById(claimId!, user!.id), // Pass user.id to fetchClaimById
-    enabled: !!claimId && !!user?.id, // Only run query if both claimId and user.id are available
-  });
+  // Find the claim from local mockClaims
+  const claim = useMemo(() => mockClaims.find(c => c.id === claimId), [claimId]);
+  const isLoading = false; // No longer loading from Supabase
+  const isError = !claim; // If claim is not found, consider it an error
 
   // Calculate the water index location (centroid of the claim's geometry)
   const waterIndexLocation = useMemo(() => {
@@ -60,13 +31,13 @@ const ClaimDetail = () => {
       const bounds = L.geoJSON(claim.geometry).getBounds();
       if (bounds.isValid()) {
         const center = bounds.getCenter();
-        return center; // Return LatLng object directly, which is a valid LatLngExpression
+        return center;
       }
     }
     return undefined;
   }, [claim?.geometry]);
 
-  if (isLoading || !user) { // Show loading if user is not yet loaded
+  if (isLoading || !user) {
     return (
       <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-6">
         <Skeleton className="h-10 w-48 mb-4" />
@@ -117,7 +88,7 @@ const ClaimDetail = () => {
                 <CardTitle>Claim Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <div className="flex justify-between"><span>Claim ID:</span> <span className="font-mono">{claim.id}</span></div> {/* Display user-facing ID */}
+                <div className="flex justify-between"><span>Claim ID:</span> <span className="font-mono">{claim.id}</span></div>
                 <div className="flex justify-between"><span>Village:</span> <span>{claim.village}</span></div>
                 <div className="flex justify-between"><span>District:</span> <span>{claim.district}</span></div>
                 <div className="flex justify-between"><span>State:</span> <span>{claim.state}</span></div>

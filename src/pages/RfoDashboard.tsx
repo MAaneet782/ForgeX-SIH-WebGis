@@ -1,51 +1,28 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabaseClient";
+// import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
+import { mockClaims } from "@/data/mockClaims"; // Import mockClaims
 import type { Claim } from "@/data/mockClaims";
 import type { FeatureCollection, Geometry, Feature } from "geojson";
 import RfoMap from "@/components/RfoMap";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import Header from "@/components/Header"; // Reusing existing Header
-import Sidebar from "@/components/Sidebar"; // Reusing existing Sidebar
+import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
-
-// --- Supabase Data Fetching ---
-const fetchClaims = async (): Promise<Claim[]> => {
-  // This function will now fetch all claims that the authenticated user has SELECT access to
-  // Based on the new RLS, authenticated users can SELECT all claims.
-  const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
-  return data.map(item => ({
-    dbId: item.id, // Map DB's primary key 'id' to frontend 'dbId'
-    id: item.claim_id,
-    holderName: item.holder_name,
-    village: item.village,
-    district: item.district,
-    state: item.state,
-    area: item.area,
-    status: item.status,
-    documentName: item.document_name,
-    soilType: item.soil_type,
-    waterAvailability: item.water_availability,
-    estimatedCropValue: item.estimated_crop_value,
-    geometry: item.geometry,
-    created_at: new Date(item.created_at), // Map created_at
-  }));
-};
+import { useAuth } from "@/context/AuthContext";
 
 const RfoDashboard = () => {
-  const { user } = useAuth(); // Get the current user
-  const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
-    queryKey: ['claims', 'rfo_dashboard', user?.id], // Include user.id in query key
-    queryFn: fetchClaims,
-    enabled: !!user?.id, // Only run query if user.id is available
-  });
+  const { user } = useAuth();
+  
+  // Use local mockClaims instead of fetching from Supabase
+  const claims = mockClaims;
+  const isLoading = false; // No longer loading from Supabase
+  const isError = false; // No longer fetching from Supabase
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false); // Keep for Header compatibility
+  const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
 
   const filteredClaims = useMemo(() => {
     if (!claims) return [];
@@ -65,18 +42,17 @@ const RfoDashboard = () => {
           claimId: claim.id,
           holderName: claim.holderName,
           village: claim.village,
-          area: claim.area, // Area in acres
+          area: claim.area,
         },
         geometry: claim.geometry as Geometry,
       }));
     return { type: "FeatureCollection", features };
   }, [filteredClaims]);
 
-  // Dummy functions for Header/Sidebar compatibility
   const handleFindMyParcel = () => { /* RFO map doesn't auto-zoom on selection */ };
   const handleGenerateReport = () => { /* RFO map doesn't generate reports */ };
 
-  if (isLoading || !user) { // Show loading if user is not yet loaded
+  if (isLoading || !user) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="space-y-4">

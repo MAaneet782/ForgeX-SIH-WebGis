@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
+import { waterBodiesGeoJson, agriLandGeoJson, mockClaims as initialMockClaims } from "@/data/mockClaims"; // Import mockClaims
 import type { Claim } from "@/data/mockClaims";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import ClaimsData from "@/components/ClaimsData";
@@ -14,89 +14,61 @@ import { showError, showSuccess, showInfo, showLoading, dismissToast } from "@/u
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import DashboardStats from "@/components/DashboardStats";
 import DataVisualization from "@/components/DataVisualization";
-import { supabase } from "@/lib/supabaseClient";
+// import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
+import { useAuth } from "@/context/AuthContext";
 
 // Define the consistent type for new claim input
 export type NewClaimInput = Omit<Claim, 'dbId' | 'estimatedCropValue' | 'geometry' | 'id' | 'created_at'> & { coordinates: string; documentName?: string };
 
-// --- Supabase Data Fetching ---
-const fetchClaims = async (userId: string): Promise<Claim[]> => { // Now accepts userId
-  const { data, error } = await supabase
-    .from('claims')
-    .select('*')
-    .eq('user_id', userId) // Filter by user_id
-    .order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
-  return data.map(item => ({
-    dbId: item.id, // Map DB's primary key 'id' to frontend 'dbId'
-    id: item.claim_id, // Map DB's 'claim_id' (text) to frontend 'id'
-    holderName: item.holder_name,
-    village: item.village,
-    district: item.district,
-    state: item.state,
-    area: item.area,
-    status: item.status,
-    documentName: item.document_name,
-    soilType: item.soil_type,
-    waterAvailability: item.water_availability,
-    estimatedCropValue: item.estimated_crop_value,
-    geometry: item.geometry,
-    created_at: new Date(item.created_at), // Map created_at
-  }));
-};
-
 const IndexPageContent = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const { user } = useAuth(); // Get the current user
+  const { user } = useAuth();
 
-  const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
-    queryKey: ['claims', user?.id], // Include user.id in query key
-    queryFn: () => fetchClaims(user!.id), // Pass user.id to fetchClaims
-    enabled: !!user?.id, // Only run query if user.id is available
-  });
+  // Manage claims data locally
+  const [claims, setClaims] = useState<Claim[]>(initialMockClaims);
+  const isLoading = false; // No longer loading from Supabase
+  const isError = false; // No longer fetching from Supabase
 
-  const [selectedClaimDbId, setSelectedClaimDbId] = useState<string | null>(null); // Use dbId for map selection
+  const [selectedClaimDbId, setSelectedClaimDbId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
 
   const addClaimMutation = useMutation({
-    mutationFn: async (newClaimData: NewClaimInput) => { // Use the new consistent type here
-      if (!user?.id) throw new Error("User not authenticated."); // Ensure user is logged in
-      const toastId = showLoading("Adding new claim...");
+    mutationFn: async (newClaimData: NewClaimInput) => {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const { coordinates, ...rest } = newClaimData;
       
-      // Generate a user-facing claim_id (text)
-      const userFacingClaimId = `C-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
+      // Generate unique IDs for mock data
+      const newDbId = `mock-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const newUserFacingClaimId = `C-${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
       
-      const newClaimRecord = {
-        user_id: user.id, // Assign the current user's ID
-        claim_id: userFacingClaimId, // User-facing text ID
-        holder_name: rest.holderName,
+      const newClaim: Claim = {
+        dbId: newDbId,
+        id: newUserFacingClaimId,
+        holderName: rest.holderName,
         village: rest.village,
         district: rest.district,
         state: rest.state,
         area: rest.area,
         status: rest.status,
-        document_name: rest.documentName,
-        soil_type: rest.soilType,
-        water_availability: rest.waterAvailability,
-        estimated_crop_value: Math.floor(Math.random() * (25000 - 5000 + 1)) + 5000,
+        documentName: rest.documentName,
+        soilType: rest.soilType,
+        waterAvailability: rest.waterAvailability,
+        estimatedCropValue: Math.floor(Math.random() * (25000 - 5000 + 1)) + 5000, // Random value
         geometry: JSON.parse(coordinates),
-        created_at: new Date(), // Add created_at
+        created_at: new Date(),
       };
-
-      const { data, error } = await supabase.from('claims').insert([newClaimRecord]).select('id, claim_id').single(); // Select DB's primary key 'id'
-      dismissToast(String(toastId));
-      if (error) throw new Error(error.message);
-      return { dbId: data.id, userFacingId: data.claim_id }; // Return both IDs
+      
+      setClaims(prevClaims => [newClaim, ...prevClaims]);
+      return { dbId: newDbId, userFacingId: newUserFacingClaimId };
     },
-    onSuccess: ({ dbId, userFacingId }) => {
-      queryClient.invalidateQueries({ queryKey: ['claims', user?.id] }); // Invalidate with user.id
+    onSuccess: ({ userFacingId }) => {
       showSuccess(`Claim ${userFacingId} added. Redirecting to its dashboard for AI analysis.`);
-      navigate(`/atlas/claim/${userFacingId}`); // Navigate using user-facing ID
+      navigate(`/atlas/claim/${userFacingId}`);
     },
     onError: (error) => {
       showError(`Failed to add claim: ${error.message}`);
@@ -104,15 +76,13 @@ const IndexPageContent = () => {
   });
 
   const deleteClaimMutation = useMutation({
-    mutationFn: async (dbId: string) => { // Expects the database's primary key
-      const toastId = showLoading(`Deleting claim...`);
-      const { error } = await supabase.from('claims').delete().eq('id', dbId); // Delete using DB's primary key
-      dismissToast(String(toastId));
-      if (error) throw new Error(error.message);
+    mutationFn: async (dbId: string) => {
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setClaims(prevClaims => prevClaims.filter(claim => claim.dbId !== dbId));
       return dbId;
     },
     onSuccess: (deletedDbId) => {
-      queryClient.invalidateQueries({ queryKey: ['claims', user?.id] }); // Invalidate with user.id
       showSuccess(`Claim deleted successfully.`);
       if (selectedClaimDbId === deletedDbId) {
         setSelectedClaimDbId(null);
@@ -123,34 +93,43 @@ const IndexPageContent = () => {
     },
   });
 
+  // Function to handle adding multiple claims from Excel import
+  const handleAddClaims = (newClaims: Omit<Claim, 'dbId'>[]) => {
+    const claimsWithDbIds: Claim[] = newClaims.map(claim => ({
+      ...claim,
+      dbId: `mock-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, // Generate a unique dbId
+    }));
+    setClaims(prevClaims => [...claimsWithDbIds, ...prevClaims]);
+  };
+
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) =>
       claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       claim.village.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      claim.id.toLowerCase().includes(searchTerm.toLowerCase()) // Search by user-facing ID
+      claim.id.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [claims, searchTerm]);
 
   const geoJsonData = useMemo((): FeatureCollection => {
     const features = claims
-      .filter(claim => claim.geometry) // Ensure claim has geometry
+      .filter(claim => claim.geometry)
       .map((claim): Feature => ({
         type: "Feature",
-        properties: { dbId: claim.dbId, claimId: claim.id, holderName: claim.holderName }, // Pass both IDs
+        properties: { dbId: claim.dbId, claimId: claim.id, holderName: claim.holderName },
         geometry: claim.geometry as Geometry,
       }));
     return { type: "FeatureCollection", features };
   }, [claims]);
 
-  const handleZoomToClaim = (dbId: string) => { // Expects dbId for map interaction
+  const handleZoomToClaim = (dbId: string) => {
     setSelectedClaimDbId(dbId);
   };
 
-  const handleClaimClickOnMap = (dbId: string | null) => { // Expects dbId from map
+  const handleClaimClickOnMap = (dbId: string | null) => {
     if (dbId) {
       const clickedClaim = claims.find(c => c.dbId === dbId);
       if (clickedClaim) {
-        navigate(`/atlas/claim/${clickedClaim.id}`); // Navigate using user-facing ID
+        navigate(`/atlas/claim/${clickedClaim.id}`);
       }
     }
   };
@@ -167,7 +146,7 @@ const IndexPageContent = () => {
     }
   };
 
-  if (isLoading || !user) { // Show loading if user is not yet loaded
+  if (isLoading || !user) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="space-y-4">
@@ -180,7 +159,7 @@ const IndexPageContent = () => {
   }
 
   if (isError) {
-    return <div className="text-red-500 text-center p-8">Error loading claims data. Make sure you have run the SQL script in your Supabase project.</div>;
+    return <div className="text-red-500 text-center p-8">Error loading claims data.</div>;
   }
 
   return (
@@ -193,10 +172,10 @@ const IndexPageContent = () => {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={82} minSize={50}>
-          <main className="h-full overflow-y-auto p-6 space-y-8"> {/* Consistent padding and spacing */}
-            <header className="mb-6"> {/* Added bottom margin */}
+          <main className="h-full overflow-y-auto p-6 space-y-8">
+            <header className="mb-6">
               <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
-              <p className="text-muted-foreground">Live Data from Supabase Database</p>
+              <p className="text-muted-foreground">Live Data from Local Mock Database</p>
             </header>
             
             <DashboardStats claims={claims} />
@@ -209,7 +188,7 @@ const IndexPageContent = () => {
                   claimsData={geoJsonData} 
                   waterData={waterBodiesGeoJson}
                   agriData={agriLandGeoJson}
-                  selectedClaimDbId={selectedClaimDbId} // Pass dbId to map
+                  selectedClaimDbId={selectedClaimDbId}
                   onClaimSelect={handleClaimClickOnMap}
                 />
               </div>
@@ -222,7 +201,8 @@ const IndexPageContent = () => {
                   onAddClaim={(claim) => addClaimMutation.mutate(claim)}
                   onGenerateReport={handleGenerateReport}
                   onZoomToClaim={handleZoomToClaim}
-                  onDeleteClaim={(dbId) => deleteClaimMutation.mutate(dbId)} // Pass dbId for deletion
+                  onDeleteClaim={(dbId) => deleteClaimMutation.mutate(dbId)}
+                  onAddClaims={handleAddClaims} // Added the missing prop here
                 />
             </div>
 

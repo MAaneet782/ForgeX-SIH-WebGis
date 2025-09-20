@@ -1,21 +1,22 @@
-import { useState, useMemo, useRef } from "react"; // Added useRef
+import { useState, useMemo, useRef } from "react";
 import * as XLSX from "xlsx";
-import { supabase } from "@/lib/supabaseClient";
+// import { supabase } from "@/lib/supabaseClient"; // No longer needed for claims data
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, UploadCloud, FileWarning, Download } from "lucide-react";
-import { showError, showSuccess, showLoading, dismissToast, showInfo } from "@/utils/toast"; // Added showInfo
+import { showError, showSuccess, showLoading, dismissToast, showInfo } from "@/utils/toast";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Claim } from "@/data/mockClaims";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useAuth } from "@/context/AuthContext"; // Import useAuth
+import { useAuth } from "@/context/AuthContext";
 
 interface ExcelImportDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   claims: Claim[]; // Added to receive existing claims for ID validation
+  onAddClaims: (newClaims: Omit<Claim, 'dbId'>[]) => void; // New prop to add claims to local state
 }
 
 // Define a type for the processed row data
@@ -27,7 +28,7 @@ interface ProcessedRow {
 
 // Helper to convert Excel serial date to JS Date
 const excelSerialToDate = (serial: number) => {
-  if (isNaN(serial) || serial < 25569 || serial > 50000) return null; // Basic validation for Excel date range
+  if (isNaN(serial) || serial < 25569 || serial > 50000) return null;
   const utc_days = Math.floor(serial - 25569);
   const utc_value = utc_days * 86400;
   const date_info = new Date(utc_value * 1000);
@@ -46,31 +47,28 @@ const isWithinIndiaBounds = (lat: number, lon: number): boolean => {
 
 // Helper to create a polygon around a center point with size based on area
 const createPolygonFromCenter = (lat: number, lon: number, areaInAcres: number) => {
-    // Ensure lat/lon are valid numbers, fallback to a central Indian point if not
     if (isNaN(lat) || isNaN(lon) || !isWithinIndiaBounds(lat, lon)) {
-      lat = 22.5937; // Default latitude for India (within MP bounds)
-      lon = 78.9629; // Default longitude for India (within MP bounds)
+      lat = 22.5937;
+      lon = 78.9629;
     }
 
-    const areaSqMeters = areaInAcres * 4046.86; // 1 acre = 4046.86 sq meters
-    const minSideLengthMeters = 50; // Minimum side length for visibility (e.g., 50m for a small plot)
+    const areaSqMeters = areaInAcres * 4046.86;
+    const minSideLengthMeters = 50;
     const calculatedSideLengthMeters = Math.sqrt(areaSqMeters);
     const sideLengthMeters = Math.max(minSideLengthMeters, calculatedSideLengthMeters);
 
-    // Approximate conversion factors for degrees to meters
-    const metersPerDegreeLat = 111139; // At equator
-    const metersPerDegreeLon = 111320 * Math.cos(lat * Math.PI / 180); // Varies by latitude
+    const metersPerDegreeLat = 111139;
+    const metersPerDegreeLon = 111320 * Math.cos(lat * Math.PI / 180);
 
     const deltaLatDegrees = (sideLengthMeters / 2) / metersPerDegreeLat;
     const deltaLonDegrees = (sideLengthMeters / 2) / metersPerDegreeLon;
 
-    // Create a simple square-like polygon
     const coords = [
         [lon - deltaLonDegrees, lat - deltaLatDegrees],
         [lon + deltaLonDegrees, lat - deltaLatDegrees],
         [lon + deltaLonDegrees, lat + deltaLatDegrees],
         [lon - deltaLonDegrees, lat + deltaLatDegrees],
-        [lon - deltaLonDegrees, lat - deltaLatDegrees], // Close the polygon
+        [lon - deltaLonDegrees, lat - deltaLatDegrees],
     ];
     return { type: "Polygon", coordinates: [coords] };
 };
@@ -93,9 +91,9 @@ const getCellValue = (row: any, keys: string[]) => {
   return undefined;
 };
 
-const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogProps) => {
+const ExcelImportDialog = ({ isOpen, onOpenChange, claims, onAddClaims }: ExcelImportDialogProps) => {
   const queryClient = useQueryClient();
-  const { user } = useAuth(); // Get the current user
+  const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [processedData, setProcessedData] = useState<ProcessedRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -166,7 +164,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
     if (typeof estimatedCropValueRaw === 'number' && !isNaN(estimatedCropValueRaw)) {
       estimatedCropValue = estimatedCropValueRaw;
     } else {
-      estimatedCropValue = Math.floor(Math.random() * 20000) + 5000; // Default if invalid
+      estimatedCropValue = Math.floor(Math.random() * 20000) + 5000;
       if (estimatedCropValueRaw) errors.push(`Invalid Estimated Crop Value: '${estimatedCropValueRaw}'. Defaulted to random value.`);
     }
 
@@ -176,15 +174,13 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
     let parsedLat: number | null = null;
     let parsedLon: number | null = null;
 
-    // Priority 1: Check for full GeoJSON geometry string
     const rawGeoJson = getCellValue(row, ['geometry', 'geojson', 'Geometry', 'GeoJSON']);
     if (rawGeoJson) {
       try {
         const parsedGeoJson = JSON.parse(String(rawGeoJson));
         if (parsedGeoJson.type === 'Polygon' && Array.isArray(parsedGeoJson.coordinates)) {
           geometry = parsedGeoJson;
-          // Attempt to get a centroid for validation
-          const firstCoord = parsedGeoJson.coordinates[0][0]; // [lon, lat]
+          const firstCoord = parsedGeoJson.coordinates[0][0];
           if (firstCoord && firstCoord.length === 2) {
             parsedLon = firstCoord[0];
             parsedLat = firstCoord[1];
@@ -192,12 +188,11 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
         } else {
           errors.push("Invalid GeoJSON Polygon structure.");
         }
-      } catch (e) {
+      } catch (e: any) {
         errors.push(`Invalid GeoJSON string: ${e.message}.`);
       }
     }
 
-    // Priority 2: If no valid GeoJSON, check for lat/lon coordinates
     if (!geometry) {
       const rawLat = getCellValue(row, ['latitude', 'Lat']);
       const rawLon = getCellValue(row, ['longitude', 'Lon']);
@@ -211,7 +206,6 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
         if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
           let latCandidate = parts[0];
           let lonCandidate = parts[1];
-          // Heuristic check for lat/lon order
           if ((Math.abs(latCandidate) > 90 && Math.abs(lonCandidate) <= 90) ||
               (Math.abs(latCandidate) <= 90 && Math.abs(lonCandidate) > 180)) {
             parsedLat = lonCandidate;
@@ -225,7 +219,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
 
       if (parsedLat === null || parsedLon === null || !isWithinIndiaBounds(parsedLat, parsedLon)) {
         errors.push(`Invalid or out-of-bounds coordinates (${parsedLat}, ${parsedLon}). Generating default geometry.`);
-        geometry = createPolygonFromCenter(22.5937, 78.9629, areaInAcres > 0 ? areaInAcres : 1); // Default to central India
+        geometry = createPolygonFromCenter(22.5937, 78.9629, areaInAcres > 0 ? areaInAcres : 1);
       } else {
         geometry = createPolygonFromCenter(parsedLat, parsedLon, areaInAcres > 0 ? areaInAcres : 1);
       }
@@ -251,7 +245,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
         waterAvailability,
         estimatedCropValue: parseFloat(estimatedCropValue.toFixed(2)),
         geometry,
-        created_at: createdAt, // Add created_at for Supabase upsert
+        created_at: createdAt,
       };
     }
 
@@ -263,7 +257,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
     if (selectedFile) {
       setFile(selectedFile);
       setIsLoading(true);
-      generatedUserFacingIdsInBatch.current.clear(); // Clear for new file
+      generatedUserFacingIdsInBatch.current.clear();
       const reader = new FileReader();
       reader.onload = (event) => {
         try {
@@ -296,37 +290,20 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
   }, [processedData]);
 
   const handleImport = async () => {
-    if (!user?.id) {
-      showError("You must be logged in to import claims.");
-      return;
-    }
     if (validClaimsToImport.length === 0) {
       showError("No valid claims to import.");
       return;
     }
     setIsLoading(true);
-    const toastId = showLoading(`Importing ${validClaimsToImport.length} claims... This may take a moment.`);
+    const toastId = showLoading(`Importing ${validClaimsToImport.length} claims...`);
 
     try {
-      // Add user_id to each claim before upserting
-      const claimsWithUserId = validClaimsToImport.map(claim => ({
-        ...claim,
-        user_id: user.id, // Assign the current user's ID
-        claim_id: claim?.id, // Map frontend 'id' to backend 'claim_id'
-        holder_name: claim?.holderName,
-        document_name: claim?.documentName,
-        soil_type: claim?.soilType,
-        water_availability: claim?.waterAvailability,
-        estimated_crop_value: claim?.estimatedCropValue,
-      }));
-
-      // Use upsert to update existing claims or insert new ones based on 'claim_id'
-      const { error } = await supabase.from('claims').upsert(claimsWithUserId, { onConflict: 'claim_id', ignoreDuplicates: false });
-      if (error) throw error;
+      // Add claims to local state
+      onAddClaims(validClaimsToImport as Omit<Claim, 'dbId'>[]); // Cast to match expected type
       
       dismissToast(toastId);
       showSuccess(`${validClaimsToImport.length} claims imported successfully! ${rowsWithErrors.length > 0 ? `(${rowsWithErrors.length} rows had errors and were skipped.)` : ''}`);
-      queryClient.invalidateQueries({ queryKey: ['claims', user.id] }); // Invalidate with user.id
+      // No need to invalidate queries as we are not using Supabase for claims
       onOpenChange(false);
       setFile(null);
       setProcessedData([]);
@@ -413,7 +390,7 @@ const ExcelImportDialog = ({ isOpen, onOpenChange, claims }: ExcelImportDialogPr
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {processedData.slice(0, 10).map((row, i) => ( // Show first 10 rows
+                    {processedData.slice(0, 10).map((row, i) => (
                       <TableRow key={i} className={row.errors.length > 0 ? "bg-red-50/50 dark:bg-red-900/20" : ""}>
                         <TableCell className="py-2">
                           {row.errors.length === 0 ? (

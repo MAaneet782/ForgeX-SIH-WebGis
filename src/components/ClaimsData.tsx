@@ -34,10 +34,9 @@ import { cn } from "@/lib/utils";
 import { Download, Info, ArrowUpDown, Upload, Trash2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import ExcelImportDialog from "./ExcelImportDialog";
-import * as z from "zod"; // Import z for schema definition
-import type { NewClaimInput } from "@/pages/Atlas"; // Import the new type
+import * as z from "zod";
+import type { NewClaimInput } from "@/pages/Atlas";
 
-// Define the schema for the data that AddClaimForm emits
 const addClaimFormSchema = z.object({
   holderName: z.string(),
   village: z.string(),
@@ -51,15 +50,13 @@ const addClaimFormSchema = z.object({
   documentName: z.string().optional(),
 });
 
-// The type for data emitted by AddClaimForm, now directly NewClaimInput
-// type AddClaimFormData = z.infer<typeof addClaimFormSchema>; // No longer needed, use NewClaimInput directly
-
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: NewClaimInput) => void; // Updated type here
+  onAddClaim: (claim: NewClaimInput) => void;
   onGenerateReport: () => void;
-  onZoomToClaim: (dbId: string) => void; // Expects dbId for map zoom
-  onDeleteClaim: (dbId: string) => void; // Expects dbId for deleting claims
+  onZoomToClaim: (dbId: string) => void;
+  onDeleteClaim: (dbId: string) => void;
+  onAddClaims: (newClaims: Omit<Claim, 'dbId'>[]) => void; // New prop for bulk import
 }
 
 type SortKey = keyof Claim | 'updated';
@@ -70,13 +67,14 @@ const ClaimsData = ({
   onGenerateReport,
   onZoomToClaim,
   onDeleteClaim,
+  onAddClaims, // Destructure new prop
 }: ClaimsDataProps) => {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' } | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [claimToDeleteDbId, setClaimToDeleteDbId] = useState<string | null>(null); // Store dbId for deletion
-  const [claimToDeleteUserFacingId, setClaimToDeleteUserFacingId] = useState<string | null>(null); // Store user-facing ID for dialog
+  const [claimToDeleteDbId, setClaimToDeleteDbId] = useState<string | null>(null);
+  const [claimToDeleteUserFacingId, setClaimToDeleteUserFacingId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const getRightType = (status: Claim['status']) => {
@@ -94,7 +92,6 @@ const ClaimsData = ({
 
   const getMockDate = (claimId: string) => {
     const d = new Date();
-    // Use a consistent way to generate mock dates based on the user-facing ID
     const hash = claimId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const dayOffset = hash % 28;
     d.setDate(d.getDate() - dayOffset);
@@ -109,8 +106,8 @@ const ClaimsData = ({
         let bValue: any;
 
         if (sortConfig.key === 'updated') {
-          aValue = getMockDate(a.id).getTime(); // Use user-facing ID for mock date
-          bValue = getMockDate(b.id).getTime(); // Use user-facing ID for mock date
+          aValue = getMockDate(a.id).getTime();
+          bValue = getMockDate(b.id).getTime();
         } else {
           aValue = a[sortConfig.key as keyof Claim];
           bValue = b[sortConfig.key as keyof Claim];
@@ -162,7 +159,7 @@ const ClaimsData = ({
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between flex-wrap gap-2"> {/* Added flex-wrap and gap */}
+          <div className="flex items-center justify-between flex-wrap gap-2">
             <CardTitle>Search Results: FRA Parcels</CardTitle>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={() => setIsImportDialogOpen(true)}>
@@ -197,7 +194,7 @@ const ClaimsData = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="py-3">Parcel ID</TableHead> {/* Adjusted padding */}
+                  <TableHead className="py-3">Parcel ID</TableHead>
                   <TableHead className="py-3"><SortableHeader sortKey="holderName">Patta Holder</SortableHeader></TableHead>
                   <TableHead className="py-3"><SortableHeader sortKey="village">Village</SortableHeader></TableHead>
                   <TableHead className="text-right py-3"><SortableHeader sortKey="area">Area (ha)</SortableHeader></TableHead>
@@ -211,7 +208,7 @@ const ClaimsData = ({
                   const rightType = getRightType(claim.status);
                   return (
                     <TableRow key={claim.dbId} className="cursor-pointer hover:bg-muted/50" onClick={() => onZoomToClaim(claim.dbId)}>
-                      <TableCell className="font-medium py-2">{claim.id}</TableCell> {/* Adjusted padding */}
+                      <TableCell className="font-medium py-2">{claim.id}</TableCell>
                       <TableCell className="py-2">{claim.holderName}</TableCell>
                       <TableCell className="py-2">{claim.village}</TableCell>
                       <TableCell className="text-right py-2">{(claim.area * 0.404686).toFixed(2)}</TableCell>
@@ -221,14 +218,14 @@ const ClaimsData = ({
                       <TableCell className="py-2">{getMockDate(claim.id).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</TableCell>
                       <TableCell className="text-center py-2">
                         <div className="flex items-center justify-center gap-2">
-                          <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}> {/* Navigate using user-facing ID */}
+                          <Button size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/atlas/claim/${claim.id}`); }}>
                             <Info className="mr-2 h-4 w-4" />
                             Details
                           </Button>
                           <Button 
                             size="sm" 
                             variant="destructive" 
-                            onClick={(e) => { e.stopPropagation(); handleDeleteClick(claim.dbId, claim.id); }} // Pass both IDs
+                            onClick={(e) => { e.stopPropagation(); handleDeleteClick(claim.dbId, claim.id); }}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -242,7 +239,7 @@ const ClaimsData = ({
           </div>
         </CardContent>
       </Card>
-      <ExcelImportDialog isOpen={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} claims={claims} />
+      <ExcelImportDialog isOpen={isImportDialogOpen} onOpenChange={setIsImportDialogOpen} claims={claims} onAddClaims={onAddClaims} />
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
