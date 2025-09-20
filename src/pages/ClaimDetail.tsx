@@ -237,7 +237,7 @@ const ClaimDetail = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-4"> {/* Reduced space-y-6 to space-y-4 */}
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-4">
       <Button asChild variant="outline" className="mb-4">
         <Link to="/atlas"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard</Link>
       </Button>

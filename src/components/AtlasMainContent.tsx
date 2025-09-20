@@ -176,10 +176,7 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
       </header>
       
       {viewMode === 'default' || viewMode === 'table' ? (
-        <>
-          <DashboardStats claims={combinedClaims} />
-          <DataVisualization claims={combinedClaims} />
-        </>
+        <DashboardStats claims={combinedClaims} />
       ) : null}
 
       <div className="space-y-4">
@@ -207,6 +204,10 @@ const AtlasMainContent = ({ searchTerm, onFindMyParcel, selectedClaimId, setSele
           </div>
         )}
       </div>
+
+      {viewMode === 'default' || viewMode === 'table' ? (
+        <DataVisualization claims={combinedClaims} />
+      ) : null}
     </div>
   );
 };

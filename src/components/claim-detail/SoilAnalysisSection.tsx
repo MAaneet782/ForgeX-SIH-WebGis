@@ -23,7 +23,7 @@ const SoilAnalysisSection = ({ soilAnalysis, isLoading, isError, error }: SoilAn
           <CardTitle>Soil Composition & Health</CardTitle>
           <CardDescription>Analyzing soil parameters and providing insights...</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6"> {/* Changed space-y-8 to space-y-6 */}
+        <CardContent className="space-y-6">
           <Skeleton className="h-6 w-1/2 mb-4" />
           <div className="grid grid-cols-2 gap-4">
             <Skeleton className="h-10 w-full" />
@@ -44,7 +44,6 @@ const SoilAnalysisSection = ({ soilAnalysis, isLoading, isError, error }: SoilAn
     );
   }
 
-  // Added check for soilAnalysis.composition to prevent 'undefined' errors
   if (isError || !soilAnalysis || !soilAnalysis.composition) {
     return (
       <Card>
@@ -94,7 +93,7 @@ const SoilAnalysisSection = ({ soilAnalysis, isLoading, isError, error }: SoilAn
         <CardTitle>Soil Composition & Health</CardTitle>
         <CardDescription>Detailed analysis of your land's soil parameters and health.</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6"> {/* Changed space-y-8 to space-y-6 */}
+      <CardContent className="space-y-6">
         {/* Soil Composition Data */}
         <div>
           <h3 className="font-semibold text-lg mb-4 flex items-center"><FlaskConical className="mr-2 h-5 w-5 text-gray-600" /> Soil Composition</h3>

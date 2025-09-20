@@ -93,9 +93,9 @@ const LandingPage = () => {
         </section>
 
         <section className="mt-16 md:mt-24 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-          <StatCard icon={FileDigit} title="Records Digitized" value="1.2 Million" description="+20.1% from last month" />
-          <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" description="+180.1 from last month" />
-          <StatCard icon={Users} title="Beneficiaries Served" value="850 Thousand" description="+12% from last month" />
+          <StatCard icon={FileDigit} title="Records Digitized" value="1.2 Million" description="Total land claims processed" />
+          <StatCard icon={Map} title="Area Mapped (SQ KM)" value="45,231" description="Total land under FRA claims" />
+          <StatCard icon={Users} title="Beneficiaries Served" value="850 Thousand" description="Number of households impacted" />
         </section>
 
         <section className="mt-16 md:mt-24 py-16 bg-card rounded-lg shadow-xl max-w-6xl mx-auto">
