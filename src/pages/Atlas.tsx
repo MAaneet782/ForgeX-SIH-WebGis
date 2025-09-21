@@ -92,6 +92,38 @@ const IndexPageContent = () => {
     },
   });
 
+  const uploadCsvMutation = useMutation({
+    mutationFn: async (claimsToUpload: (Omit<Claim, 'id'> & { geometry: Geometry })[]) => {
+      const toastId = showLoading(`Uploading ${claimsToUpload.length} claims from CSV...`);
+      const records = claimsToUpload.map(claim => ({
+        claim_id: claim.id,
+        holder_name: claim.holderName,
+        village: claim.village,
+        district: claim.district,
+        state: claim.state,
+        area: claim.area,
+        status: claim.status,
+        document_name: claim.documentName,
+        soil_type: claim.soilType,
+        water_availability: claim.waterAvailability,
+        estimated_crop_value: claim.estimatedCropValue,
+        geometry: claim.geometry,
+      }));
+
+      const { error } = await supabase.from('claims').insert(records);
+      dismissToast(String(toastId));
+      if (error) throw new Error(error.message);
+      return claimsToUpload.length;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['claims'] });
+      showSuccess(`${count} claims uploaded successfully from CSV!`);
+    },
+    onError: (error) => {
+      showError(`Failed to upload claims from CSV: ${error.message}`);
+    },
+  });
+
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) =>
       claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -194,6 +226,7 @@ const IndexPageContent = () => {
                   <ClaimsData 
                     claims={filteredClaims}
                     onAddClaim={(claim) => addClaimMutation.mutate(claim)}
+                    onUploadCsv={(claims) => uploadCsvMutation.mutate(claims)} // Pass the new mutation
                     onGenerateReport={handleGenerateReport}
                     onZoomToClaim={handleZoomToClaim}
                   />

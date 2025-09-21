@@ -19,14 +19,17 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import AddClaimForm from "./AddClaimForm";
+import CsvUploadForm from "./CsvUploadForm"; // Import the new component
 import type { Claim } from "@/data/mockClaims";
+import type { Geometry } from "geojson"; // Import Geometry type
 import { cn } from "@/lib/utils";
-import { Download, Search, Info } from "lucide-react";
+import { Download, Search, Info, Upload } from "lucide-react"; // Add Upload icon
 import { useState } from "react";
 
 interface ClaimsDataProps {
   claims: Claim[];
   onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => void;
+  onUploadCsv: (claims: (Omit<Claim, 'id'> & { geometry: Geometry })[]) => void; // New prop for CSV upload
   onGenerateReport: () => void;
   onZoomToClaim: (id: string) => void;
 }
@@ -34,10 +37,12 @@ interface ClaimsDataProps {
 const ClaimsData = ({ 
   claims, 
   onAddClaim, 
+  onUploadCsv, // Destructure new prop
   onGenerateReport,
   onZoomToClaim,
 }: ClaimsDataProps) => {
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isAddClaimSheetOpen, setIsAddClaimSheetOpen] = useState(false);
+  const [isCsvUploadSheetOpen, setIsCsvUploadSheetOpen] = useState(false); // New state for CSV upload sheet
   const navigate = useNavigate();
 
   const getRightType = (status: Claim['status']) => {
@@ -66,7 +71,8 @@ const ClaimsData = ({
         <div className="flex items-center justify-between">
           <CardTitle>Search Results: FRA Parcels</CardTitle>
           <div className="flex items-center gap-2">
-            <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+            {/* Add Claim Sheet */}
+            <Sheet open={isAddClaimSheetOpen} onOpenChange={setIsAddClaimSheetOpen}>
               <SheetTrigger asChild>
                 <Button>Add Claim</Button>
               </SheetTrigger>
@@ -78,10 +84,31 @@ const ClaimsData = ({
                   </SheetDescription>
                 </SheetHeader>
                 <div className="py-4">
-                  <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsSheetOpen(false)} />
+                  <AddClaimForm onAddClaim={onAddClaim} onClose={() => setIsAddClaimSheetOpen(false)} />
                 </div>
               </SheetContent>
             </Sheet>
+
+            {/* CSV Upload Sheet */}
+            <Sheet open={isCsvUploadSheetOpen} onOpenChange={setIsCsvUploadSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline">
+                  <Upload className="mr-2 h-4 w-4" /> Upload CSV
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="sm:max-w-2xl w-full">
+                <SheetHeader>
+                  <SheetTitle>Upload Claims from CSV</SheetTitle>
+                  <SheetDescription>
+                    Upload a CSV file containing multiple claim records. Ensure columns match the expected format.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="py-4">
+                  <CsvUploadForm onUpload={onUploadCsv} onClose={() => setIsCsvUploadSheetOpen(false)} />
+                </div>
+              </SheetContent>
+            </Sheet>
+
             <Button variant="outline" onClick={onGenerateReport}>
               <Download className="mr-2 h-4 w-4" />
               Export
