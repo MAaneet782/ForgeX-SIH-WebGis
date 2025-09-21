@@ -93,10 +93,11 @@ const IndexPageContent = () => {
   });
 
   const uploadCsvMutation = useMutation({
-    mutationFn: async (claimsToUpload: (Omit<Claim, 'id'> & { geometry: Geometry })[]) => {
+    // Changed type to include 'id' as it comes from 'claim_id' in CSV
+    mutationFn: async (claimsToUpload: (Claim & { geometry: Geometry })[]) => {
       const toastId = showLoading(`Uploading ${claimsToUpload.length} claims from CSV...`);
       const records = claimsToUpload.map(claim => ({
-        claim_id: claim.id,
+        claim_id: claim.id, // Now 'id' exists on 'claim'
         holder_name: claim.holderName,
         village: claim.village,
         district: claim.district,

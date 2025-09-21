@@ -29,7 +29,8 @@ import { useState } from "react";
 interface ClaimsDataProps {
   claims: Claim[];
   onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => void;
-  onUploadCsv: (claims: (Omit<Claim, 'id'> & { geometry: Geometry })[]) => void; // New prop for CSV upload
+  // Changed type to include 'id' as it comes from 'claim_id' in CSV
+  onUploadCsv: (claims: (Claim & { geometry: Geometry })[]) => void; 
   onGenerateReport: () => void;
   onZoomToClaim: (id: string) => void;
 }

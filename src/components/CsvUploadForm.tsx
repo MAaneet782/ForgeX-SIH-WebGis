@@ -46,7 +46,8 @@ const formSchema = z.object({
 });
 
 type CsvUploadFormProps = {
-  onUpload: (claims: Omit<Claim, 'id'> & { geometry: Geometry }[]) => void;
+  // Changed type to include 'id' as it comes from 'claim_id' in CSV
+  onUpload: (claims: (Claim & { geometry: Geometry })[]) => void;
   onClose: () => void;
 };
 
@@ -71,7 +72,8 @@ const CsvUploadForm = ({ onUpload, onClose }: CsvUploadFormProps) => {
           return;
         }
 
-        const parsedClaims: (Omit<Claim, 'id'> & { geometry: Geometry })[] = [];
+        // Changed type to include 'id'
+        const parsedClaims: (Claim & { geometry: Geometry })[] = [];
         let hasError = false;
 
         for (const row of results.data) {
@@ -83,7 +85,7 @@ const CsvUploadForm = ({ onUpload, onClose }: CsvUploadFormProps) => {
           }
           const validatedData = validationResult.data;
           parsedClaims.push({
-            id: validatedData.claim_id, // Map claim_id from CSV to id in Claim type
+            id: validatedData.claim_id, // 'claim_id' from CSV is the 'id' for our Claim type
             holderName: validatedData.holder_name,
             village: validatedData.village,
             district: validatedData.district,
