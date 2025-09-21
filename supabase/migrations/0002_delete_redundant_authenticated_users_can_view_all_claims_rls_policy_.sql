@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Authenticated users can view all claims" ON public.claims;
