@@ -14,10 +14,10 @@ const ParcelLocationCard = ({ claim, waterIndexLocation }: ParcelLocationCardPro
   const defaultZoom = 5;
 
   const claimStyle: PathOptions = {
-    color: '#004d40',
+    color: '#2dd4bf', // A vibrant teal for the border
     weight: 3,
-    fillColor: '#004d40',
-    fillOpacity: 0.5,
+    fillColor: '#2dd4bf', // Same vibrant teal for the fill
+    fillOpacity: 0.4, // Slightly lower opacity for a softer look
   };
 
   return (
