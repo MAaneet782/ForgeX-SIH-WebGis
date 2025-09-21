@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { waterBodiesGeoJson, agriLandGeoJson, mockClaims as localMockClaims } from "@/data/mockClaims";
+import { waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
 import type { Claim } from "@/data/mockClaims";
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import ClaimsData from "@/components/ClaimsData";
@@ -20,14 +20,13 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/context/AuthContext";
-import { useIsMobile } from "@/hooks/use-mobile";
-import AtlasMainContent from "@/components/AtlasMainContent"; // Import the new component
 
 // --- Supabase Data Fetching ---
 const fetchClaims = async (): Promise<Claim[]> => {
   const { data, error } = await supabase.from('claims').select('*').order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
+  // The database stores 'id' as a number, but we use a custom 'claim_id' string.
+  // Let's map the database response to our Claim type.
   return data.map(item => ({
     id: item.claim_id,
     holderName: item.holder_name,
@@ -40,61 +39,106 @@ const fetchClaims = async (): Promise<Claim[]> => {
     soilType: item.soil_type,
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
-    created_at: item.created_at,
-    geometry: item.geometry, // Ensure geometry is included
   }));
 };
 
 const IndexPageContent = () => {
-  const { user, isLoading: isLoadingAuth } = useAuth();
-  const isMobile = useIsMobile();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-  const { data: supabaseClaims = [], isLoading, isError } = useQuery<Claim[]>({
+  const { data: claims = [], isLoading, isError } = useQuery<Claim[]>({
     queryKey: ['claims'],
     queryFn: fetchClaims,
-    enabled: !!user, // Only fetch claims if user is logged in
   });
-
-  // Combine Supabase claims with local mock claims
-  const combinedClaims = useMemo<Claim[]>(() => {
-    const uniqueClaimsMap = new globalThis.Map<string, Claim>();
-
-    // Add Supabase claims, they take precedence
-    supabaseClaims.forEach(claim => uniqueClaimsMap.set(claim.id, claim));
-
-    // Add local mock claims, but only if their ID doesn't already exist
-    localMockClaims.forEach(claim => {
-      if (!uniqueClaimsMap.has(claim.id)) {
-        uniqueClaimsMap.set(claim.id, claim);
-      }
-    });
-
-    return Array.from(uniqueClaimsMap.values());
-  }, [supabaseClaims]);
 
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isLayersPanelOpen, setIsLayersPanelOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // State for mobile sidebar
+  const [viewMode, setViewMode] = useState("default");
+
+  const addClaimMutation = useMutation({
+    mutationFn: async (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => {
+      const toastId = showLoading("Adding new claim...");
+      const { coordinates, ...rest } = newClaimData;
+      const claim_id = `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;
+      
+      const newClaimRecord = {
+        claim_id,
+        holder_name: rest.holderName,
+        village: rest.village,
+        district: rest.district,
+        state: rest.state,
+        area: rest.area,
+        status: rest.status,
+        document_name: rest.documentName,
+        soil_type: rest.soilType,
+        water_availability: rest.waterAvailability,
+        estimated_crop_value: Math.floor(Math.random() * (25000 - 5000 + 1)) + 5000,
+        geometry: JSON.parse(coordinates),
+      };
+
+      const { error } = await supabase.from('claims').insert([newClaimRecord]);
+      dismissToast(String(toastId));
+      if (error) throw new Error(error.message);
+      return claim_id;
+    },
+    onSuccess: (newClaimId) => {
+      queryClient.invalidateQueries({ queryKey: ['claims'] });
+      showSuccess(`Claim ${newClaimId} added. Redirecting to its dashboard for AI analysis.`);
+      navigate(`/atlas/claim/${newClaimId}`);
+    },
+    onError: (error) => {
+      showError(`Failed to add claim: ${error.message}`);
+    },
+  });
+
+  const filteredClaims = useMemo(() => {
+    return claims.filter((claim) =>
+      claim.holderName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      claim.village.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [claims, searchTerm]);
 
   const selectedClaim = useMemo(() => {
-    return combinedClaims.find(c => c.id === selectedClaimId) || null;
-  }, [combinedClaims, selectedClaimId]);
+    return claims.find(c => c.id === selectedClaimId) || null;
+  }, [claims, selectedClaimId]);
+
+  const geoJsonData = useMemo((): FeatureCollection => {
+    const features = claims.map((claim): Feature => {
+      // We need to fetch the geometry for this part. For now, let's assume it's part of the claim object.
+      // This will require modifying the fetch function and Supabase table.
+      // Let's assume a placeholder geometry for now.
+      const claimWithGeo = claims.find(c => c.id === claim.id);
+      // @ts-ignore - In a real scenario, geometry would be fetched.
+      const geometry = claimWithGeo?.geometry || { type: "Polygon", coordinates: [[[0,0]]] };
+      return {
+        type: "Feature",
+        properties: { claimId: claim.id, holderName: claim.holderName },
+        geometry: geometry as Geometry,
+      };
+    });
+    return { type: "FeatureCollection", features };
+  }, [claims]);
+
+  const handleZoomToClaim = (claimId: string) => {
+    setSelectedClaimId(claimId);
+    setViewMode('map');
+  };
 
   const handleGenerateReport = () => {
+    // This function remains the same
     showSuccess("Report generated successfully!");
   };
 
   const handleFindMyParcel = () => {
-    if (combinedClaims.length > 0) {
-      const parcelId = combinedClaims[0].id;
+    if (claims.length > 0) {
+      const parcelId = claims[0].id;
       setSelectedClaimId(parcelId);
-      showInfo(`Locating parcel for ${combinedClaims[0].holderName} (ID: ${parcelId})`);
-      // The AtlasMainContent will handle switching view mode if mobile
+      showInfo(`Locating parcel for ${claims[0].holderName} (ID: ${parcelId})`);
     }
   };
 
-  if (isLoading || isLoadingAuth) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="space-y-4">
@@ -111,70 +155,60 @@ const IndexPageContent = () => {
   }
 
   return (
-    <div className="grid grid-rows-[auto_1fr] lg:grid-cols-[280px_1fr] h-screen w-screen bg-background overflow-hidden">
-      <div className="col-span-full lg:col-span-2 z-10">
-        <Header 
-          searchTerm={searchTerm} 
-          setSearchTerm={setSearchTerm} 
-          onFindMyParcel={handleFindMyParcel} 
-          onToggleSidebar={() => setIsSidebarOpen(true)} 
-        />
-      </div>
+    <div className="grid grid-cols-[280px_1fr] grid-rows-[auto_1fr] h-screen w-screen bg-background overflow-hidden">
+      <div className="col-span-2 z-10"><Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFindMyParcel={handleFindMyParcel} /></div>
+      <div className="row-start-2"><Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} /></div>
       
-      {isMobile ? (
-        <>
-          <Sidebar 
-            onToggleLayersPanel={() => setIsLayersPanelOpen(true)} 
-            onGenerateReport={handleGenerateReport} 
-            onFindMyParcel={handleFindMyParcel} 
-            isOpen={isSidebarOpen}
-            onOpenChange={setIsSidebarOpen}
-          />
-          <main className="row-start-2 col-span-full overflow-hidden">
-            <div className="h-full flex flex-col">
-              <div className="flex-1 overflow-y-auto">
-                <AtlasMainContent 
-                  searchTerm={searchTerm} 
-                  onFindMyParcel={handleFindMyParcel} 
-                  selectedClaimId={selectedClaimId} 
-                  setSelectedClaimId={setSelectedClaimId} 
-                />
-              </div>
-              <div className="p-4 border-t border-border overflow-y-auto">
-                <DecisionSupportPanel claim={selectedClaim} />
+      <main className="row-start-2 overflow-hidden">
+        <ResizablePanelGroup direction="horizontal">
+          <ResizablePanel defaultSize={65} minSize={40}>
+            <div className="h-full overflow-y-auto p-6 space-y-6">
+              <header className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
+                  <p className="text-muted-foreground">Live Data from Supabase Database</p>
+                </div>
+                <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
+                  <ToggleGroupItem value="default" aria-label="Default view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
+                  <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4" /></ToggleGroupItem>
+                  <ToggleGroupItem value="map" aria-label="Map view"><Map className="h-4 w-4" /></ToggleGroupItem>
+                </ToggleGroup>
+              </header>
+              
+              <DashboardStats claims={claims} />
+              <DataVisualization claims={claims} />
+              
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Claims Explorer</h2>
+                <div className={cn("rounded-lg overflow-hidden border", viewMode === 'table' ? 'hidden' : 'block', viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
+                  <GisMap 
+                    claims={claims}
+                    claimsData={geoJsonData} 
+                    waterData={waterBodiesGeoJson}
+                    agriData={agriLandGeoJson}
+                    selectedClaimId={selectedClaimId} 
+                    onClaimSelect={setSelectedClaimId}
+                  />
+                </div>
+                <div className={cn(viewMode === 'map' ? 'hidden' : 'block')}>
+                  <ClaimsData 
+                    claims={filteredClaims}
+                    onAddClaim={(claim) => addClaimMutation.mutate(claim)}
+                    onGenerateReport={handleGenerateReport}
+                    onZoomToClaim={handleZoomToClaim}
+                  />
+                </div>
               </div>
             </div>
-          </main>
-        </>
-      ) : (
-        <>
-          <aside className="row-start-2 col-start-1">
-            <Sidebar 
-              onToggleLayersPanel={() => setIsLayersPanelOpen(true)} 
-              onGenerateReport={handleGenerateReport} 
-              onFindMyParcel={handleFindMyParcel} 
-            />
-          </aside>
-          <main className="row-start-2 col-start-2 overflow-hidden">
-            <ResizablePanelGroup direction="horizontal">
-              <ResizablePanel defaultSize={65} minSize={40}>
-                <AtlasMainContent 
-                  searchTerm={searchTerm} 
-                  onFindMyParcel={handleFindMyParcel} 
-                  selectedClaimId={selectedClaimId} 
-                  setSelectedClaimId={setSelectedClaimId} 
-                />
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-              <ResizablePanel defaultSize={35} minSize={25}>
-                <div className="h-full overflow-y-auto p-6">
-                  <DecisionSupportPanel claim={selectedClaim} />
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </main>
-        </>
-      )}
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel defaultSize={35} minSize={25}>
+            <div className="h-full overflow-y-auto p-6">
+              <DecisionSupportPanel claim={selectedClaim} />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </main>
       
       <LayersPanel isOpen={isLayersPanelOpen} onOpenChange={setIsLayersPanelOpen} />
     </div>

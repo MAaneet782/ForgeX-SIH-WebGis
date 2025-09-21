@@ -1,25 +1,19 @@
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf, BarChart2, LogOut, Settings, User } from "lucide-react";
+import { Layers, Map, Filter, Compass, DollarSign, Droplets, FileText, Leaf } from "lucide-react";
 import { useDashboardState } from "@/context/DashboardStateContext";
 import { showInfo } from "@/utils/toast";
 import { cn } from "@/lib/utils";
 import SchemeInfoModal from "./SchemeInfoModal";
-import { Link } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"; // Import Sheet components
-import { useIsMobile } from "@/hooks/use-mobile"; // Import useIsMobile
 
 interface SidebarProps {
   onToggleLayersPanel: () => void;
   onGenerateReport: () => void;
   onFindMyParcel: () => void;
-  isOpen?: boolean; // New prop for Sheet control
-  onOpenChange?: (isOpen: boolean) => void; // New prop for Sheet control
 }
 
-const SidebarContent = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel, user, supabase }: Omit<SidebarProps, 'isOpen' | 'onOpenChange'> & { user: any, supabase: any }) => {
+const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel }: SidebarProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState({ title: '', content: <></> });
 
@@ -79,15 +73,6 @@ const SidebarContent = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel,
     setIsModalOpen(true);
   };
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      showInfo("Error logging out: " + error.message);
-    } else {
-      showInfo("Logged out successfully!");
-    }
-  };
-
   const navItems = {
     "MAP TOOLS": [
       { icon: Layers, label: "Layers Panel", action: onToggleLayersPanel },
@@ -102,39 +87,36 @@ const SidebarContent = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel,
     ],
     "OFFICIALS": [
       { icon: FileText, label: "Generate Reports", action: onGenerateReport },
-      { icon: BarChart2, label: "Analytics Dashboard", action: () => window.location.href = '/atlas/analytics' },
     ],
   };
 
   return (
     <>
-      <div className="flex flex-col h-full">
-        <div className="p-4 border-b border-sidebar-border">
-          <Link to="/" className="flex items-center gap-2 text-2xl font-bold text-primary-foreground transition-colors duration-200">
-            <Leaf className="h-7 w-7 text-primary" /> FRA Atlas
-          </Link>
+      <aside className="bg-[#004d40] text-white flex flex-col h-full">
+        <div className="p-4 border-b border-white/20">
+          <h2 className="text-2xl font-bold">FRA Atlas</h2>
           <div className="flex items-center gap-3 mt-4">
-            <Avatar className="h-9 w-9">
-              <AvatarImage src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"} alt={user?.user_metadata?.first_name || "User"} />
-              <AvatarFallback>{user?.user_metadata?.first_name?.charAt(0) || user?.email?.charAt(0) || "U"}</AvatarFallback>
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" alt="Anita Devi" />
+              <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <div>
-              <p className="font-semibold text-sm">{user?.user_metadata?.first_name || user?.email || "Guest User"}</p>
-              <p className="text-xs text-muted-foreground">Local Government Official</p>
+              <p className="font-semibold">Anita Devi</p>
+              <p className="text-xs text-gray-300">Local Government Official</p>
             </div>
           </div>
         </div>
         <nav className="flex-grow p-4 space-y-6 overflow-y-auto">
           {Object.entries(navItems).map(([section, items]) => (
             <div key={section}>
-              <h3 className="text-xs font-bold tracking-wider text-muted-foreground uppercase mb-2">{section}</h3>
+              <h3 className="text-xs font-bold tracking-wider text-gray-400 uppercase mb-2">{section}</h3>
               <ul className="space-y-1">
                 {items.map((item) => (
                   <li key={item.label}>
                     <Button 
                       variant="ghost" 
                       onClick={item.action}
-                      className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200"
+                      className="w-full justify-start text-white hover:bg-white/10 hover:text-white"
                     >
                       <item.icon className="mr-3 h-5 w-5" />
                       {item.label}
@@ -145,30 +127,7 @@ const SidebarContent = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel,
             </div>
           ))}
         </nav>
-        <div className="p-4 border-t border-sidebar-border">
-          <Button 
-            variant="ghost" 
-            onClick={() => showInfo("Opening profile settings...")}
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200 mb-1"
-          >
-            <User className="mr-3 h-5 w-5" /> Profile
-          </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => showInfo("Opening settings...")}
-            className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors duration-200 mb-1"
-          >
-            <Settings className="mr-3 h-5 w-5" /> Settings
-          </Button>
-          <Button 
-            variant="ghost" 
-            onClick={handleLogout}
-            className="w-full justify-start text-sidebar-foreground hover:bg-destructive/20 hover:text-destructive transition-colors duration-200"
-          >
-            <LogOut className="mr-3 h-5 w-5" /> Logout
-          </Button>
-        </div>
-      </div>
+      </aside>
       <SchemeInfoModal 
         isOpen={isModalOpen} 
         onOpenChange={setIsModalOpen} 
@@ -177,42 +136,6 @@ const SidebarContent = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel,
         {modalContent.content}
       </SchemeInfoModal>
     </>
-  );
-};
-
-const Sidebar = ({ onToggleLayersPanel, onGenerateReport, onFindMyParcel, isOpen, onOpenChange }: SidebarProps) => {
-  const { user, supabase } = useAuth();
-  const isMobile = useIsMobile();
-
-  if (isMobile) {
-    return (
-      <Sheet open={isOpen} onOpenChange={onOpenChange}>
-        <SheetContent side="left" className="w-[280px] p-0 bg-sidebar text-sidebar-foreground border-r border-border">
-          <SheetHeader className="p-4 border-b border-sidebar-border">
-            <SheetTitle className="text-primary-foreground">Navigation</SheetTitle>
-          </SheetHeader>
-          <SidebarContent 
-            onToggleLayersPanel={onToggleLayersPanel} 
-            onGenerateReport={onGenerateReport} 
-            onFindMyParcel={onFindMyParcel} 
-            user={user} 
-            supabase={supabase} 
-          />
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  return (
-    <aside className="bg-sidebar text-sidebar-foreground flex flex-col h-full border-r border-border">
-      <SidebarContent 
-        onToggleLayersPanel={onToggleLayersPanel} 
-        onGenerateReport={onGenerateReport} 
-        onFindMyParcel={onFindMyParcel} 
-        user={user} 
-        supabase={supabase} 
-      />
-    </aside>
   );
 };
 

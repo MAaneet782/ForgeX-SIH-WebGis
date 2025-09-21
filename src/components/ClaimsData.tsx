@@ -21,9 +21,8 @@ import {
 import AddClaimForm from "./AddClaimForm";
 import type { Claim } from "@/data/mockClaims";
 import { cn } from "@/lib/utils";
-import { Download, Search, Info, Upload, Trash2 } from "lucide-react"; // Added Upload and Trash2
+import { Download, Search, Info } from "lucide-react";
 import { useState } from "react";
-import { format } from 'date-fns'; // Import date-fns
 
 interface ClaimsDataProps {
   claims: Claim[];
@@ -41,7 +40,6 @@ const ClaimsData = ({
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Updated to match screenshot: IFR, CR, CFR
   const getRightType = (status: Claim['status']) => {
     switch (status) {
       case 'Approved':
@@ -55,23 +53,11 @@ const ClaimsData = ({
     }
   };
 
-  // Format date as "DD Mon YYYY"
-  const getFormattedDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return format(date, 'dd MMM yyyy'); // e.g., "20 Sept 2025"
-    } catch (e) {
-      console.error("Invalid date string:", dateString);
-      return "N/A";
-    }
-  };
-
-  const handleDetailsNavigation = (claimId: string) => {
-    navigate(`/atlas/claim/${claimId}`); // Only navigate to personal AI predictive dashboard
-  };
-
-  const handleRowClick = (claimId: string) => {
-    onZoomToClaim(claimId); // Only highlight and zoom on map
+  const getMockDate = (claimId: string) => {
+    const d = new Date();
+    const dayOffset = parseInt(claimId.replace('C', ''), 10) % 28;
+    d.setDate(d.getDate() - dayOffset);
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
   return (
@@ -80,10 +66,6 @@ const ClaimsData = ({
         <div className="flex items-center justify-between">
           <CardTitle>Search Results: FRA Parcels</CardTitle>
           <div className="flex items-center gap-2">
-            <Button variant="outline"> {/* Placeholder Import button */}
-              <Upload className="mr-2 h-4 w-4" />
-              Import
-            </Button>
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
               <SheetTrigger asChild>
                 <Button>Add Claim</Button>
@@ -125,11 +107,7 @@ const ClaimsData = ({
               {claims.map((claim) => {
                 const rightType = getRightType(claim.status);
                 return (
-                  <TableRow 
-                    key={claim.id} 
-                    onClick={() => handleRowClick(claim.id)} // Row click only highlights on map
-                    className="cursor-pointer hover:bg-muted/50"
-                  >
+                  <TableRow key={claim.id}>
                     <TableCell className="font-medium">{claim.id}</TableCell>
                     <TableCell>{claim.holderName}</TableCell>
                     <TableCell>{claim.village}</TableCell>
@@ -137,16 +115,16 @@ const ClaimsData = ({
                     <TableCell className="text-center">
                       <Badge variant="outline" className={cn("border-transparent font-semibold", rightType.className)}>{rightType.text}</Badge>
                     </TableCell>
-                    <TableCell>{getFormattedDate(claim.created_at)}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}> {/* Prevent row click from triggering */}
+                    <TableCell>{getMockDate(claim.id)}</TableCell>
+                    <TableCell>
                       <div className="flex items-center justify-center gap-2">
-                        <Button size="sm" className="bg-[#004d40] hover:bg-[#00382e]" onClick={() => handleDetailsNavigation(claim.id)}>
+                        <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => onZoomToClaim(claim.id)}>
+                          <Search className="h-4 w-4" />
+                          <span className="sr-only">Zoom to parcel</span>
+                        </Button>
+                        <Button size="sm" className="bg-[#004d40] hover:bg-[#00382e]" onClick={() => navigate(`/atlas/claim/${claim.id}`)}>
                           <Info className="mr-2 h-4 w-4" />
                           Details
-                        </Button>
-                        <Button variant="destructive" size="icon" className="h-9 w-9"> {/* Placeholder Delete button */}
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete parcel</span>
                         </Button>
                       </div>
                     </TableCell>

@@ -5,7 +5,6 @@ import { useEffect } from 'react';
 import L from 'leaflet';
 import { useDashboardState } from '@/context/DashboardStateContext';
 import type { Claim } from '@/data/mockClaims';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 interface GisMapProps {
   claims: Claim[];
@@ -16,40 +15,30 @@ interface GisMapProps {
   onClaimSelect: (id: string | null) => void;
 }
 
-// Updated MapController to directly use the claims array
-const MapController = ({ selectedClaimId, claims }: { selectedClaimId: string | null, claims: Claim[] }) => {
+const MapController = ({ selectedClaimId, data }: { selectedClaimId: string | null, data: FeatureCollection }) => {
   const map = useMap();
 
   useEffect(() => {
-    if (selectedClaimId) {
-      const selectedClaim = claims.find(c => c.id === selectedClaimId);
+    if (selectedClaimId && data.type === 'FeatureCollection') {
+      const feature = data.features.find(
+        (f) => f.properties?.claimId === selectedClaimId
+      );
 
-      if (selectedClaim && selectedClaim.geometry) {
-        try {
-          // @ts-ignore
-          const geoJsonLayer = L.geoJSON(selectedClaim.geometry);
-          const bounds = geoJsonLayer.getBounds();
-
-          if (bounds.isValid()) {
-            map.flyToBounds(bounds, { padding: [50, 50], duration: 1.5 }); // Added duration for animation
-          } else {
-            console.warn("Invalid bounds for selected claim geometry:", selectedClaim.id, selectedClaim.geometry);
-          }
-        } catch (e) {
-          console.error("Error processing GeoJSON for selected claim:", selectedClaim.id, e);
+      if (feature && feature.geometry) {
+        // @ts-ignore
+        const bounds = L.geoJSON(feature.geometry).getBounds();
+        if (bounds.isValid()) {
+          map.flyToBounds(bounds, { padding: [50, 50] });
         }
-      } else {
-        console.log("Selected claim or its geometry not found for ID:", selectedClaimId);
       }
     }
-  }, [selectedClaimId, claims, map]); // Depend on claims directly
+  }, [selectedClaimId, data, map]);
 
   return null;
 };
 
 const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onClaimSelect }: GisMapProps) => {
   const { state, isLowWaterClaim, isPendingClaim, isMgnregaEligible } = useDashboardState();
-  const navigate = useNavigate(); // Get navigate function
   const center: LatLngExpression = [22.5937, 78.9629]; // Centered on India
 
   const onEachFeature = (feature: Feature<Geometry, any>, layer: Layer) => {
@@ -62,8 +51,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
 
       layer.on({
         click: () => {
-          onClaimSelect(feature.properties.claimId); // Still select for immediate visual feedback
-          navigate(`/atlas/claim/${feature.properties.claimId}`); // Navigate to personal dashboard
+          onClaimSelect(feature.properties.claimId);
         },
       });
     }
@@ -149,7 +137,7 @@ const GisMap = ({ claims, claimsData, waterData, agriData, selectedClaimId, onCl
           </LayersControl.Overlay>
         )}
       </LayersControl>
-      <MapController selectedClaimId={selectedClaimId} claims={claims} />
+      <MapController selectedClaimId={selectedClaimId} data={claimsData} />
     </MapContainer>
   );
 };
