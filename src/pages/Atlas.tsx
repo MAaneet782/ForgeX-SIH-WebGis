@@ -39,6 +39,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
     soilType: item.soil_type,
     waterAvailability: item.water_availability,
     estimatedCropValue: item.estimated_crop_value,
+    geometry: item.geometry as Geometry, // Map geometry from Supabase response
   }));
 };
 
@@ -93,11 +94,10 @@ const IndexPageContent = () => {
   });
 
   const uploadCsvMutation = useMutation({
-    // Changed type to include 'id' as it comes from 'claim_id' in CSV
     mutationFn: async (claimsToUpload: (Claim & { geometry: Geometry })[]) => {
       const toastId = showLoading(`Uploading ${claimsToUpload.length} claims from CSV...`);
       const records = claimsToUpload.map(claim => ({
-        claim_id: claim.id, // Now 'id' exists on 'claim'
+        claim_id: claim.id,
         holder_name: claim.holderName,
         village: claim.village,
         district: claim.district,
@@ -138,12 +138,8 @@ const IndexPageContent = () => {
 
   const geoJsonData = useMemo((): FeatureCollection => {
     const features = claims.map((claim): Feature => {
-      // We need to fetch the geometry for this part. For now, let's assume it's part of the claim object.
-      // This will require modifying the fetch function and Supabase table.
-      // Let's assume a placeholder geometry for now.
-      const claimWithGeo = claims.find(c => c.id === claim.id);
-      // @ts-ignore - In a real scenario, geometry would be fetched.
-      const geometry = claimWithGeo?.geometry || { type: "Polygon", coordinates: [[[0,0]]] };
+      // Use the geometry directly from the claim object
+      const geometry = claim.geometry || { type: "Polygon", coordinates: [[[0,0]]] }; // Fallback for safety
       return {
         type: "Feature",
         properties: { claimId: claim.id, holderName: claim.holderName },
