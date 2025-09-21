@@ -10,14 +10,14 @@ import L from 'leaflet';
 import { useAuth } from "@/context/AuthContext";
 import { type AnalysisResult } from "@/lib/ai-analysis";
 import { supabase } from "@/lib/supabaseClient";
-import { Card, CardContent } from "@/components/ui/card"; // Import Card and CardContent
+import { Card, CardContent } from "@/components/ui/card";
 
 // Import new modular components
 import ClaimInfoCard from "@/components/claim-detail/ClaimInfoCard";
 import ParcelLocationCard from "@/components/claim-detail/ParcelLocationCard";
 import SchemeEligibilitySection from "@/components/claim-detail/SchemeEligibilitySection";
 import AiAnalysisSection from "@/components/claim-detail/AiAnalysisSection";
-import SoilAnalysisSection from "@/components/claim-detail/SoilAnalysisSection"; // New import
+import SoilAnalysisSection from "@/components/claim-detail/SoilAnalysisSection";
 
 // --- Type Definitions for Scheme Eligibility ---
 interface SchemeDetail {
@@ -253,8 +253,34 @@ const ClaimDetail = () => {
         <ParcelLocationCard claim={claim} waterIndexLocation={waterIndexLocation} />
       </section>
 
-      {/* Middle Section: Scheme Eligibility, AI Analysis, and Soil Analysis */}
+      {/* Middle Section: AI Analysis (left) and Scheme Eligibility (right) */}
       <section className="grid lg:grid-cols-2 gap-6">
+        {/* Left Column: AI Analysis and Soil Analysis */}
+        <div className="space-y-6">
+          {user ? (
+            <AiAnalysisSection 
+              claim={claim}
+              analysis={analysis} 
+              isLoading={isLoadingAnalysis} 
+              isError={isErrorAnalysis} 
+              error={analysisError} 
+            />
+          ) : (
+            <UnauthenticatedCard />
+          )}
+          {user ? (
+            <SoilAnalysisSection
+              soilAnalysis={analysis?.soilAnalysis}
+              isLoading={isLoadingAnalysis}
+              isError={isErrorAnalysis}
+              error={analysisError}
+            />
+          ) : (
+            <UnauthenticatedCard />
+          )}
+        </div>
+
+        {/* Right Column: Scheme Eligibility */}
         {user ? (
           <SchemeEligibilitySection 
             schemes={schemes} 
@@ -264,31 +290,6 @@ const ClaimDetail = () => {
           />
         ) : (
           <UnauthenticatedCard />
-        )}
-        {user ? (
-          <AiAnalysisSection 
-            claim={claim}
-            analysis={analysis} 
-            isLoading={isLoadingAnalysis} 
-            isError={isErrorAnalysis} 
-            error={analysisError} 
-          />
-        ) : (
-          <UnauthenticatedCard />
-        )}
-        {user ? (
-          <div className="lg:col-span-2"> {/* Make SoilAnalysisSection span both columns */}
-            <SoilAnalysisSection
-              soilAnalysis={analysis?.soilAnalysis}
-              isLoading={isLoadingAnalysis}
-              isError={isErrorAnalysis}
-              error={analysisError}
-            />
-          </div>
-        ) : (
-          <div className="lg:col-span-2">
-            <UnauthenticatedCard />
-          </div>
         )}
       </section>
     </div>
