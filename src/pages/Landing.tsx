@@ -84,8 +84,8 @@ const LandingPage = () => {
         <section className="mt-16 md:mt-24 max-w-6xl mx-auto">
           <div className="relative w-full h-[400px] md:h-[500px] overflow-hidden rounded-lg shadow-xl">
             <img 
-              src="/modi-farmers.webp" 
-              alt="Prime Minister Modi with farmers" 
+              src="https://picsum.photos/seed/fra-atlas/1200/600" 
+              alt="Placeholder image for FRA Atlas project" 
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent"></div>
