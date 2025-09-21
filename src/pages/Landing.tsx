@@ -112,7 +112,7 @@ const LandingPage = () => {
             </div>
             <div className="lg:col-span-2">
               <div className="rounded-lg overflow-hidden shadow-lg">
-                <img src="https://images.unsplash.com/photo-1473123219393-5578b6b6e8a3?q=80&w=2070&auto=format&fit=crop" alt="Forest landscape" className="w-full h-full object-cover" />
+                <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Project team working" className="w-full h-full object-cover" />
               </div>
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 <Globe className="inline-block mr-1 h-4 w-4 text-green-500" />
