@@ -1,12 +1,13 @@
+import React from "react";
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
-// import { ThemeProvider } from "./components/theme-provider"; // Temporarily removed
-import React from "react"; // Still needed for JSX, but StrictMode is removed
+
+// Temporarily import App, but not render it, to isolate the issue
+// import App from "./App.tsx"; 
 
 createRoot(document.getElementById("root")!).render(
   <>
-    <App />
+    <div>Hello, Dyad! If you see this, the root rendering works.</div>
   </>
 );
