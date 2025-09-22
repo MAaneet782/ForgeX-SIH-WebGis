@@ -10,10 +10,9 @@ import NotFound from "./pages/NotFound";
 
 const App = () => {
   return (
-    <BrowserRouter>
-      {/* Wrap Toaster and Routes in a React.Fragment to provide a single child to BrowserRouter */}
-      <React.Fragment>
-        <Toaster richColors position="top-right" /> {/* Toaster for notifications */}
+    <> {/* Use a fragment here to wrap both Toaster and BrowserRouter */}
+      <Toaster richColors position="top-right" /> {/* Toaster for notifications */}
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/atlas" element={<Atlas />} />
@@ -21,8 +20,8 @@ const App = () => {
           <Route path="/atlas/analytics" element={<Analytics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </React.Fragment>
-    </BrowserRouter>
+      </BrowserRouter>
+    </>
   );
 };
 
