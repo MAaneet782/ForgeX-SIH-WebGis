@@ -8,7 +8,6 @@ import { Search, MapPin, BarChart2, Bell, Mail, ChevronDown, User, Settings, Log
 import { Badge } from "@/components/ui/badge";
 import { showInfo } from "@/utils/toast";
 import FiltersPanel from "./FiltersPanel";
-import { ThemeToggle } from "./theme-toggle";
 
 interface HeaderProps {
   searchTerm: string;
@@ -50,8 +49,6 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
           </Link>
         </Button>
         
-        <ThemeToggle />
-
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
