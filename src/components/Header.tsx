@@ -6,7 +6,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Search, MapPin, BarChart2, Bell, Mail, ChevronDown, User, Settings, LogOut, Filter } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { ThemeToggle } from "./theme-toggle";
 import { showInfo } from "@/utils/toast";
 import FiltersPanel from "./FiltersPanel";
 
@@ -49,7 +48,6 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
             <BarChart2 className="mr-2 h-4 w-4" /> Open Analytics
           </Link>
         </Button>
-        <ThemeToggle />
         
         <Popover>
           <PopoverTrigger asChild>
