@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Toaster } from "sonner";
+// import { Toaster } from "sonner"; // Temporarily removed Toaster
 
 import LandingPage from "./pages/Landing";
 import Atlas from "./pages/Atlas";
@@ -11,9 +11,9 @@ import NotFound from "./pages/NotFound";
 const App = () => {
   return (
     <BrowserRouter>
-      {/* BrowserRouter expects a single child, so we wrap Toaster and Routes in a fragment */}
+      {/* BrowserRouter expects a single child. We'll use a React.Fragment to wrap Routes. */}
       <React.Fragment>
-        <Toaster richColors position="top-right" />
+        {/* <Toaster richColors position="top-right" /> */}
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/atlas" element={<Atlas />} />
