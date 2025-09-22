@@ -1,25 +1,12 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
-import { Toaster } from "sonner";
-
-import LandingPage from "./pages/Landing";
-import Atlas from "./pages/Atlas";
-import ClaimDetail from "./pages/ClaimDetail";
-import Analytics from "./pages/Analytics";
-import NotFound from "./pages/NotFound";
 
 const App = () => {
   return (
-    <>
-      <Toaster richColors position="top-right" />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/atlas" element={<Atlas />} />
-        <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
-        <Route path="/atlas/analytics" element={<Analytics />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </>
+    <div style={{ padding: '2rem', backgroundColor: 'white', color: 'black', height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', fontFamily: 'sans-serif' }}>
+      <h1 style={{ fontSize: '3rem', fontWeight: 'bold', color: '#111' }}>Diagnostic Test Page</h1>
+      <p style={{ fontSize: '1.2rem', color: '#444' }}>If you are seeing this message, the core of the application is working.</p>
+      <p style={{ marginTop: '1rem', color: '#666' }}>This confirms the error is within the application's components. I will fix it in the next step.</p>
+    </div>
   );
 };
 
