@@ -12,7 +12,7 @@ import NotFound from "./pages/NotFound";
 const App = () => {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <>
+      <div className="h-screen w-screen">
         <Toaster richColors position="top-right" />
         <Routes>
           <Route path="/" element={<LandingPage />} />
@@ -21,7 +21,7 @@ const App = () => {
           <Route path="/atlas/analytics" element={<Analytics />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </>
+      </div>
     </ThemeProvider>
   );
 };
