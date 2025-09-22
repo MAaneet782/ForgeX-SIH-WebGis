@@ -3,10 +3,12 @@ import App from "./App.tsx";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "./components/theme-provider";
-// Sonner import moved to App.tsx
+import React from "react"; // Import React for StrictMode
 
 createRoot(document.getElementById("root")!).render(
-  <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-    <App />
-  </ThemeProvider>,
+  <React.StrictMode>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <App />
+    </ThemeProvider>
+  </React.StrictMode>,
 );
