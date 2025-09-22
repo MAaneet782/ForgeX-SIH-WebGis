@@ -6,9 +6,7 @@ import "leaflet/dist/leaflet.css";
 import React from "react"; // Still needed for JSX, but StrictMode is removed
 
 createRoot(document.getElementById("root")!).render(
-  // <React.StrictMode> // Temporarily removed
-    // <ThemeProvider attribute="class" defaultTheme="system" enableSystem> // Temporarily removed
-      <App />
-    // </ThemeProvider> // Temporarily removed
-  // </React.StrictMode>, // Temporarily removed
+  <>
+    <App />
+  </>
 );
