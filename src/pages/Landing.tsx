@@ -46,7 +46,7 @@ const LandingPage = () => {
           <Link to="/atlas" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
             <BookOpen className="mr-3 h-5 w-5" /> FRA Atlas
           </Link>
-          <Link to="/" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md">
+          <Link to="/atlas/analytics" className="flex items-center px-4 py-2 hover:bg-primary-foreground/10 rounded-md"> {/* Updated Link */}
             <BarChart2 className="mr-3 h-5 w-5" /> Analytics (Public)
           </Link>
         </nav>
@@ -67,7 +67,7 @@ const LandingPage = () => {
           <div className="flex items-center gap-6 text-sm font-medium">
             <Link to="/" className="flex items-center gap-2 text-primary"><Home className="h-4 w-4" /> Home</Link>
             <Link to="/atlas" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><BookOpen className="h-4 w-4" /> Explore Atlas</Link>
-            <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><BarChart2 className="h-4 w-4" /> Analytics</Link>
+            <Link to="/atlas/analytics" className="flex items-center gap-2 text-muted-foreground hover:text-primary"><BarChart2 className="h-4 w-4" /> Analytics</Link> {/* Updated Link */}
           </div>
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -106,7 +106,7 @@ const LandingPage = () => {
                   <Link to="/atlas"><Map className="mr-2 h-5 w-5" /> Explore FRA Atlas</Link>
                 </Button>
                 <Button size="lg" variant="outline" asChild>
-                  <Link to="/"><TrendingUp className="mr-2 h-5 w-5" /> View Analytics</Link>
+                  <Link to="/atlas/analytics"><TrendingUp className="mr-2 h-5 w-5" /> View Analytics</Link> {/* Updated Link */}
                 </Button>
               </div>
             </div>

@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import AiAnalysisPanel from "@/components/AiAnalysisPanel";
 import SchemeEligibility from "@/components/SchemeEligibility";
+import SoilAnalysisPanel from "@/components/SoilAnalysisPanel"; // New import
+import ParcelMapDisplay from "@/components/ParcelMapDisplay"; // New import
 import { supabase } from "@/lib/supabaseClient";
 import type { Claim } from "@/data/mockClaims";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Geometry } from "geojson"; // Import Geometry type
 
 const fetchClaimById = async (claimId: string): Promise<Claim> => {
   const { data, error } = await supabase
@@ -32,6 +35,7 @@ const fetchClaimById = async (claimId: string): Promise<Claim> => {
     soilType: data.soil_type,
     waterAvailability: data.water_availability,
     estimatedCropValue: data.estimated_crop_value,
+    geometry: data.geometry as Geometry, // Ensure geometry is mapped
   };
 };
 
@@ -81,8 +85,8 @@ const ClaimDetail = () => {
         <p className="text-muted-foreground">Claim Holder: {claim.holderName}</p>
       </header>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <Card>
+      <div className="grid md:grid-cols-3 gap-6"> {/* Changed to 3 columns */}
+        <Card className="md:col-span-1"> {/* Claim Information */}
           <CardHeader>
             <CardTitle>Claim Information</CardTitle>
           </CardHeader>
@@ -95,7 +99,21 @@ const ClaimDetail = () => {
             <div className="flex justify-between items-center"><span>Status:</span> <Badge variant={claim.status === 'Approved' ? 'default' : claim.status === 'Pending' ? 'secondary' : 'destructive'}>{claim.status}</Badge></div>
           </CardContent>
         </Card>
-        <Card>
+
+        <Card className="md:col-span-1"> {/* Parcel Location */}
+          <CardHeader>
+            <CardTitle>Parcel Location</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {claim.geometry ? (
+              <ParcelMapDisplay geometry={claim.geometry} claimId={claim.id} />
+            ) : (
+              <div className="text-center text-muted-foreground py-4">No geometry data available for this claim.</div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-1"> {/* Scheme Eligibility */}
           <CardContent className="pt-6">
             <SchemeEligibility claim={claim} />
           </CardContent>
@@ -103,6 +121,7 @@ const ClaimDetail = () => {
       </div>
 
       <AiAnalysisPanel claim={claim} />
+      <SoilAnalysisPanel claim={claim} /> {/* New Soil Analysis Panel */}
     </div>
   );
 };
