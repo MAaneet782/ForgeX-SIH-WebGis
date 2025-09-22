@@ -12,7 +12,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter>
+      <BrowserRouter key="root-router"> {/* Added key here */}
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/atlas" element={<Atlas />} />
