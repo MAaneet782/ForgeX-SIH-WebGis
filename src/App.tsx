@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Toaster } from "sonner"; // Import Toaster for notifications
+// import { Toaster } from "sonner"; // Temporarily removed to diagnose rendering issue
 
 import LandingPage from "./pages/Landing";
 import Atlas from "./pages/Atlas";
@@ -10,8 +10,8 @@ import NotFound from "./pages/NotFound";
 
 const App = () => {
   return (
-    <> {/* Use a fragment here to wrap both Toaster and BrowserRouter */}
-      <Toaster richColors position="top-right" /> {/* Toaster for notifications */}
+    <>
+      {/* <Toaster richColors position="top-right" /> */} {/* Toaster temporarily removed */}
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<LandingPage />} />
