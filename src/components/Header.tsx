@@ -8,6 +8,7 @@ import { Search, MapPin, BarChart2, Bell, Mail, ChevronDown, User, Settings, Log
 import { Badge } from "@/components/ui/badge";
 import { showInfo } from "@/utils/toast";
 import FiltersPanel from "./FiltersPanel";
+import { ModeToggle } from "./ModeToggle";
 
 interface HeaderProps {
   searchTerm: string;
@@ -76,6 +77,8 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
             <p className="text-sm text-muted-foreground">No new messages.</p>
           </PopoverContent>
         </Popover>
+
+        <ModeToggle />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
