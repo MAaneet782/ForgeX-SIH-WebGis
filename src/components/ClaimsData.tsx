@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import AddClaimForm from "./AddClaimForm";
 import CsvUploadForm from "./CsvUploadForm"; // Import the new component
-import type { Claim } from "@/data/mockClaims";
+import type { Claim } from "@/types"; // Updated import
 import type { Geometry } from "geojson"; // Import Geometry type
 import { cn } from "@/lib/utils";
 import { Download, Search, Info, Upload } from "lucide-react"; // Add Upload icon
@@ -28,7 +28,7 @@ import { useState } from "react";
 
 interface ClaimsDataProps {
   claims: Claim[];
-  onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => void;
+  onAddClaim: (claim: Omit<Claim, 'id' | 'estimatedCropValue' | 'status' | 'soilType' | 'waterAvailability'> & { coordinates: string, status: Claim['status'], soilType: Claim['soilType'], waterAvailability: Claim['waterAvailability'] }) => void;
   // Changed type to include 'id' as it comes from 'claim_id' in CSV
   onUploadCsv: (claims: (Claim & { geometry: Geometry })[]) => void; 
   onGenerateReport: () => void;

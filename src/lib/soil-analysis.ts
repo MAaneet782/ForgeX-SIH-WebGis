@@ -1,4 +1,4 @@
-import type { Claim } from "@/data/mockClaims";
+import type { Claim } from "@/types"; // Updated import
 
 // --- Type Definitions ---
 export interface SoilComposition {

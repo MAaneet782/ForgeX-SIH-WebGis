@@ -9,7 +9,7 @@ import SchemeEligibility from "@/components/SchemeEligibility";
 import SoilAnalysisPanel from "@/components/SoilAnalysisPanel"; // New import
 import ParcelMapDisplay from "@/components/ParcelMapDisplay"; // New import
 import { supabase } from "@/lib/supabaseClient";
-import type { Claim } from "@/data/mockClaims";
+import type { Claim } from "@/types"; // Updated import
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Geometry } from "geojson"; // Import Geometry type
 

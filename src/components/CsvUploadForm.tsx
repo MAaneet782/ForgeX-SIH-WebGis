@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { SheetFooter } from "@/components/ui/sheet";
 import { showError, showLoading, dismissToast } from "@/utils/toast";
-import type { Claim } from "@/data/mockClaims";
+import type { Claim, ClaimStatus, SoilType, WaterAvailability } from "@/types"; // Updated import
 import type { Geometry } from "geojson";
 
 // Define the schema for a single row in the CSV
@@ -25,10 +25,10 @@ const csvRowSchema = z.object({
   district: z.string().min(1, "District is required"),
   state: z.string().min(1, "State is required"),
   area: z.coerce.number().nonnegative("Area must be a non-negative number"),
-  status: z.enum(["Approved", "Pending", "Rejected"], { message: "Invalid status" }),
+  status: z.enum(["Approved", "Pending", "Rejected"] as const, { message: "Invalid status" }),
   document_name: z.string().optional(),
-  soil_type: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite'], { message: "Invalid soil type" }),
-  water_availability: z.enum(['High', 'Medium', 'Low'], { message: "Invalid water availability" }),
+  soil_type: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite'] as const, { message: "Invalid soil type" }),
+  water_availability: z.enum(['High', 'Medium', 'Low'] as const, { message: "Invalid water availability" }),
   estimated_crop_value: z.coerce.number().nonnegative("Estimated crop value must be non-negative"),
   geometry: z.string().refine((val) => {
     try {
@@ -91,10 +91,10 @@ const CsvUploadForm = ({ onUpload, onClose }: CsvUploadFormProps) => {
             district: validatedData.district,
             state: validatedData.state,
             area: validatedData.area,
-            status: validatedData.status,
+            status: validatedData.status as ClaimStatus, // Cast to ClaimStatus
             documentName: validatedData.document_name,
-            soilType: validatedData.soil_type,
-            waterAvailability: validatedData.water_availability,
+            soilType: validatedData.soil_type as SoilType, // Cast to SoilType
+            waterAvailability: validatedData.water_availability as WaterAvailability, // Cast to WaterAvailability
             estimatedCropValue: validatedData.estimated_crop_value,
             geometry: JSON.parse(validatedData.geometry), // Parse GeoJSON string to object
           });

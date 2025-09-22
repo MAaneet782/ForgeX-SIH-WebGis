@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { waterBodiesGeoJson, agriLandGeoJson } from "@/data/mockClaims";
-import type { Claim } from "@/data/mockClaims";
+import type { Claim } from "@/types"; // Updated import
 import type { Feature, FeatureCollection, Geometry } from "geojson";
 import ClaimsData from "@/components/ClaimsData";
 import GisMap from "@/components/GisMap";
@@ -58,7 +58,7 @@ const IndexPageContent = () => {
   const [viewMode, setViewMode] = useState("default");
 
   const addClaimMutation = useMutation({
-    mutationFn: async (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue'> & { coordinates: string }) => {
+    mutationFn: async (newClaimData: Omit<Claim, 'id' | 'estimatedCropValue' | 'status' | 'soilType' | 'waterAvailability'> & { coordinates: string, status: Claim['status'], soilType: Claim['soilType'], waterAvailability: Claim['waterAvailability'] }) => {
       const toastId = showLoading("Adding new claim...");
       const { coordinates, ...rest } = newClaimData;
       const claim_id = `C${String(Math.floor(Math.random() * 900) + 100).padStart(3, '0')}`;

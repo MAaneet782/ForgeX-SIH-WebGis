@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SheetFooter } from "@/components/ui/sheet";
+import type { ClaimStatus, SoilType, WaterAvailability } from "@/types"; // Updated import
 
 const formSchema = z.object({
   holderName: z.string().min(2, { message: "Holder name must be at least 2 characters." }),
@@ -27,9 +28,9 @@ const formSchema = z.object({
   district: z.string().min(2, { message: "District name must be at least 2 characters." }),
   state: z.string().min(2, { message: "State name must be at least 2 characters." }),
   area: z.coerce.number().nonnegative({ message: "Area must be a non-negative number." }),
-  status: z.enum(["Approved", "Pending", "Rejected"]),
-  soilType: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite']),
-  waterAvailability: z.enum(['High', 'Medium', 'Low']),
+  status: z.enum(["Approved", "Pending", "Rejected"] as const),
+  soilType: z.enum(['Alluvial', 'Clay', 'Loamy', 'Laterite'] as const),
+  waterAvailability: z.enum(['High', 'Medium', 'Low'] as const),
   coordinates: z.string().refine((val) => {
     try {
       const parsed = JSON.parse(val);

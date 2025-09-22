@@ -1,5 +1,5 @@
 import { createContext, useReducer, useContext, ReactNode } from 'react';
-import type { Claim } from '@/data/mockClaims';
+import type { Claim } from '@/types'; // Updated import
 
 // --- STATE & ACTIONS ---
 type State = {

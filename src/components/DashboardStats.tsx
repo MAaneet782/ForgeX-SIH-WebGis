@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Claim } from "@/data/mockClaims";
+import type { Claim } from "@/types"; // Updated import
 import { FileText, CheckCircle, Clock, XCircle } from "lucide-react";
 
 interface DashboardStatsProps {

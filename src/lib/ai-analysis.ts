@@ -1,4 +1,4 @@
-import type { Claim } from "@/data/mockClaims";
+import type { Claim } from "@/types"; // Updated import
 import { Waves, Globe, Briefcase, DollarSign, CalendarDays, BadgeIndianRupee } from "lucide-react";
 
 // --- TYPE DEFINITIONS ---

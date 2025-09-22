@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
-import type { Claim } from "@/data/mockClaims";
+import type { Claim } from "@/types"; // Updated import
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, IndianRupee, Map, Users } from "lucide-react";
@@ -74,8 +74,11 @@ const Analytics = () => {
       totalValue,
       totalArea,
       totalClaims: claims.length,
-      valueByDistrict: Object.entries(valueByDistrict).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
-      valueBySoilType: Object.entries(valueBySoilType).map(([name, value]) => ({ name, value })),
+      valueByDistrict: Object.entries(valueByDistrict)
+        .map(([name, value]) => ({ name, value: value as number })) // Explicitly cast value to number
+        .sort((a, b) => b.value - a.value),
+      valueBySoilType: Object.entries(valueBySoilType)
+        .map(([name, value]) => ({ name, value: value as number })), // Explicitly cast value to number
     };
   }, [claims]);
 

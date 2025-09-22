@@ -1,19 +1,4 @@
-import { FeatureCollection, Geometry } from 'geojson';
-
-export type Claim = {
-  id: string;
-  holderName: string;
-  village: string;
-  district: string;
-  state: string;
-  area: number;
-  status: 'Approved' | 'Pending' | 'Rejected';
-  documentName?: string;
-  soilType: 'Alluvial' | 'Clay' | 'Loamy' | 'Laterite';
-  waterAvailability: 'High' | 'Medium' | 'Low';
-  estimatedCropValue: number; // in INR
-  geometry?: Geometry; // Added geometry property
-};
+import { FeatureCollection } from 'geojson';
 
 export const waterBodiesGeoJson: FeatureCollection = {
     type: "FeatureCollection",

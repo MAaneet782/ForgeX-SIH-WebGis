@@ -1,5 +1,5 @@
 import { CheckCircle, XCircle } from "lucide-react";
-import type { Claim } from "@/data/mockClaims";
+import type { Claim } from "@/types"; // Updated import
 
 interface SchemeEligibilityProps {
   claim: Claim;

@@ -4,7 +4,7 @@ import { Layer, LatLngExpression, PathOptions } from 'leaflet';
 import { useEffect } from 'react';
 import L from 'leaflet';
 import { useDashboardState } from '@/context/DashboardStateContext';
-import type { Claim } from '@/data/mockClaims';
+import type { Claim } from '@/types'; // Corrected import path
 
 interface GisMapProps {
   claims: Claim[];
