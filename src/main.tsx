@@ -3,11 +3,10 @@ import App from "./App.tsx";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { ThemeProvider } from "./components/theme-provider";
-import { Toaster as Sonner } from "@/components/ui/sonner"; // Import Sonner
+// Sonner import moved to App.tsx
 
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
     <App />
-    <Sonner /> {/* Render Sonner here */}
   </ThemeProvider>,
 );

@@ -6,6 +6,7 @@ import Atlas from "./pages/Atlas";
 import NotFound from "./pages/NotFound";
 import ClaimDetail from "./pages/ClaimDetail";
 import Analytics from "./pages/Analytics";
+import { Toaster as Sonner } from "@/components/ui/sonner"; // Import Sonner here
 
 const queryClient = new QueryClient();
 
@@ -13,6 +14,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
+        <Sonner /> {/* Render Sonner here, inside BrowserRouter */}
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/atlas" element={<Atlas />} />
