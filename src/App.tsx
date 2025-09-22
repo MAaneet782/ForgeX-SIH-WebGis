@@ -11,14 +11,17 @@ import NotFound from "./pages/NotFound";
 const App = () => {
   return (
     <BrowserRouter>
-      <Toaster richColors position="top-right" /> {/* Toaster for notifications */}
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/atlas" element={<Atlas />} />
-        <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
-        <Route path="/atlas/analytics" element={<Analytics />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      {/* Wrap Toaster and Routes in a React.Fragment to provide a single child to BrowserRouter */}
+      <React.Fragment>
+        <Toaster richColors position="top-right" /> {/* Toaster for notifications */}
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/atlas" element={<Atlas />} />
+          <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
+          <Route path="/atlas/analytics" element={<Analytics />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </React.Fragment>
     </BrowserRouter>
   );
 };
