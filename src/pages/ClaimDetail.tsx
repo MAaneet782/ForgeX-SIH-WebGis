@@ -126,7 +126,7 @@ const ClaimDetail = () => {
             Back to Atlas
           </Link>
         </Button>
-        <h1 className="text-3xl font-bold">Personal Dashboard</h1>
+        <h1 className="text-3xl font-bold text-shadow">Personal Dashboard</h1>
         <p className="text-muted-foreground">Claim Holder: {claim.holder_name}</p>
       </div>
 

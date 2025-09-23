@@ -17,7 +17,7 @@ const Landing = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-center">
         <div className="lg:col-span-3 space-y-4">
-          <h1 className="text-5xl font-bold tracking-tight">Forest Rights Act Digital Platform</h1>
+          <h1 className="text-5xl font-bold tracking-tight text-shadow">Forest Rights Act Digital Platform</h1>
           <p className="text-lg text-muted-foreground">
             A unified platform to digitize claims, map community lands, and deliver benefits to FRA Patta Holders with transparency and accountability.
           </p>

@@ -66,3 +66,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 1px 1px 3px hsl(var(--foreground) / 0.1);
+  }
+}

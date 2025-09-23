@@ -22,7 +22,7 @@ const PublicHeader = () => {
   };
 
   return (
-    <header className="bg-card p-4 border-b flex justify-between items-center">
+    <header className="bg-card p-4 border-b flex justify-between items-center shadow-sm">
       <nav className="flex items-center space-x-4 text-sm font-medium">
         <Link to="/" className="text-primary">Home</Link>
         <span className="text-muted-foreground">/</span>

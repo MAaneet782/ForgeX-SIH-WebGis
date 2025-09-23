@@ -159,7 +159,7 @@ const Analytics = () => {
   return (
     <div className="p-8 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Advanced Analytics</h1>
+        <h1 className="text-3xl font-bold text-shadow">Advanced Analytics</h1>
         <p className="text-muted-foreground">Aggregated and anonymized data from FRA claims.</p>
       </div>
 
