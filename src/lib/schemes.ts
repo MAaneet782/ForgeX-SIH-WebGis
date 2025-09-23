@@ -3,6 +3,7 @@ export interface Scheme {
   eligibility: string[];
   overview: string;
   benefits: string[];
+  link: string;
 }
 
 export const schemes: Scheme[] = [
@@ -11,6 +12,7 @@ export const schemes: Scheme[] = [
     eligibility: ["Landholding farmer families"],
     overview: "Scheme to provide benefits to farmers’ families to support their financial needs for inputs related to agriculture and other activities.",
     benefits: ["₹6,000 per year in 3 equal instalments"],
+    link: "https://pmkisan.gov.in/",
   },
   {
     name: "Dharti Aaba Janjatiya Gram Utkarsh Abhiyan (DAJGUA)",
@@ -24,6 +26,7 @@ export const schemes: Scheme[] = [
       "Beneficiaries: 5+ crore tribal people over 5 years.",
       "Benefits: Housing (₹1.5 lakh), health cover (₹5 lakh), scholarships, pensions, MSP, stipends, insurance, financial inclusion.",
     ],
+    link: "https://pmjanman.gov.in/",
   },
   {
     name: "Pradhan Mantri Awaas Yojana – Gramin (PMAY-G)",
@@ -38,6 +41,7 @@ export const schemes: Scheme[] = [
       "Toilet construction: ₹12,000 via SBM-G.",
       "MGNREGS wages: 90–95 person-days of unskilled labour.",
     ],
+    link: "https://pmayg.nic.in/",
   },
   {
     name: "Panchayats (Extension to Scheduled Areas) Act, 1996 (PESA)",
@@ -48,6 +52,7 @@ export const schemes: Scheme[] = [
       "Control over minor forest produce, land alienation, and local markets.",
       "Management of natural resources per tribal customs.",
     ],
+    link: "https://pesa.gov.in/",
   },
   {
     name: "Pradhan Mantri Jan Arogya Yojana (PMJAY)",
@@ -58,6 +63,7 @@ export const schemes: Scheme[] = [
     ],
     overview: "Plans to make secondary and tertiary healthcare completely cashless for the underprivileged section of society.",
     benefits: ["Health coverage of ₹5 lakh per family per year.", "Post-discharge care and medication expenses.", "Multi-surgical coverage."],
+    link: "https://pmjay.gov.in/",
   },
   {
     name: "Forest Rights Act, 2006 (FRA)",
@@ -71,5 +77,6 @@ export const schemes: Scheme[] = [
       "Rights to use, collect, and profit from minor forest produce.",
       "Rights to habitat and traditional livelihood (grazing, fishing, etc.).",
     ],
+    link: "https://tribal.nic.in/FRA.aspx",
   },
 ];

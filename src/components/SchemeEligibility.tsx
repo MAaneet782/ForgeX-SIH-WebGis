@@ -1,8 +1,10 @@
 import { useMemo } from "react";
-import { schemes, Scheme } from "@/lib/schemes";
+import { schemes } from "@/lib/schemes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "./ui/button";
+import { ExternalLink } from "lucide-react";
 
 // Define the type for a claim
 interface Claim {
@@ -81,6 +83,12 @@ const SchemeEligibility = ({ claim }: SchemeEligibilityProps) => {
                     {scheme.benefits.map((item, i) => <li key={i}>{item}</li>)}
                   </ul>
                 </div>
+                <Button asChild variant="link" className="p-0 h-auto">
+                  <a href={scheme.link} target="_blank" rel="noopener noreferrer">
+                    Learn More
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
               </AccordionContent>
             </AccordionItem>
           ))}
