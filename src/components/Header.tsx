@@ -52,8 +52,10 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs">2</Badge>
+              <>
+                <Bell className="h-5 w-5" />
+                <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs">2</Badge>
+              </>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80">
@@ -80,12 +82,14 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="https://github.com/shadcn.png" alt="Anita Devi" />
-                <AvatarFallback>AD</AvatarFallback>
-              </Avatar>
-              <span>Anita Devi</span>
-              <ChevronDown className="h-4 w-4" />
+              <>
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="https://github.com/shadcn.png" alt="Anita Devi" />
+                  <AvatarFallback>AD</AvatarFallback>
+                </Avatar>
+                <span>Anita Devi</span>
+                <ChevronDown className="h-4 w-4" />
+              </>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
