@@ -35,7 +35,7 @@ const PublicSidebar = () => {
         </nav>
       </div>
       <div className="flex flex-col space-y-2">
-         <Link to="#" className="flex items-center p-3 rounded-md hover:bg-primary-foreground/10">
+         <Link to="/login" className="flex items-center p-3 rounded-md hover:bg-primary-foreground/10">
             <LogIn className="mr-3 h-5 w-5" />
             Login
           </Link>
