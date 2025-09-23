@@ -10,6 +10,7 @@ import { MapContainer, TileLayer, Polygon } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { AlertTriangle, ArrowLeft, Info } from "lucide-react";
 import AiAnalysis from "@/components/AiAnalysis";
+import SchemeEligibility from "@/components/SchemeEligibility";
 
 // Define the type for a claim
 interface Claim {
@@ -156,16 +157,7 @@ const ClaimDetail = () => {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader><CardTitle>Scheme Eligibility</CardTitle></CardHeader>
-            <CardContent>
-                <div className="flex justify-between items-start">
-                    <h4 className="font-semibold">PM Kisan Samman Nidhi</h4>
-                    <Badge className="bg-green-500 hover:bg-green-600">Eligible</Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">Claim approved, not an institutional landholder.</p>
-            </CardContent>
-          </Card>
+          <SchemeEligibility claim={claim} />
         </div>
       </div>
     </div>
