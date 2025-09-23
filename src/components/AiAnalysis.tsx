@@ -1,7 +1,9 @@
 import { generateAiAnalysis } from "@/lib/aiUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle, AlertTriangle, Info } from "lucide-react";
+import SoilCompositionChart from "./SoilCompositionChart";
+import { Alert, AlertDescription } from "./ui/alert";
 
 interface AiAnalysisProps {
   claimId: string;
@@ -9,6 +11,14 @@ interface AiAnalysisProps {
 
 const AiAnalysis = ({ claimId }: AiAnalysisProps) => {
   const analysis = generateAiAnalysis(claimId);
+
+  const chartData = [
+    { subject: 'N', value: parseFloat(analysis.soilComposition.N), fullMark: 120 },
+    { subject: 'P', value: parseFloat(analysis.soilComposition.P), fullMark: 55 },
+    { subject: 'K', value: parseFloat(analysis.soilComposition.K), fullMark: 250 },
+    { subject: 'OM %', value: parseFloat(analysis.soilComposition.OM), fullMark: 3 },
+    { subject: 'pH', value: parseFloat(analysis.soilComposition.pH), fullMark: 10 },
+  ];
 
   const SoilParamItem = ({ label, value, unit }: { label: string, value: string, unit: string }) => (
     <div className="flex justify-between text-sm p-2 bg-muted/50 rounded-md">
@@ -25,13 +35,18 @@ const AiAnalysis = ({ claimId }: AiAnalysisProps) => {
       <CardContent className="space-y-6">
         <div>
           <h3 className="font-semibold mb-2">Soil Composition</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-            <SoilParamItem label="Nitrogen (N)" value={analysis.soilComposition.N} unit="ppm" />
-            <SoilParamItem label="Phosphorus (P)" value={analysis.soilComposition.P} unit="ppm" />
-            <SoilParamItem label="Potassium (K)" value={analysis.soilComposition.K} unit="ppm" />
-            <SoilParamItem label="pH" value={analysis.soilComposition.pH} unit="" />
-            <SoilParamItem label="Organic Matter" value={analysis.soilComposition.OM} unit="%" />
-            <SoilParamItem label="Temperature" value={analysis.soilComposition.Temperature} unit="°C" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+            <div>
+              <SoilCompositionChart data={chartData} />
+            </div>
+            <div className="space-y-2">
+              <SoilParamItem label="Nitrogen (N)" value={analysis.soilComposition.N} unit="ppm" />
+              <SoilParamItem label="Phosphorus (P)" value={analysis.soilComposition.P} unit="ppm" />
+              <SoilParamItem label="Potassium (K)" value={analysis.soilComposition.K} unit="ppm" />
+              <SoilParamItem label="pH" value={analysis.soilComposition.pH} unit="" />
+              <SoilParamItem label="Organic Matter" value={analysis.soilComposition.OM} unit="%" />
+              <SoilParamItem label="Temperature" value={analysis.soilComposition.Temperature} unit="°C" />
+            </div>
           </div>
         </div>
 
@@ -45,11 +60,14 @@ const AiAnalysis = ({ claimId }: AiAnalysisProps) => {
 
         <div>
           <h3 className="font-semibold mb-2">Improvement Recommendations</h3>
-          <ul className="space-y-2 list-disc list-inside text-sm">
+          <div className="space-y-2">
             {analysis.improvementRecommendations.map((rec, index) => (
-              <li key={index}>{rec}</li>
+              <Alert key={index}>
+                <Info className="h-4 w-4" />
+                <AlertDescription>{rec}</AlertDescription>
+              </Alert>
             ))}
-          </ul>
+          </div>
         </div>
 
         <div>

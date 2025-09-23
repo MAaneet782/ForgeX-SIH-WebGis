@@ -15,13 +15,18 @@ interface Claim {
   area: number;
   status: 'Approved' | 'Pending' | 'Rejected';
   created_at: string;
+  geometry: {
+    type: string;
+    coordinates: number[][][];
+  };
 }
 
 interface ClaimsTableProps {
   claims: Claim[];
+  onRowClick: (claim: Claim) => void;
 }
 
-const ClaimsTable = ({ claims }: ClaimsTableProps) => {
+const ClaimsTable = ({ claims, onRowClick }: ClaimsTableProps) => {
   const getStatusBadge = (status: Claim['status']) => {
     switch (status) {
       case 'Approved':
@@ -60,7 +65,7 @@ const ClaimsTable = ({ claims }: ClaimsTableProps) => {
           </TableHeader>
           <TableBody>
             {claims.map((claim) => (
-              <TableRow key={claim.id}>
+              <TableRow key={claim.id} onClick={() => onRowClick(claim)} className="cursor-pointer hover:bg-muted/50">
                 <TableCell className="font-medium">{claim.claim_id}</TableCell>
                 <TableCell>{claim.holder_name}</TableCell>
                 <TableCell>{claim.district}</TableCell>
@@ -69,10 +74,10 @@ const ClaimsTable = ({ claims }: ClaimsTableProps) => {
                 <TableCell>{new Date(claim.created_at).toLocaleDateString()}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end space-x-2">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onRowClick(claim); }}>
                       <Search className="h-4 w-4" />
                     </Button>
-                    <Button asChild>
+                    <Button asChild onClick={(e) => e.stopPropagation()}>
                       <Link to={`/atlas/claim/${claim.claim_id}`}>Details</Link>
                     </Button>
                   </div>

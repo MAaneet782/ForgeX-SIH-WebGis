@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Polygon, Popup } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
@@ -8,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
 import ClaimsTable from "@/components/ClaimsTable";
 import ClaimsAnalysis from "@/components/ClaimsAnalysis";
+import MapFlyTo from "@/components/MapFlyTo";
 
 // Define the type for a claim
 interface Claim {
@@ -42,6 +44,7 @@ const fetchClaims = async (): Promise<Claim[]> => {
 };
 
 const Atlas = () => {
+  const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
   const { data: claims, isLoading, isError, error } = useQuery<Claim[], Error>({
     queryKey: ["claims"],
     queryFn: fetchClaims,
@@ -128,11 +131,17 @@ const Atlas = () => {
               const coordinates = claim.geometry.coordinates[0].map(
                 (coord) => [coord[1], coord[0]]
               ) as LatLngExpression[];
+              
+              const isSelected = selectedClaim?.id === claim.id;
 
               return (
                 <Polygon
                   key={claim.id}
-                  pathOptions={{ color: getStatusColor(claim.status), weight: 2 }}
+                  pathOptions={{ 
+                    color: getStatusColor(claim.status), 
+                    weight: isSelected ? 5 : 2,
+                    fillOpacity: isSelected ? 0.7 : 0.4,
+                  }}
                   positions={coordinates}
                 >
                   <Popup>
@@ -145,11 +154,12 @@ const Atlas = () => {
                 </Polygon>
               );
             })}
+            <MapFlyTo claim={selectedClaim} />
           </MapContainer>
         </CardContent>
       </Card>
 
-      {claims && <ClaimsTable claims={claims} />}
+      {claims && <ClaimsTable claims={claims} onRowClick={setSelectedClaim} />}
       {claims && <ClaimsAnalysis claims={claims} />}
     </div>
   );
