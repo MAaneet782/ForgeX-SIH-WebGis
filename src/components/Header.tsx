@@ -36,7 +36,9 @@ const Header = ({ searchTerm, setSearchTerm, onFindMyParcel }: HeaderProps) => {
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" /> Apply Filters
+              <>
+                <Filter className="mr-2 h-4 w-4" /> Apply Filters
+              </>
             </Button>
           </PopoverTrigger>
           <PopoverContent>

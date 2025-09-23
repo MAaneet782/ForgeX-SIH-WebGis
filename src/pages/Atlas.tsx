@@ -11,7 +11,6 @@ import Header from "@/components/Header";
 import LayersPanel from "@/components/LayersPanel";
 import { DashboardStateProvider } from "@/context/DashboardStateContext";
 import { showError, showSuccess, showInfo, showLoading, dismissToast } from "@/utils/toast";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import DashboardStats from "@/components/DashboardStats";
 import DataVisualization from "@/components/DataVisualization";
 import DecisionSupportPanel from "@/components/DecisionSupportPanel";
@@ -138,8 +137,7 @@ const IndexPageContent = () => {
 
   const geoJsonData = useMemo((): FeatureCollection => {
     const features = claims.map((claim): Feature => {
-      // Use the geometry directly from the claim object
-      const geometry = claim.geometry || { type: "Polygon", coordinates: [[[0,0]]] }; // Fallback for safety
+      const geometry = claim.geometry || { type: "Polygon", coordinates: [[[0,0]]] };
       return {
         type: "Feature",
         properties: { claimId: claim.id, holderName: claim.holderName },
@@ -155,7 +153,6 @@ const IndexPageContent = () => {
   };
 
   const handleGenerateReport = () => {
-    // This function remains the same
     showSuccess("Report generated successfully!");
   };
 
@@ -188,56 +185,53 @@ const IndexPageContent = () => {
       <div className="col-span-2 z-10"><Header searchTerm={searchTerm} setSearchTerm={setSearchTerm} onFindMyParcel={handleFindMyParcel} /></div>
       <div className="row-start-2"><Sidebar onToggleLayersPanel={() => setIsLayersPanelOpen(true)} onGenerateReport={handleGenerateReport} onFindMyParcel={handleFindMyParcel} /></div>
       
-      <main className="row-start-2 overflow-hidden">
-        <ResizablePanelGroup direction="horizontal">
-          <ResizablePanel defaultSize={65} minSize={40}>
-            <div className="h-full overflow-y-auto p-6 space-y-6">
-              <header className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
-                  <p className="text-muted-foreground">Live Data from Supabase Database</p>
-                </div>
-                <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
-                  <ToggleGroupItem value="default" aria-label="Default view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
-                  <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4" /></ToggleGroupItem>
-                  <ToggleGroupItem value="map" aria-label="Map view"><Map className="h-4 w-4" /></ToggleGroupItem>
-                </ToggleGroup>
-              </header>
-              
-              <DashboardStats claims={claims} />
-              <DataVisualization claims={claims} />
-              
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Claims Explorer</h2>
-                <div className={cn("rounded-lg overflow-hidden border", viewMode === 'table' ? 'hidden' : 'block', viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
-                  <GisMap 
-                    claims={claims}
-                    claimsData={geoJsonData} 
-                    waterData={waterBodiesGeoJson}
-                    agriData={agriLandGeoJson}
-                    selectedClaimId={selectedClaimId} 
-                    onClaimSelect={setSelectedClaimId}
-                  />
-                </div>
-                <div className={cn(viewMode === 'map' ? 'hidden' : 'block')}>
-                  <ClaimsData 
-                    claims={filteredClaims}
-                    onAddClaim={(claim) => addClaimMutation.mutate(claim)}
-                    onUploadCsv={(claims) => uploadCsvMutation.mutate(claims)} // Pass the new mutation
-                    onGenerateReport={handleGenerateReport}
-                    onZoomToClaim={handleZoomToClaim}
-                  />
-                </div>
+      <main className="row-start-2 overflow-y-auto">
+        <div className="grid lg:grid-cols-5 gap-6 p-6">
+          <div className="lg:col-span-3 space-y-6">
+            <header className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl font-bold">WebGIS Dashboard</h1>
+                <p className="text-muted-foreground">Live Data from Supabase Database</p>
+              </div>
+              <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} size="sm">
+                <ToggleGroupItem value="default" aria-label="Default view"><LayoutGrid className="h-4 w-4" /></ToggleGroupItem>
+                <ToggleGroupItem value="table" aria-label="Table view"><Table className="h-4 w-4" /></ToggleGroupItem>
+                <ToggleGroupItem value="map" aria-label="Map view"><Map className="h-4 w-4" /></ToggleGroupItem>
+              </ToggleGroup>
+            </header>
+            
+            <DashboardStats claims={claims} />
+            <DataVisualization claims={claims} />
+            
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold">Claims Explorer</h2>
+              <div className={cn("rounded-lg overflow-hidden border", viewMode === 'table' ? 'hidden' : 'block', viewMode === 'map' ? 'h-[70vh]' : 'h-[50vh] min-h-[450px]')}>
+                <GisMap 
+                  claims={claims}
+                  claimsData={geoJsonData} 
+                  waterData={waterBodiesGeoJson}
+                  agriData={agriLandGeoJson}
+                  selectedClaimId={selectedClaimId} 
+                  onClaimSelect={setSelectedClaimId}
+                />
+              </div>
+              <div className={cn(viewMode === 'map' ? 'hidden' : 'block')}>
+                <ClaimsData 
+                  claims={filteredClaims}
+                  onAddClaim={(claim) => addClaimMutation.mutate(claim)}
+                  onUploadCsv={(claims) => uploadCsvMutation.mutate(claims)}
+                  onGenerateReport={handleGenerateReport}
+                  onZoomToClaim={handleZoomToClaim}
+                />
               </div>
             </div>
-          </ResizablePanel>
-          <ResizableHandle withHandle />
-          <ResizablePanel defaultSize={35} minSize={25}>
-            <div className="h-full overflow-y-auto p-6">
+          </div>
+          <div className="lg:col-span-2">
+            <div className="sticky top-6">
               <DecisionSupportPanel claim={selectedClaim} />
             </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          </div>
+        </div>
       </main>
       
       <LayersPanel isOpen={isLayersPanelOpen} onOpenChange={setIsLayersPanelOpen} />
