@@ -56,7 +56,12 @@ export const generateAiAnalysis = (claimId: string) => {
         Zn: (random() * 5 + 0.5).toFixed(2), Mn: (random() * 10 + 1).toFixed(2),
     };
 
-    const healthScore = (parseFloat(soilParams.OM) / 2.5) * 40 + (6.5 - Math.abs(6.5 - parseFloat(soilParams.pH))) * 30 + (parseFloat(soilParams.N) / 120) * 30;
+    // Corrected health score calculation
+    const omScore = (parseFloat(soilParams.OM) / 2.5) * 40;
+    const phScore = (1 - (Math.abs(6.5 - parseFloat(soilParams.pH)) / 2.5)) * 30;
+    const nScore = (parseFloat(soilParams.N) / 120) * 30;
+    const healthScore = Math.min(100, omScore + phScore + nScore);
+
     const soilHealth = healthScore > 75 ? 'Good' : healthScore > 50 ? 'Moderate' : 'Poor';
 
     const recommendations = [
