@@ -36,9 +36,9 @@ const Landing = () => {
         </div>
         <div className="lg:col-span-2">
           <img 
-            src="/placeholder.svg" 
+            src="/hero-image.webp" 
             alt="Community meeting" 
-            className="rounded-lg shadow-lg w-full h-auto object-cover bg-card"
+            className="rounded-lg w-full h-auto object-cover"
           />
           <p className="text-center text-sm text-muted-foreground mt-2">
             Supporting communities through data and maps
