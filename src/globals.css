@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 220 20% 97%; /* Light cool gray */
+    --background: 220 20% 97%;
     --foreground: 220 10% 10%;
 
     --card: 0 0% 100%;
@@ -13,7 +13,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 10% 10%;
 
-    --primary: 170 65% 35%; /* Teal */
+    --primary: 175 65% 35%; /* Updated Teal/Green */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 220 15% 90%;
@@ -30,7 +30,7 @@
 
     --border: 220 15% 88%;
     --input: 220 15% 88%;
-    --ring: 170 65% 35%;
+    --ring: 175 65% 35%; /* Updated Teal/Green */
 
     --radius: 0.5rem;
   }
@@ -42,7 +42,7 @@
     --card-foreground: 0 0% 98%;
     --popover: 220 15% 10%;
     --popover-foreground: 0 0% 98%;
-    --primary: 170 60% 45%;
+    --primary: 175 60% 45%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 15% 15%;
     --secondary-foreground: 0 0% 98%;
@@ -54,7 +54,7 @@
     --destructive-foreground: 0 0% 98%;
     --border: 220 15% 20%;
     --input: 220 15% 20%;
-    --ring: 170 60% 45%;
+    --ring: 175 60% 45%;
   }
 }
 
