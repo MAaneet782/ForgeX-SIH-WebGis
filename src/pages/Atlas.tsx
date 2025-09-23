@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
+import ClaimsTable from "@/components/ClaimsTable";
+import ClaimsAnalysis from "@/components/ClaimsAnalysis";
 
 // Define the type for a claim
 interface Claim {
@@ -21,11 +23,16 @@ interface Claim {
     type: string;
     coordinates: number[][][];
   };
+  created_at: string;
 }
 
 // Function to fetch claims data from Supabase
 const fetchClaims = async (): Promise<Claim[]> => {
-  const { data, error } = await supabase.from("claims").select("*");
+  const { data, error } = await supabase
+    .from("claims")
+    .select("*")
+    .in("state", ["Odisha", "Madhya Pradesh"])
+    .limit(20);
 
   if (error) {
     throw new Error(error.message);
@@ -85,8 +92,7 @@ const Atlas = () => {
   const approvedClaims = claims?.filter(c => c.status === 'Approved').length || 0;
   const pendingClaims = claims?.filter(c => c.status === 'Pending').length || 0;
 
-  // Calculate the center of the map
-  const center: LatLngExpression = [20.5937, 78.9629]; // Centered on India
+  const center: LatLngExpression = [22.9734, 78.6569]; // Centered on Central India
 
   return (
     <div className="p-8 space-y-6">
@@ -97,39 +103,28 @@ const Atlas = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <CardHeader>
-            <CardTitle>Total Claims</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold">{totalClaims}</p>
-          </CardContent>
+          <CardHeader><CardTitle>Total Claims Displayed</CardTitle></CardHeader>
+          <CardContent><p className="text-4xl font-bold">{totalClaims}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>Approved Claims</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-green-600">{approvedClaims}</p>
-          </CardContent>
+          <CardHeader><CardTitle>Approved Claims</CardTitle></CardHeader>
+          <CardContent><p className="text-4xl font-bold text-green-600">{approvedClaims}</p></CardContent>
         </Card>
         <Card>
-          <CardHeader>
-            <CardTitle>Pending Claims</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-4xl font-bold text-yellow-600">{pendingClaims}</p>
-          </CardContent>
+          <CardHeader><CardTitle>Pending Claims</CardTitle></CardHeader>
+          <CardContent><p className="text-4xl font-bold text-yellow-600">{pendingClaims}</p></CardContent>
         </Card>
       </div>
 
       <Card>
         <CardContent className="p-0">
-          <MapContainer center={center} zoom={5} style={{ height: '600px', width: '100%' }}>
+          <MapContainer center={center} zoom={6} style={{ height: '600px', width: '100%' }}>
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             {claims?.map((claim) => {
+              if (!claim.geometry) return null;
               const coordinates = claim.geometry.coordinates[0].map(
                 (coord) => [coord[1], coord[0]]
               ) as LatLngExpression[];
@@ -144,9 +139,7 @@ const Atlas = () => {
                     <div>
                       <h3 className="font-bold">{claim.holder_name}</h3>
                       <p><strong>Claim ID:</strong> {claim.claim_id}</p>
-                      <p><strong>Village:</strong> {claim.village}</p>
                       <p><strong>Status:</strong> {claim.status}</p>
-                      <p><strong>Area:</strong> {claim.area} acres</p>
                     </div>
                   </Popup>
                 </Polygon>
@@ -155,6 +148,9 @@ const Atlas = () => {
           </MapContainer>
         </CardContent>
       </Card>
+
+      {claims && <ClaimsTable claims={claims} />}
+      {claims && <ClaimsAnalysis claims={claims} />}
     </div>
   );
 };
