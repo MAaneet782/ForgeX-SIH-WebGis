@@ -11,6 +11,7 @@ import { LatLngExpression } from "leaflet";
 import { AlertTriangle, ArrowLeft, Info } from "lucide-react";
 import AiAnalysis from "@/components/AiAnalysis";
 import SchemeEligibility from "@/components/SchemeEligibility";
+import GroundwaterAnalysis from "@/components/GroundwaterAnalysis";
 
 // Define the type for a claim
 interface Claim {
@@ -157,6 +158,7 @@ const ClaimDetail = () => {
             </CardContent>
           </Card>
           
+          <GroundwaterAnalysis claimId={claim.claim_id} />
           <SchemeEligibility claim={claim} />
         </div>
       </div>

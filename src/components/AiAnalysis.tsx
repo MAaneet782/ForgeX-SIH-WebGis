@@ -1,9 +1,10 @@
 import { generateAiAnalysis } from "@/lib/aiUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle, AlertTriangle, Info } from "lucide-react";
+import { CheckCircle, AlertTriangle, Info, Award } from "lucide-react";
 import SoilCompositionChart from "./SoilCompositionChart";
 import { Alert, AlertDescription } from "./ui/alert";
+import { Badge } from "./ui/badge";
 
 interface AiAnalysisProps {
   claimId: string;
@@ -76,8 +77,17 @@ const AiAnalysis = ({ claimId }: AiAnalysisProps) => {
             {analysis.cropRecommendations.map((crop, index) => (
               <AccordionItem value={`item-${index}`} key={index}>
                 <AccordionTrigger>{crop.name} ({crop.season})</AccordionTrigger>
-                <AccordionContent>
-                  {crop.notes}
+                <AccordionContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground">{crop.notes}</p>
+                  {crop.subsidy && (
+                    <div className="flex items-start p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <Award className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0 mt-1" />
+                      <div>
+                        <Badge variant="secondary" className="mb-1 bg-blue-100 text-blue-800">{crop.subsidy.scheme}</Badge>
+                        <p className="text-sm text-blue-700">{crop.subsidy.details}</p>
+                      </div>
+                    </div>
+                  )}
                 </AccordionContent>
               </AccordionItem>
             ))}
