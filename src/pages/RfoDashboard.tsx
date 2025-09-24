@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
 import { Link } from "react-router-dom";
@@ -10,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { MapContainer, TileLayer, Polygon } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { AlertTriangle, FileClock, MapPin, CheckCircle, ArrowRight } from "lucide-react";
+import MapFlyTo from "@/components/MapFlyTo"; // Import MapFlyTo
 
 // Define the type for a claim
 interface Claim {
@@ -53,6 +55,8 @@ const StatCard = ({ title, value, icon: Icon, color, unit = "" }) => (
 );
 
 const RfoDashboard = () => {
+  const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null); // State to hold the selected claim
+
   const { data: claims, isLoading, isError, error } = useQuery<Claim[], Error>({
     queryKey: ["pendingClaims"],
     queryFn: fetchPendingClaims,
@@ -83,7 +87,9 @@ const RfoDashboard = () => {
   }
 
   const totalArea = claims.reduce((sum, claim) => sum + claim.area, 0);
-  const center: LatLngExpression = claims.length > 0 && claims[0].geometry 
+  
+  // Set initial map center to the first claim if available, otherwise a default
+  const initialCenter: LatLngExpression = claims.length > 0 && claims[0].geometry 
     ? [claims[0].geometry.coordinates[0][0][1], claims[0].geometry.coordinates[0][0][0]]
     : [22.9734, 78.6569];
 
@@ -119,7 +125,11 @@ const RfoDashboard = () => {
                 </TableHeader>
                 <TableBody>
                   {claims.map((claim) => (
-                    <TableRow key={claim.id}>
+                    <TableRow 
+                      key={claim.id} 
+                      onClick={() => setSelectedClaim(claim)} // Set selected claim on row click
+                      className="cursor-pointer hover:bg-muted/50"
+                    >
                       <TableCell className="font-medium">{claim.claim_id}</TableCell>
                       <TableCell>{claim.holder_name}</TableCell>
                       <TableCell>{claim.village}</TableCell>
@@ -145,15 +155,29 @@ const RfoDashboard = () => {
               <CardTitle>Pending Claims Map</CardTitle>
             </CardHeader>
             <CardContent>
-              <MapContainer center={center} zoom={8} style={{ height: '400px', width: '100%' }} className="rounded-md">
+              <MapContainer center={initialCenter} zoom={8} style={{ height: '400px', width: '100%' }} className="rounded-md">
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 {claims.map((claim) => {
                   if (!claim.geometry) return null;
                   const coordinates = claim.geometry.coordinates[0].map(
                     (coord) => [coord[1], coord[0]]
                   ) as LatLngExpression[];
-                  return <Polygon key={claim.id} pathOptions={{ color: 'orange' }} positions={coordinates} />;
+                  
+                  const isSelected = selectedClaim?.id === claim.id; // Check if this claim is selected
+
+                  return (
+                    <Polygon 
+                      key={claim.id} 
+                      pathOptions={{ 
+                        color: isSelected ? 'cyan' : 'orange', // Highlight selected claim
+                        weight: isSelected ? 5 : 2,
+                        fillOpacity: isSelected ? 0.7 : 0.4,
+                      }} 
+                      positions={coordinates} 
+                    />
+                  );
                 })}
+                <MapFlyTo claim={selectedClaim} /> {/* Pass selectedClaim to MapFlyTo */}
               </MapContainer>
             </CardContent>
           </Card>
