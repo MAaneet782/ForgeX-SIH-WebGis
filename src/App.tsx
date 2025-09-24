@@ -9,6 +9,8 @@ import Atlas from "./pages/Atlas";
 import ClaimDetail from "./pages/ClaimDetail";
 import Analytics from "./pages/Analytics";
 import Login from "./pages/Login";
+import Schemes from "./pages/Schemes";
+import RfoDashboard from "./pages/RfoDashboard";
 
 const App = () => {
   return (
@@ -23,6 +25,8 @@ const App = () => {
           <Route path="/atlas" element={<Atlas />} />
           <Route path="/atlas/analytics" element={<Analytics />} />
           <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
+          <Route path="/atlas/schemes" element={<Schemes />} />
+          <Route path="/atlas/rfo-dashboard" element={<RfoDashboard />} />
         </Route>
 
         <Route path="/login" element={<Login />} />
