@@ -33,6 +33,15 @@
     --ring: 175 65% 35%; /* Updated Teal/Green */
 
     --radius: 0.5rem;
+
+    --sidebar-background: 220 20% 97%;
+    --sidebar-foreground: 220 10% 10%;
+    --sidebar-primary: 175 65% 35%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 15% 90%;
+    --sidebar-accent-foreground: 220 10% 10%;
+    --sidebar-border: 220 15% 88%;
+    --sidebar-ring: 175 65% 35%;
   }
 
   .dark {
@@ -55,6 +64,15 @@
     --border: 220 15% 20%;
     --input: 220 15% 20%;
     --ring: 175 60% 45%;
+
+    --sidebar-background: 175 40% 18%; /* Dark Teal */
+    --sidebar-foreground: 175 15% 85%;
+    --sidebar-primary: 175 60% 65%; /* Lighter Teal for accents */
+    --sidebar-primary-foreground: 175 40% 10%;
+    --sidebar-accent: 175 40% 25%; /* Hover color */
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 175 40% 28%;
+    --sidebar-ring: 175 60% 65%;
   }
 }
 

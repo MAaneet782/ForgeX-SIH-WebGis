@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 
 import PublicLayout from "./components/PublicLayout";
+import AtlasLayout from "./components/AtlasLayout";
 import Landing from "./pages/Landing";
 import Atlas from "./pages/Atlas";
 import ClaimDetail from "./pages/ClaimDetail";
@@ -16,11 +17,14 @@ const App = () => {
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Landing />} />
-          <Route path="/atlas/analytics" element={<Analytics />} />
         </Route>
         
-        <Route path="/atlas" element={<Atlas />} />
-        <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
+        <Route element={<AtlasLayout />}>
+          <Route path="/atlas" element={<Atlas />} />
+          <Route path="/atlas/analytics" element={<Analytics />} />
+          <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
+        </Route>
+
         <Route path="/login" element={<Login />} />
       </Routes>
     </div>
