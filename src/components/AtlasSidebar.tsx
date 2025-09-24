@@ -82,9 +82,9 @@ const AtlasSidebar = () => {
 
           <SectionTitle text="Patta Holder" />
           <ActionItem icon={Search} text="Find My Parcel" />
-          <ActionItem icon={Shield} text="Types of Rights" />
+          <NavItem icon={Shield} text="Types of Rights" to="/atlas/rights" />
           <NavItem icon={DollarSign} text="Schemes" to="/atlas/schemes" />
-          <ActionItem icon={Leaf} text="Agriculture" />
+          <NavItem icon={Leaf} text="Agriculture" to="/atlas/agriculture" />
         </nav>
       </div>
     </aside>
