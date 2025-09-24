@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/SessionContext";
+import { ThemeToggle } from "./ThemeToggle";
 
 const PublicHeader = () => {
   const { user, signOut } = useAuth();
@@ -35,6 +36,7 @@ const PublicHeader = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search site" className="pl-9" />
         </div>
+        <ThemeToggle />
         <Button variant="ghost" size="icon">
           <Bell className="h-5 w-5" />
         </Button>

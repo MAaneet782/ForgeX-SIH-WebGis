@@ -6,6 +6,7 @@ import App from "./App.tsx";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 import { SessionProvider } from "./context/SessionContext.tsx";
+import { ThemeProvider } from "./components/ThemeProvider.tsx";
 
 const queryClient = new QueryClient();
 
@@ -14,7 +15,9 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <SessionProvider>
-          <App />
+          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <App />
+          </ThemeProvider>
         </SessionProvider>
       </BrowserRouter>
     </QueryClientProvider>

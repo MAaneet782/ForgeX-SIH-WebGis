@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/context/SessionContext";
 import { Avatar, AvatarFallback } from "./ui/avatar";
+import { ThemeToggle } from "./ThemeToggle";
 
 const AtlasHeader = () => {
   const { user, signOut } = useAuth();
@@ -45,6 +46,7 @@ const AtlasHeader = () => {
         <Button variant="ghost" size="icon">
           <RefreshCw className="h-5 w-5" />
         </Button>
+        <ThemeToggle />
         <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
           <span className="absolute top-1 right-1 flex h-2 w-2">
