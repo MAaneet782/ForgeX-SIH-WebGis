@@ -13,6 +13,7 @@ import Schemes from "./pages/Schemes";
 import RfoDashboard from "./pages/RfoDashboard";
 import Agriculture from "./pages/Agriculture";
 import Rights from "./pages/Rights";
+import FindMyParcel from "./pages/FindMyParcel"; // Import the new component
 
 const App = () => {
   return (
@@ -31,6 +32,7 @@ const App = () => {
           <Route path="/atlas/rfo-dashboard" element={<RfoDashboard />} />
           <Route path="/atlas/agriculture" element={<Agriculture />} />
           <Route path="/atlas/rights" element={<Rights />} />
+          <Route path="/atlas/find-my-parcel" element={<FindMyParcel />} /> {/* New route */}
         </Route>
 
         <Route path="/login" element={<Login />} />

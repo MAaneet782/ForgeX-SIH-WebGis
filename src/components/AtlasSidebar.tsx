@@ -81,7 +81,7 @@ const AtlasSidebar = () => {
           <NavItem icon={BarChart3} text="Thematic Analysis" to="/atlas/analytics" />
 
           <SectionTitle text="Patta Holder" />
-          <ActionItem icon={Search} text="Find My Parcel" />
+          <NavItem icon={Search} text="Find My Parcel" to="/atlas/find-my-parcel" /> {/* Updated to NavItem */}
           <NavItem icon={Shield} text="Types of Rights" to="/atlas/rights" />
           <NavItem icon={DollarSign} text="Schemes" to="/atlas/schemes" />
           <NavItem icon={Leaf} text="Agriculture" to="/atlas/agriculture" />
