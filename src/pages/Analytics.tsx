@@ -3,7 +3,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle, BarChart, PieChart, AreaChart } from "lucide-react";
+import { AlertTriangle, BarChart, PieChart, AreaChart, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import Papa from "papaparse";
 import {
   Bar,
   BarChart as ReBarChart,
@@ -156,11 +158,46 @@ const Analytics = () => {
     groundwater: { 'Excellent': '#3b82f6', 'Good': '#22c55e', 'Moderate': '#f59e0b', 'Poor': '#ef4444' },
   };
 
+  const handleExportAnalytics = () => {
+    const sections = [
+      { title: "Claims by Status", data: statusData },
+      { title: "Claims by State", data: stateData },
+      { title: "Soil Health Distribution", data: soilHealthData },
+      { title: "Groundwater Potential", data: groundwaterData },
+      { title: "Top Recommended Crops", data: cropData },
+      { title: "Claims Over Time", data: claimsOverTime },
+    ];
+
+    const csvContent = sections
+      .map(section => {
+        const header = `# ${section.title}`;
+        const csv = Papa.unparse(section.data);
+        return `${header}\n${csv}`;
+      })
+      .join("\n\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'fra_analytics_export.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="p-8 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-shadow">Advanced Analytics</h1>
-        <p className="text-muted-foreground">Aggregated and anonymized data from FRA claims.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-shadow">Advanced Analytics</h1>
+          <p className="text-muted-foreground">Aggregated and anonymized data from FRA claims.</p>
+        </div>
+        <Button onClick={handleExportAnalytics}>
+          <Download className="mr-2 h-4 w-4" />
+          Export Analytics
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
