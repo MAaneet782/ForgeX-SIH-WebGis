@@ -2,23 +2,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { PlusCircle } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { showLoading, showSuccess, showError, dismissToast } from "@/utils/toast";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const claimSchema = z.object({
   claim_id: z.string().min(1, "Claim ID is required"),
@@ -32,9 +24,9 @@ const claimSchema = z.object({
 
 type ClaimFormValues = z.infer<typeof claimSchema>;
 
-const AddClaimModal = () => {
-  const [open, setOpen] = useState(false);
+const AddClaimPage = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const form = useForm<ClaimFormValues>({
     resolver: zodResolver(claimSchema),
     defaultValues: {
@@ -52,25 +44,29 @@ const AddClaimModal = () => {
     } else {
       showSuccess("Claim added successfully!");
       queryClient.invalidateQueries({ queryKey: ["claims"] });
-      setOpen(false);
+      navigate('/atlas'); // Redirect back to the Atlas page after adding
       form.reset();
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline"><PlusCircle className="mr-2 h-4 w-4" /> Add Claim</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add New Claim</DialogTitle>
-          <DialogDescription>
-            Enter the details for the new claim. Click save when you're done.
-          </DialogDescription>
-        </DialogHeader>
+    <div className="p-6 lg:p-8 bg-muted/40 min-h-screen">
+      <div className="mb-6">
+        <Button asChild variant="outline" className="mb-4">
+          <Link to="/atlas">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Atlas
+          </Link>
+        </Button>
+        <h1 className="text-3xl font-bold text-shadow">Add New Claim</h1>
+        <p className="text-muted-foreground">
+          Enter the details for the new claim.
+        </p>
+      </div>
+
+      <div className="max-w-2xl mx-auto bg-card p-8 rounded-lg shadow-lg border">
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="claim_id"
@@ -159,16 +155,14 @@ const AddClaimModal = () => {
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Saving..." : "Save changes"}
-              </Button>
-            </DialogFooter>
+            <Button type="submit" disabled={form.formState.isSubmitting} className="w-full">
+              {form.formState.isSubmitting ? "Saving..." : "Save Claim"}
+            </Button>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };
 
-export default AddClaimModal;
+export default AddClaimPage;

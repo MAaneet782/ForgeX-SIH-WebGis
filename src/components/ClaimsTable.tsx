@@ -2,13 +2,12 @@ import { Link } from "react-router-dom";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Download, Search } from "lucide-react";
+import { Upload, Download, Search, PlusCircle } from "lucide-react";
 import { useRef } from "react";
 import Papa from "papaparse";
 import { supabase } from "@/lib/supabaseClient";
 import { showLoading, showSuccess, showError, dismissToast } from "@/utils/toast";
 import { useQueryClient } from "@tanstack/react-query";
-import AddClaimModal from "./AddClaimModal";
 
 // Define the type for a claim
 interface Claim {
@@ -139,7 +138,11 @@ const ClaimsTable = ({ claims, onRowClick }: ClaimsTableProps) => {
         <h2 className="text-2xl font-bold">Search Results: FRA Parcels</h2>
         <div className="flex items-center space-x-4">
           <a href="/claims_template.csv" download className="text-sm text-muted-foreground hover:text-primary underline">Download Template</a>
-          <AddClaimModal />
+          <Button asChild variant="outline">
+            <Link to="/atlas/add-claim">
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Claim
+            </Link>
+          </Button>
           <Button variant="outline" onClick={handleUploadClick}>
             <Upload className="mr-2 h-4 w-4" /> Upload CSV
           </Button>

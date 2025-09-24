@@ -13,7 +13,8 @@ import Schemes from "./pages/Schemes";
 import RfoDashboard from "./pages/RfoDashboard";
 import Agriculture from "./pages/Agriculture";
 import Rights from "./pages/Rights";
-import FindMyParcel from "./pages/FindMyParcel"; // Import the new component
+import FindMyParcel from "./pages/FindMyParcel";
+import AddClaimPage from "./pages/AddClaimPage"; // Import the new AddClaimPage
 
 const App = () => {
   return (
@@ -32,7 +33,8 @@ const App = () => {
           <Route path="/atlas/rfo-dashboard" element={<RfoDashboard />} />
           <Route path="/atlas/agriculture" element={<Agriculture />} />
           <Route path="/atlas/rights" element={<Rights />} />
-          <Route path="/atlas/find-my-parcel" element={<FindMyParcel />} /> {/* New route */}
+          <Route path="/atlas/find-my-parcel" element={<FindMyParcel />} />
+          <Route path="/atlas/add-claim" element={<AddClaimPage />} /> {/* New route for adding claims */}
         </Route>
 
         <Route path="/login" element={<Login />} />
