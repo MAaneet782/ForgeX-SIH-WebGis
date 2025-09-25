@@ -21,7 +21,7 @@ const Landing = () => {
           <p className="text-lg text-muted-foreground">
             A unified platform to digitize claims, map community lands, and deliver benefits to FRA Patta Holders with transparency and accountability.
           </p>
-          <div className="flex space-x-4 pt-4">
+          <div className="flex flex-wrap gap-4 pt-4">
             <Button asChild size="lg">
               <Link to="/atlas">
                 Explore FRA Atlas <ArrowRight className="ml-2 h-4 w-4" />
@@ -30,6 +30,11 @@ const Landing = () => {
             <Button asChild variant="outline" size="lg">
               <Link to="/atlas/analytics">
                 View Analytics
+              </Link>
+            </Button>
+            <Button asChild variant="outline" size="lg">
+              <Link to="/atlas/state-wise-analytics">
+                State Wise Analytics
               </Link>
             </Button>
           </div>
