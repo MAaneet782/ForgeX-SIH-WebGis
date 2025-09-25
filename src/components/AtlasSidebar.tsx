@@ -1,9 +1,6 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
-  Layers,
-  Map,
-  Filter,
   BarChart3,
   Search,
   Shield,
@@ -75,9 +72,6 @@ const AtlasSidebar = () => {
           <NavItem icon={LayoutDashboard} text="RFO Dashboard" to="/atlas/rfo-dashboard" />
 
           <SectionTitle text="Map Tools" />
-          <ActionItem icon={Layers} text="Layers Panel" />
-          <ActionItem icon={Map} text="Basemap Switcher" />
-          <ActionItem icon={Filter} text="Advanced Filters" />
           <NavItem icon={BarChart3} text="Thematic Analysis" to="/atlas/analytics" />
 
           <SectionTitle text="Patta Holder" />
