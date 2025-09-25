@@ -1,5 +1,5 @@
 // A simple pseudo-random generator to make mock data deterministic based on claim ID
-const seededRandom = (seed: number) => {
+export const seededRandom = (seed: number) => {
     let state = seed;
     return () => {
         state = (state * 9301 + 49297) % 233280;
@@ -8,7 +8,7 @@ const seededRandom = (seed: number) => {
 };
 
 // Convert string to a number for seeding
-const stringToSeed = (str: string) => {
+export const stringToSeed = (str: string) => {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
         const char = str.charCodeAt(i);

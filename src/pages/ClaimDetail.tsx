@@ -6,12 +6,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapContainer, TileLayer, Polygon } from "react-leaflet";
+import { MapContainer, TileLayer, Polygon, Marker, Popup } from "react-leaflet"; // Import Marker and Popup
 import { LatLngExpression } from "leaflet";
 import { AlertTriangle, ArrowLeft, Info } from "lucide-react";
 import AiAnalysis from "@/components/AiAnalysis";
 import SchemeEligibility from "@/components/SchemeEligibility";
 import GroundwaterAnalysis from "@/components/GroundwaterAnalysis";
+import { generateGroundwaterAnalysis, seededRandom, stringToSeed } from "@/lib/aiUtils"; // Import AI utilities
 
 // Define the type for a claim
 interface Claim {
@@ -46,6 +47,39 @@ const fetchClaimById = async (claimId: string): Promise<Claim | null> => {
 
   return data as Claim;
 };
+
+// Helper function to generate mock water points within the claim's geometry
+const generateWaterPoints = (claim: Claim, numPoints: number = 3) => {
+  if (!claim.geometry || !claim.geometry.coordinates || claim.geometry.coordinates[0].length === 0) {
+    return [];
+  }
+
+  const coords = claim.geometry.coordinates[0];
+  let minLat = Infinity, maxLat = -Infinity;
+  let minLng = Infinity, maxLng = -Infinity;
+
+  coords.forEach(coord => {
+    const [lng, lat] = coord;
+    minLat = Math.min(minLat, lat);
+    maxLat = Math.max(maxLat, lat);
+    minLng = Math.min(minLng, lng);
+    maxLng = Math.max(maxLng, lng);
+  });
+
+  const waterPoints: { position: LatLngExpression; index: string }[] = [];
+  const random = seededRandom(stringToSeed(claim.claim_id + "water_points")); // Use a specific seed for water points
+
+  for (let i = 0; i < numPoints; i++) {
+    const lat = minLat + random() * (maxLat - minLat);
+    const lng = minLng + random() * (maxLng - minLng);
+    // Generate a water index based on the claim's groundwater analysis, with some variation
+    const baseScore = generateGroundwaterAnalysis(claim.claim_id).score;
+    const waterIndex = (baseScore * 10 + (random() - 0.5) * 20).toFixed(1); // Scale to 100 and add small variation
+    waterPoints.push({ position: [lat, lng], index: waterIndex });
+  }
+  return waterPoints;
+};
+
 
 const ClaimDetail = () => {
   const { claimId } = useParams<{ claimId: string }>();
@@ -117,6 +151,8 @@ const ClaimDetail = () => {
     }
   };
 
+  const waterPoints = generateWaterPoints(claim); // Generate water points
+
   return (
     <div className="p-6 lg:p-8 bg-muted/40 min-h-screen">
       <div className="mb-6">
@@ -154,6 +190,11 @@ const ClaimDetail = () => {
               <MapContainer center={center} zoom={15} style={{ height: '200px', width: '100%' }} className="rounded-md">
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                 <Polygon pathOptions={{ color: 'blue' }} positions={coordinates} />
+                {waterPoints.map((point, index) => (
+                  <Marker key={index} position={point.position}>
+                    <Popup>Water Index: {point.index}</Popup>
+                  </Marker>
+                ))}
               </MapContainer>
             </CardContent>
           </Card>
