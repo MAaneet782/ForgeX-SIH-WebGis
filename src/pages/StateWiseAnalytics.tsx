@@ -4,12 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapContainer, TileLayer, Marker, Popup, CircleMarker } from "react-leaflet";
-import { LatLngExpression } from "leaflet";
-import { AlertTriangle, Users, MapPin, FileText, BarChart, LineChart, PieChart } from "lucide-react";
+import { MapContainer, TileLayer, Popup, CircleMarker } from "react-leaflet";
+import { AlertTriangle, Users, MapPin, FileText } from "lucide-react";
 import {
-  Bar,
-  BarChart as ReBarChart,
   Pie,
   PieChart as RePieChart,
   Line,
@@ -23,6 +20,7 @@ import {
   Cell,
 } from "recharts";
 import { stateCoordinates } from "@/lib/stateCoordinates";
+import MapLegend from "@/components/MapLegend";
 
 const fetchStateAnalytics = async () => {
   const { data, error } = await supabase.from("state_fra_analytics").select("*");
@@ -68,8 +66,18 @@ const StateWiseAnalytics = () => {
   }));
 
   const lweStatesData = stateData?.filter(s => s.is_lwe_state);
-
   const COLORS = ["#0088FE", "#00C49F"];
+
+  const maxClaims = Math.max(...(stateData?.map(s => s.claims_received_individual + s.claims_received_community) || [0]));
+
+  const getColor = (claims: number) => {
+    const scale = claims / maxClaims;
+    if (scale > 0.8) return '#b30000';
+    if (scale > 0.6) return '#e34a33';
+    if (scale > 0.4) return '#fc8d59';
+    if (scale > 0.2) return '#fdbb84';
+    return '#fee8c8';
+  };
 
   return (
     <div className="p-8 space-y-8">
@@ -109,27 +117,41 @@ const StateWiseAnalytics = () => {
       </div>
 
       <Card>
-        <CardHeader><CardTitle>State-wise Claims Distribution</CardTitle></CardHeader>
-        <CardContent>
-          <MapContainer center={[22.9734, 78.6569]} zoom={5} style={{ height: '500px', width: '100%' }} className="rounded-md">
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <CardHeader>
+          <CardTitle>State-wise Claims Distribution</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Circles are sized and colored by the total number of claims received. Click a circle for details.
+          </p>
+        </CardHeader>
+        <CardContent className="relative p-0">
+          <MapContainer center={[22.9734, 78.6569]} zoom={5} style={{ height: '600px', width: '100%' }} className="rounded-b-md">
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            />
             {stateData?.map(state => {
               const coords = stateCoordinates[state.state_name];
               if (!coords) return null;
               const totalStateClaims = state.claims_received_individual + state.claims_received_community;
-              const radius = Math.max(5, Math.log(totalStateClaims) * 2);
+              const radius = 5 + (totalStateClaims / maxClaims) * 25;
+              const color = getColor(totalStateClaims);
               return (
-                <CircleMarker key={state.id} center={coords} radius={radius} pathOptions={{ color: state.is_lwe_state ? 'red' : 'blue', fillColor: state.is_lwe_state ? '#f03' : '#3388ff', fillOpacity: 0.5 }}>
+                <CircleMarker key={state.id} center={coords} radius={radius} pathOptions={{ color: color, fillColor: color, fillOpacity: 0.7, weight: 1 }}>
                   <Popup>
-                    <div className="font-bold">{state.state_name}</div>
-                    <div>Claims: {totalStateClaims.toLocaleString()}</div>
-                    <div>Titles: {(state.titles_distributed_individual + state.titles_distributed_community).toLocaleString()}</div>
-                    <div>Land: {Math.round(state.extent_of_land_acres).toLocaleString()} acres</div>
+                    <div className="p-1">
+                      <h3 className="font-bold text-base mb-1">{state.state_name}</h3>
+                      <div className="space-y-1 text-sm">
+                        <p><strong>Claims:</strong> {totalStateClaims.toLocaleString()}</p>
+                        <p><strong>Titles:</strong> {(state.titles_distributed_individual + state.titles_distributed_community).toLocaleString()}</p>
+                        <p><strong>Land:</strong> {Math.round(state.extent_of_land_acres).toLocaleString()} acres</p>
+                      </div>
+                    </div>
                   </Popup>
                 </CircleMarker>
               );
             })}
           </MapContainer>
+          <MapLegend />
         </CardContent>
       </Card>
 
