@@ -14,7 +14,8 @@ import RfoDashboard from "./pages/RfoDashboard";
 import Agriculture from "./pages/Agriculture";
 import Rights from "./pages/Rights";
 import FindMyParcel from "./pages/FindMyParcel";
-import AddClaimPage from "./pages/AddClaimPage"; // Import the new AddClaimPage
+import AddClaimPage from "./pages/AddClaimPage";
+import StateWiseAnalytics from "./pages/StateWiseAnalytics"; // Import the new page
 
 const App = () => {
   return (
@@ -28,13 +29,14 @@ const App = () => {
         <Route element={<AtlasLayout />}>
           <Route path="/atlas" element={<Atlas />} />
           <Route path="/atlas/analytics" element={<Analytics />} />
+          <Route path="/atlas/state-wise-analytics" element={<StateWiseAnalytics />} /> {/* New route */}
           <Route path="/atlas/claim/:claimId" element={<ClaimDetail />} />
           <Route path="/atlas/schemes" element={<Schemes />} />
           <Route path="/atlas/rfo-dashboard" element={<RfoDashboard />} />
           <Route path="/atlas/agriculture" element={<Agriculture />} />
           <Route path="/atlas/rights" element={<Rights />} />
           <Route path="/atlas/find-my-parcel" element={<FindMyParcel />} />
-          <Route path="/atlas/add-claim" element={<AddClaimPage />} /> {/* New route for adding claims */}
+          <Route path="/atlas/add-claim" element={<AddClaimPage />} />
         </Route>
 
         <Route path="/login" element={<Login />} />

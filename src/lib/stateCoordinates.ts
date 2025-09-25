@@ -1,0 +1,22 @@
+export const stateCoordinates: { [key: string]: [number, number] } = {
+    "Andhra Pradesh": [15.9129, 79.7400],
+    "Assam": [26.2006, 92.9376],
+    "Bihar": [25.0961, 85.3131],
+    "Chhattisgarh": [21.2787, 81.8661],
+    "Goa": [15.2993, 74.1240],
+    "Gujarat": [22.2587, 71.1924],
+    "Himachal Pradesh": [31.1048, 77.1734],
+    "Jharkhand": [23.6102, 85.2799],
+    "Karnataka": [15.3173, 75.7139],
+    "Kerala": [10.8505, 76.2711],
+    "Madhya Pradesh": [22.9734, 78.6569],
+    "Maharashtra": [19.7515, 75.7139],
+    "Odisha": [20.9517, 85.0985],
+    "Rajasthan": [27.0238, 74.2179],
+    "Tamil Nadu": [11.1271, 78.6569],
+    "Telangana": [18.1124, 79.0193],
+    "Tripura": [23.9408, 91.9882],
+    "Uttar Pradesh": [26.8467, 80.9462],
+    "Uttarakhand": [30.0668, 79.0193],
+    "West Bengal": [22.9868, 87.8550]
+};

@@ -10,6 +10,7 @@ import {
   DollarSign,
   Leaf,
   Mountain,
+  Globe,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/context/SessionContext";
@@ -79,9 +80,10 @@ const AtlasSidebar = () => {
           <ActionItem icon={Map} text="Basemap Switcher" />
           <ActionItem icon={Filter} text="Advanced Filters" />
           <NavItem icon={BarChart3} text="Thematic Analysis" to="/atlas/analytics" />
+          <NavItem icon={Globe} text="State Wise Analytics" to="/atlas/state-wise-analytics" />
 
           <SectionTitle text="Patta Holder" />
-          <NavItem icon={Search} text="Find My Parcel" to="/atlas/find-my-parcel" /> {/* Updated to NavItem */}
+          <NavItem icon={Search} text="Find My Parcel" to="/atlas/find-my-parcel" />
           <NavItem icon={Shield} text="Types of Rights" to="/atlas/rights" />
           <NavItem icon={DollarSign} text="Schemes" to="/atlas/schemes" />
           <NavItem icon={Leaf} text="Agriculture" to="/atlas/agriculture" />
