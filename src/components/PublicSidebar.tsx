@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Home, BarChart2, LogIn, HelpCircle, Shield, LogOut } from "lucide-react";
+import { Home, BarChart2, LogIn, HelpCircle, Shield, LogOut, Map } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/context/SessionContext";
 import { Button } from "./ui/button";
@@ -41,6 +41,10 @@ const PublicSidebar = () => {
           <Link to="/atlas/analytics" className="flex items-center p-3 rounded-md hover:bg-primary-foreground/10">
             <BarChart2 className="mr-3 h-5 w-5" />
             Analytics (Public)
+          </Link>
+          <Link to="/atlas/state-wise-analytics" className="flex items-center p-3 rounded-md hover:bg-primary-foreground/10">
+            <Map className="mr-3 h-5 w-5" />
+            State Wise Analytics
           </Link>
         </nav>
       </div>
