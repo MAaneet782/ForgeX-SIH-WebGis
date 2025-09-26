@@ -28,11 +28,6 @@ const Landing = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link to="/atlas/analytics">
-                View Analytics
-              </Link>
-            </Button>
-            <Button asChild variant="outline" size="lg">
               <Link to="/atlas/state-wise-analytics">
                 State Wise Analytics
               </Link>

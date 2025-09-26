@@ -72,7 +72,15 @@ const AtlasSidebar = () => {
           <NavItem icon={LayoutDashboard} text="RFO Dashboard" to="/atlas/rfo-dashboard" />
 
           <SectionTitle text="Map Tools" />
-          <NavItem icon={BarChart3} text="Thematic Analysis" to="/atlas/analytics" />
+          <NavLink
+            to="/atlas/analytics"
+            className={({ isActive }) =>
+              `${baseLinkClasses} ${hoverClasses} ${isActive ? activeClasses : "bg-sidebar-primary/10 text-sidebar-primary-foreground ring-1 ring-sidebar-primary/50"}`
+            }
+          >
+            <BarChart3 className="mr-3 h-5 w-5" />
+            <span>View Analytics</span>
+          </NavLink>
 
           <SectionTitle text="Patta Holder" />
           <NavItem icon={Search} text="Find My Parcel" to="/atlas/find-my-parcel" />
