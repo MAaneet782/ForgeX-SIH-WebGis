@@ -7,6 +7,7 @@ import {
   DollarSign,
   Leaf,
   Mountain,
+  Map,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/context/SessionContext";
@@ -20,9 +21,10 @@ const AtlasSidebar = () => {
   const hoverClasses = "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground";
   const activeClasses = "bg-sidebar-accent text-sidebar-accent-foreground font-semibold";
 
-  const NavItem = ({ icon: Icon, text, to }) => (
+  const NavItem = ({ icon: Icon, text, to, end = false }) => (
     <NavLink
       to={to}
+      end={end}
       className={({ isActive }) =>
         `${baseLinkClasses} ${hoverClasses} ${isActive ? activeClasses : ""}`
       }
@@ -72,6 +74,7 @@ const AtlasSidebar = () => {
           <NavItem icon={LayoutDashboard} text="RFO Dashboard" to="/atlas/rfo-dashboard" />
 
           <SectionTitle text="Map Tools" />
+          <NavItem icon={Map} text="Atlas Dashboard" to="/atlas" end={true} />
           <NavLink
             to="/atlas/analytics"
             className={({ isActive }) =>
