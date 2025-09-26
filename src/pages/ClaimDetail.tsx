@@ -48,17 +48,31 @@ const fetchClaimById = async (claimId: string): Promise<Claim | null> => {
   return data as Claim;
 };
 
-// Helper function to generate mock water points within the claim's geometry
+// Point in polygon check using the ray-casting algorithm
+const isPointInPolygon = (point: [number, number], polygon: number[][]) => {
+  const x = point[0], y = point[1];
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const xi = polygon[i][0], yi = polygon[i][1];
+    const xj = polygon[j][0], yj = polygon[j][1];
+    const intersect = ((yi > y) !== (yj > y))
+        && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+    if (intersect) inside = !inside;
+  }
+  return inside;
+};
+
+// Helper function to generate mock water points strictly within the claim's geometry
 const generateWaterPoints = (claim: Claim, numPoints: number = 2) => {
   if (!claim.geometry || !claim.geometry.coordinates || claim.geometry.coordinates[0].length === 0) {
     return [];
   }
 
-  const coords = claim.geometry.coordinates[0];
+  const polygonCoords = claim.geometry.coordinates[0];
   let minLat = Infinity, maxLat = -Infinity;
   let minLng = Infinity, maxLng = -Infinity;
 
-  coords.forEach(coord => {
+  polygonCoords.forEach(coord => {
     const [lng, lat] = coord;
     minLat = Math.min(minLat, lat);
     maxLat = Math.max(maxLat, lat);
@@ -68,13 +82,17 @@ const generateWaterPoints = (claim: Claim, numPoints: number = 2) => {
 
   const waterPoints: { position: LatLngExpression; index: string }[] = [];
   const random = seededRandom(stringToSeed(claim.claim_id + "water_points"));
+  let attempts = 0;
 
-  for (let i = 0; i < numPoints; i++) {
+  while (waterPoints.length < numPoints && attempts < 1000) { // Add attempt limit to prevent infinite loops
     const lat = minLat + random() * (maxLat - minLat);
     const lng = minLng + random() * (maxLng - minLng);
-    // Generate a consistently high water index for suitable borewell spots
-    const waterIndex = (75 + random() * 20).toFixed(1); // Score between 75 and 95
-    waterPoints.push({ position: [lat, lng], index: waterIndex });
+    
+    if (isPointInPolygon([lng, lat], polygonCoords)) {
+      const waterIndex = (75 + random() * 20).toFixed(1);
+      waterPoints.push({ position: [lat, lng], index: waterIndex });
+    }
+    attempts++;
   }
   return waterPoints;
 };
