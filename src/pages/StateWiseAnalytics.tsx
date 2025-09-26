@@ -1,7 +1,7 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { MapContainer, TileLayer, Popup, GeoJSON } from "react-leaflet";
@@ -24,6 +24,7 @@ import {
 import { indiaStatesGeo } from "@/lib/indiaStatesGeo";
 import MapLegend from "@/components/MapLegend";
 import { Layer } from "leaflet";
+import StateAnalyticsSidebar from "@/components/StateAnalyticsSidebar";
 
 const fetchStateAnalytics = async () => {
   const { data, error } = await supabase.from("state_fra_analytics").select("*");
@@ -38,6 +39,9 @@ const fetchTimeSeriesAnalytics = async () => {
 };
 
 const StateWiseAnalytics = () => {
+  const [selectedState, setSelectedState] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   const { data: stateData, isLoading: isLoadingState, isError, error } = useQuery({ queryKey: ["stateAnalytics"], queryFn: fetchStateAnalytics });
   const { data: timeData, isLoading: isLoadingTime } = useQuery({ queryKey: ["timeSeriesAnalytics"], queryFn: fetchTimeSeriesAnalytics });
 
@@ -131,11 +135,15 @@ const StateWiseAnalytics = () => {
   const onEachFeature = (feature: any, layer: Layer) => {
     const analytics = feature.properties.analytics;
     if (analytics) {
-      const popupContent = `<div class="p-1"><h3 class="font-bold text-base mb-1">${analytics.state_name}</h3><div class="space-y-1 text-sm"><p><strong>Claims:</strong> ${(analytics.claims_received_individual + analytics.claims_received_community).toLocaleString()}</p><p><strong>Titles:</strong> ${(analytics.titles_distributed_individual + analytics.titles_distributed_community).toLocaleString()}</p><p><strong>Land:</strong> ${Math.round(analytics.extent_of_land_acres).toLocaleString()} acres</p></div></div>`;
+      const popupContent = `<div class="p-1"><h3 class="font-bold text-base mb-1">${analytics.state_name}</h3><p class="text-sm">Click for details</p></div>`;
       layer.bindPopup(popupContent);
       layer.on({
         mouseover: (e) => e.target.setStyle({ weight: 3, color: '#444' }),
         mouseout: (e) => e.target.setStyle(style(feature)),
+        click: () => {
+          setSelectedState(analytics);
+          setIsSidebarOpen(true);
+        },
       });
     }
   };
@@ -180,6 +188,11 @@ const StateWiseAnalytics = () => {
           <CardContent><ResponsiveContainer width="100%" height={300}><ReLineChart data={formattedTimeData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="date" /><YAxis tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value)} /><Tooltip /><Legend /><Line type="monotone" dataKey="Total Claims" stroke="#8884d8" strokeWidth={2} /><Line type="monotone" dataKey="Titles Distributed" stroke="#82ca9d" strokeWidth={2} /></ReLineChart></ResponsiveContainer></CardContent>
         </Card>
       </div>
+      <StateAnalyticsSidebar 
+        state={selectedState} 
+        open={isSidebarOpen} 
+        onOpenChange={setIsSidebarOpen} 
+      />
     </div>
   );
 };
