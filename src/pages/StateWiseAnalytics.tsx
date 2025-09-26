@@ -25,6 +25,7 @@ import { indiaStatesGeo } from "@/lib/indiaStatesGeo";
 import MapLegend from "@/components/MapLegend";
 import { Layer } from "leaflet";
 import StateAnalyticsSidebar from "@/components/StateAnalyticsSidebar";
+import AnalyticsStatCard from "@/components/AnalyticsStatCard";
 
 const fetchStateAnalytics = async () => {
   const { data, error } = await supabase.from("state_fra_analytics").select("*");
@@ -70,14 +71,43 @@ const StateWiseAnalytics = () => {
   }
 
   // --- Data Processing ---
-  const totalClaims = stateData?.reduce((acc, s) => acc + s.claims_received_individual + s.claims_received_community, 0) || 0;
-  const totalTitles = stateData?.reduce((acc, s) => acc + s.titles_distributed_individual + s.titles_distributed_community, 0) || 0;
-  const totalLand = stateData?.reduce((acc, s) => acc + s.extent_of_land_acres, 0) || 0;
+  const totalIndividualClaims = stateData?.reduce((acc, s) => acc + s.claims_received_individual, 0) || 0;
+  const totalCommunityClaims = stateData?.reduce((acc, s) => acc + s.claims_received_community, 0) || 0;
+  const totalClaims = totalIndividualClaims + totalCommunityClaims;
+
+  const totalIndividualTitles = stateData?.reduce((acc, s) => acc + s.titles_distributed_individual, 0) || 0;
+  const totalCommunityTitles = stateData?.reduce((acc, s) => acc + s.titles_distributed_community, 0) || 0;
+  const totalTitles = totalIndividualTitles + totalCommunityTitles;
+
+  const totalIndividualLand = stateData?.reduce((acc, s) => acc + s.extent_of_land_individual_acres, 0) || 0;
+  const totalCommunityLand = stateData?.reduce((acc, s) => acc + s.extent_of_land_community_acres, 0) || 0;
+  const totalLand = totalIndividualLand + totalCommunityLand;
+
   const overallConversionRate = totalClaims > 0 ? ((totalTitles / totalClaims) * 100).toFixed(2) : 0;
 
+  const claimsBreakdown = [
+    { label: "Individual", value: totalIndividualClaims },
+    { label: "Community", value: totalCommunityClaims },
+  ];
+
+  const titlesBreakdown = [
+    { label: "Individual", value: totalIndividualTitles },
+    { label: "Community", value: totalCommunityTitles },
+  ];
+
+  const landBreakdown = [
+    { label: "Individual", value: Math.round(totalIndividualLand) },
+    { label: "Community", value: Math.round(totalCommunityLand) },
+  ];
+
+  const conversionBreakdown = [
+    { label: "Total Titles Distributed", value: totalTitles },
+    { label: "Total Claims Received", value: totalClaims },
+  ];
+
   const claimTypeData = [
-    { name: 'Individual', value: stateData?.reduce((acc, s) => acc + s.claims_received_individual, 0) || 0 },
-    { name: 'Community', value: stateData?.reduce((acc, s) => acc + s.claims_received_community, 0) || 0 }
+    { name: 'Individual', value: totalIndividualClaims },
+    { name: 'Community', value: totalCommunityClaims }
   ];
 
   const claimsVsTitlesData = stateData?.map(s => ({
@@ -155,10 +185,33 @@ const StateWiseAnalytics = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Claims Received</CardTitle><FileText className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{totalClaims.toLocaleString()}</div></CardContent></Card>
-        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Titles Distributed</CardTitle><Users className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{totalTitles.toLocaleString()}</div></CardContent></Card>
-        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Total Land Recognized (Acres)</CardTitle><MapPin className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{Math.round(totalLand).toLocaleString()}</div></CardContent></Card>
-        <Card><CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2"><CardTitle className="text-sm font-medium">Overall Conversion Rate</CardTitle><Percent className="h-4 w-4 text-muted-foreground" /></CardHeader><CardContent><div className="text-2xl font-bold">{overallConversionRate}%</div></CardContent></Card>
+        <AnalyticsStatCard
+          title="Total Claims Received"
+          value={totalClaims.toLocaleString()}
+          icon={FileText}
+          breakdown={claimsBreakdown}
+        />
+        <AnalyticsStatCard
+          title="Total Titles Distributed"
+          value={totalTitles.toLocaleString()}
+          icon={Users}
+          breakdown={titlesBreakdown}
+        />
+        <AnalyticsStatCard
+          title="Total Land Recognized"
+          value={Math.round(totalLand).toLocaleString()}
+          unit="acres"
+          icon={MapPin}
+          breakdown={landBreakdown}
+        />
+        <AnalyticsStatCard
+          title="Overall Conversion Rate"
+          value={overallConversionRate}
+          unit="%"
+          icon={Percent}
+          breakdown={conversionBreakdown}
+          breakdownNote="(Titles Distributed / Claims Received) * 100"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
