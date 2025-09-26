@@ -31,6 +31,10 @@ interface StateData {
   frcs_constituted: number;
   sdlc_constituted: number;
   dlc_constituted: number;
+  claims_rejected_individual: number;
+  claims_rejected_community: number;
+  extent_of_land_individual_acres: number;
+  extent_of_land_community_acres: number;
 }
 
 interface StateAnalyticsSidebarProps {
@@ -44,11 +48,19 @@ const StateAnalyticsSidebar = ({ state, open, onOpenChange }: StateAnalyticsSide
 
   const totalClaims = state.claims_received_individual + state.claims_received_community;
   const totalTitles = state.titles_distributed_individual + state.titles_distributed_community;
+  const totalRejected = state.claims_rejected_individual + state.claims_rejected_community;
+  const totalPending = totalClaims - totalTitles - totalRejected;
   const conversionRate = totalClaims > 0 ? ((totalTitles / totalClaims) * 100).toFixed(2) : 0;
 
-  const claimTypeData = [
-    { name: "Individual", value: state.claims_received_individual },
-    { name: "Community", value: state.claims_received_community },
+  const claimsStatusData = [
+    { name: "Approved", value: totalTitles },
+    { name: "Rejected", value: totalRejected },
+    { name: "Pending", value: totalPending > 0 ? totalPending : 0 },
+  ];
+
+  const landBreakdownData = [
+    { name: "Individual", value: state.extent_of_land_individual_acres },
+    { name: "Community", value: state.extent_of_land_community_acres },
   ];
 
   const committeeData = [
@@ -57,7 +69,9 @@ const StateAnalyticsSidebar = ({ state, open, onOpenChange }: StateAnalyticsSide
     { name: "DLCs", value: state.dlc_constituted },
   ];
 
-  const COLORS = ["#0088FE", "#00C49F"];
+  const CLAIM_TYPE_COLORS = ["#0088FE", "#00C49F"];
+  const LAND_COLORS = ["#8884d8", "#82ca9d"];
+  const STATUS_COLORS = { Approved: '#22c55e', Rejected: '#ef4444', Pending: '#f59e0b' };
 
   const StatItem = ({ label, value, unit = "" }: { label: string, value: string | number, unit?: string }) => (
     <div className="flex justify-between items-baseline p-3 bg-muted/50 rounded-md">
@@ -78,9 +92,7 @@ const StateAnalyticsSidebar = ({ state, open, onOpenChange }: StateAnalyticsSide
           </SheetHeader>
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Key Statistics</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-base">Key Statistics</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 <StatItem label="Total Claims Received" value={totalClaims} />
                 <StatItem label="Total Titles Distributed" value={totalTitles} />
@@ -90,26 +102,43 @@ const StateAnalyticsSidebar = ({ state, open, onOpenChange }: StateAnalyticsSide
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Claim Types Breakdown</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-base">Claims Processing Status</CardTitle></CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={claimsStatusData} layout="vertical" margin={{ left: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" tickFormatter={(value) => new Intl.NumberFormat('en-US', { notation: 'compact' }).format(value)} />
+                    <YAxis type="category" dataKey="name" width={70} />
+                    <Tooltip />
+                    <Bar dataKey="value" name="Count">
+                      {claimsStatusData.map((entry) => (
+                        <Cell key={entry.name} fill={STATUS_COLORS[entry.name as keyof typeof STATUS_COLORS]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader><CardTitle className="text-base">Land Recognition Breakdown</CardTitle></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
-                      data={claimTypeData}
+                      data={landBreakdownData}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
                       cy="50%"
                       outerRadius={80}
-                      label
+                      label={(entry) => `${((entry.value / state.extent_of_land_acres) * 100).toFixed(0)}%`}
                     >
-                      {claimTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      {landBreakdownData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={LAND_COLORS[index % LAND_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(value) => `${Number(value).toLocaleString()} acres`} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>
@@ -117,15 +146,13 @@ const StateAnalyticsSidebar = ({ state, open, onOpenChange }: StateAnalyticsSide
             </Card>
 
             <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Committee Constitution</CardTitle>
-              </CardHeader>
+              <CardHeader><CardTitle className="text-base">Committee Constitution</CardTitle></CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={committeeData} layout="vertical" margin={{ left: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
-                    <YAxis type="category" dataKey="name" />
+                    <YAxis type="category" dataKey="name" width={70} />
                     <Tooltip />
                     <Bar dataKey="value" name="Count" fill="hsl(var(--primary))" />
                   </BarChart>
