@@ -64,36 +64,79 @@ const isPointInPolygon = (point: [number, number], polygon: number[][]) => {
 
 // Helper function to generate mock water points strictly within the claim's geometry
 const generateWaterPoints = (claim: Claim, numPoints: number = 2) => {
-  if (!claim.geometry || !claim.geometry.coordinates || claim.geometry.coordinates[0].length === 0) {
+  if (!claim.geometry || !claim.geometry.coordinates || claim.geometry.coordinates[0].length < 3) {
     return [];
   }
 
-  const polygonCoords = claim.geometry.coordinates[0];
-  let minLat = Infinity, maxLat = -Infinity;
-  let minLng = Infinity, maxLng = -Infinity;
-
-  polygonCoords.forEach(coord => {
-    const [lng, lat] = coord;
-    minLat = Math.min(minLat, lat);
-    maxLat = Math.max(maxLat, lat);
-    minLng = Math.min(minLng, lng);
-    maxLng = Math.max(maxLng, lng);
-  });
-
-  const waterPoints: { position: LatLngExpression; index: string }[] = [];
+  const polygonCoords = claim.geometry.coordinates[0]; // [lng, lat]
   const random = seededRandom(stringToSeed(claim.claim_id + "water_points"));
-  let attempts = 0;
+  const waterPoints: { position: LatLngExpression; index: string }[] = [];
 
-  while (waterPoints.length < numPoints && attempts < 1000) { // Add attempt limit to prevent infinite loops
-    const lat = minLat + random() * (maxLat - minLat);
-    const lng = minLng + random() * (maxLng - minLng);
-    
-    if (isPointInPolygon([lng, lat], polygonCoords)) {
-      const waterIndex = (75 + random() * 20).toFixed(1);
-      waterPoints.push({ position: [lat, lng], index: waterIndex });
+  // Method 1: Try centroid of vertices
+  let sumLng = 0;
+  let sumLat = 0;
+  polygonCoords.forEach(([lng, lat]) => {
+    sumLng += lng;
+    sumLat += lat;
+  });
+  const centroid: [number, number] = [sumLng / polygonCoords.length, sumLat / polygonCoords.length];
+
+  if (isPointInPolygon(centroid, polygonCoords)) {
+    const waterIndex = (85 + random() * 10).toFixed(1); // High index for centroid
+    waterPoints.push({ position: [centroid[1], centroid[0]], index: waterIndex });
+  }
+
+  // Method 2: Try midpoints of segments, pushed slightly inwards
+  let attempts = 0;
+  const shuffledIndices = [...Array(polygonCoords.length).keys()].sort(() => random() - 0.5);
+
+  while (waterPoints.length < numPoints && attempts < polygonCoords.length) {
+    const i = shuffledIndices[attempts];
+    const j = (i + 1) % polygonCoords.length;
+    const p1 = polygonCoords[i];
+    const p2 = polygonCoords[j];
+    const midPoint: [number, number] = [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2];
+    const vector: [number, number] = [centroid[0] - midPoint[0], centroid[1] - midPoint[1]];
+    const innerPoint: [number, number] = [midPoint[0] + vector[0] * 0.1, midPoint[1] + vector[1] * 0.1];
+
+    if (isPointInPolygon(innerPoint, polygonCoords)) {
+      const isDuplicate = waterPoints.some(p => 
+        (p.position as number[])[0] === innerPoint[1] && (p.position as number[])[1] === innerPoint[0]
+      );
+      if (!isDuplicate) {
+        const waterIndex = (75 + random() * 15).toFixed(1);
+        waterPoints.push({ position: [innerPoint[1], innerPoint[0]], index: waterIndex });
+      }
     }
     attempts++;
   }
+
+  // Fallback: If still not enough points, use the original random method with more attempts
+  let randomAttempts = 0;
+  if (waterPoints.length < numPoints) {
+      let minLat = Infinity, maxLat = -Infinity;
+      let minLng = Infinity, maxLng = -Infinity;
+
+      polygonCoords.forEach(coord => {
+        const [lng, lat] = coord;
+        minLat = Math.min(minLat, lat);
+        maxLat = Math.max(maxLat, lat);
+        minLng = Math.min(minLng, lng);
+        maxLng = Math.max(maxLng, lng);
+      });
+
+      while (waterPoints.length < numPoints && randomAttempts < 5000) {
+        const lat = minLat + random() * (maxLat - minLat);
+        const lng = minLng + random() * (maxLng - minLng);
+        
+        if (isPointInPolygon([lng, lat], polygonCoords)) {
+          const waterIndex = (75 + random() * 20).toFixed(1);
+          waterPoints.push({ position: [lat, lng], index: waterIndex });
+        }
+        randomAttempts++;
+      }
+  }
+
   return waterPoints;
 };
 
