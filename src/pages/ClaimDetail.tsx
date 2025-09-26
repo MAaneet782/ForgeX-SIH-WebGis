@@ -6,13 +6,13 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapContainer, TileLayer, Polygon, Marker, Popup } from "react-leaflet"; // Import Marker and Popup
+import { MapContainer, TileLayer, Polygon, Marker, Popup } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { AlertTriangle, ArrowLeft, Info } from "lucide-react";
 import AiAnalysis from "@/components/AiAnalysis";
 import SchemeEligibility from "@/components/SchemeEligibility";
 import GroundwaterAnalysis from "@/components/GroundwaterAnalysis";
-import { generateGroundwaterAnalysis, seededRandom, stringToSeed } from "@/lib/aiUtils"; // Import AI utilities
+import { seededRandom, stringToSeed } from "@/lib/aiUtils";
 
 // Define the type for a claim
 interface Claim {
@@ -49,7 +49,7 @@ const fetchClaimById = async (claimId: string): Promise<Claim | null> => {
 };
 
 // Helper function to generate mock water points within the claim's geometry
-const generateWaterPoints = (claim: Claim, numPoints: number = 3) => {
+const generateWaterPoints = (claim: Claim, numPoints: number = 2) => {
   if (!claim.geometry || !claim.geometry.coordinates || claim.geometry.coordinates[0].length === 0) {
     return [];
   }
@@ -67,14 +67,13 @@ const generateWaterPoints = (claim: Claim, numPoints: number = 3) => {
   });
 
   const waterPoints: { position: LatLngExpression; index: string }[] = [];
-  const random = seededRandom(stringToSeed(claim.claim_id + "water_points")); // Use a specific seed for water points
+  const random = seededRandom(stringToSeed(claim.claim_id + "water_points"));
 
   for (let i = 0; i < numPoints; i++) {
     const lat = minLat + random() * (maxLat - minLat);
     const lng = minLng + random() * (maxLng - minLng);
-    // Generate a water index based on the claim's groundwater analysis, with some variation
-    const baseScore = generateGroundwaterAnalysis(claim.claim_id).score;
-    const waterIndex = (baseScore * 10 + (random() - 0.5) * 20).toFixed(1); // Scale to 100 and add small variation
+    // Generate a consistently high water index for suitable borewell spots
+    const waterIndex = (75 + random() * 20).toFixed(1); // Score between 75 and 95
     waterPoints.push({ position: [lat, lng], index: waterIndex });
   }
   return waterPoints;
@@ -151,7 +150,7 @@ const ClaimDetail = () => {
     }
   };
 
-  const waterPoints = generateWaterPoints(claim); // Generate water points
+  const waterPoints = generateWaterPoints(claim);
 
   return (
     <div className="p-6 lg:p-8 bg-muted/40 min-h-screen">
@@ -192,7 +191,11 @@ const ClaimDetail = () => {
                 <Polygon pathOptions={{ color: 'blue' }} positions={coordinates} />
                 {waterPoints.map((point, index) => (
                   <Marker key={index} position={point.position}>
-                    <Popup>Water Index: {point.index}</Popup>
+                    <Popup>
+                      <strong>Recommended Borewell Site</strong><br />
+                      High potential for groundwater.<br />
+                      Predicted Water Index: {point.index}
+                    </Popup>
                   </Marker>
                 ))}
               </MapContainer>
