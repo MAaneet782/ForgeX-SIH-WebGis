@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapContainer, TileLayer, Popup, CircleMarker } from "react-leaflet";
+import { MapContainer, TileLayer, Popup, GeoJSON } from "react-leaflet";
 import { AlertTriangle, Users, MapPin, FileText, TrendingUp, CheckSquare, Award } from "lucide-react";
 import {
   Bar,
@@ -21,8 +21,9 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { stateCoordinates } from "@/lib/stateCoordinates";
+import { indiaStatesGeo } from "@/lib/indiaStatesGeo";
 import MapLegend from "@/components/MapLegend";
+import { Layer } from "leaflet";
 
 const fetchStateAnalytics = async () => {
   const { data, error } = await supabase.from("state_fra_analytics").select("*");
@@ -37,7 +38,7 @@ const fetchTimeSeriesAnalytics = async () => {
 };
 
 const StateWiseAnalytics = () => {
-  const { data: stateData, isLoading: isLoadingState } = useQuery({ queryKey: ["stateAnalytics"], queryFn: fetchStateAnalytics });
+  const { data: stateData, isLoading: isLoadingState, isError, error } = useQuery({ queryKey: ["stateAnalytics"], queryFn: fetchStateAnalytics });
   const { data: timeData, isLoading: isLoadingTime } = useQuery({ queryKey: ["timeSeriesAnalytics"], queryFn: fetchTimeSeriesAnalytics });
 
   if (isLoadingState || isLoadingTime) {
@@ -48,6 +49,18 @@ const StateWiseAnalytics = () => {
           {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-28" />)}
         </div>
         <Skeleton className="h-96" />
+      </div>
+    );
+  }
+  
+  if (isError) {
+    return (
+      <div className="p-8">
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error?.message || "Failed to load analytics data."}</AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -95,11 +108,59 @@ const StateWiseAnalytics = () => {
     return '#fee8c8';
   };
 
+  const geoJsonDataWithAnalytics = {
+    ...indiaStatesGeo,
+    features: indiaStatesGeo.features
+      .map(feature => {
+        const analytics = stateData?.find(s => s.state_name === feature.properties.name);
+        if (!analytics) return null; // Only include states present in the data
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            analytics,
+          }
+        };
+      })
+      .filter(Boolean), // Remove nulls
+  };
+
+  const style = (feature: any) => {
+    const analytics = feature.properties.analytics;
+    const totalStateClaims = analytics.claims_received_individual + analytics.claims_received_community;
+    return {
+      fillColor: getColor(totalStateClaims),
+      weight: 1,
+      opacity: 1,
+      color: 'white',
+      fillOpacity: 0.7
+    };
+  };
+
+  const onEachFeature = (feature: any, layer: Layer) => {
+    const analytics = feature.properties.analytics;
+    if (analytics) {
+      const popupContent = `<div class="p-1"><h3 class="font-bold text-base mb-1">${analytics.state_name}</h3><div class="space-y-1 text-sm"><p><strong>Claims:</strong> ${(analytics.claims_received_individual + analytics.claims_received_community).toLocaleString()}</p><p><strong>Titles:</strong> ${(analytics.titles_distributed_individual + analytics.titles_distributed_community).toLocaleString()}</p><p><strong>Land:</strong> ${Math.round(analytics.extent_of_land_acres).toLocaleString()} acres</p></div></div>`;
+      layer.bindPopup(popupContent);
+
+      layer.on({
+        mouseover: (e) => {
+          const targetLayer = e.target;
+          targetLayer.setStyle({ weight: 3, color: '#444' });
+        },
+        mouseout: (e) => {
+          const targetLayer = e.target;
+          targetLayer.setStyle(style(feature));
+        }
+      });
+    }
+  };
+
   return (
     <div className="p-8 space-y-8 bg-muted/40">
       <div>
-        <h1 className="text-3xl font-bold text-shadow">Nationwide FRA Analytics</h1>
-        <p className="text-muted-foreground">An overview of the Forest Rights Act implementation across India.</p>
+        <h1 className="text-3xl font-bold text-shadow">FRA Analytics for Key States</h1>
+        <p className="text-muted-foreground">An overview of the Forest Rights Act implementation in Madhya Pradesh, Odisha, Tripura, and Telangana.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -136,23 +197,14 @@ const StateWiseAnalytics = () => {
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle>State-wise Claims Distribution</CardTitle>
-            <CardDescription>Circles are sized and colored by claim volume. Click for details.</CardDescription>
+            <CardDescription>States are colored by claim volume. Click a state for details.</CardDescription>
           </CardHeader>
           <CardContent className="relative p-0">
             <MapContainer center={[22.9734, 78.6569]} zoom={5} style={{ height: '500px', width: '100%' }} className="rounded-b-lg">
               <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
-              {stateData?.map(state => {
-                const coords = stateCoordinates[state.state_name];
-                if (!coords) return null;
-                const totalStateClaims = state.claims_received_individual + state.claims_received_community;
-                return (
-                  <CircleMarker key={state.id} center={coords} radius={5 + (totalStateClaims / maxClaims) * 25} pathOptions={{ color: getColor(totalStateClaims), fillColor: getColor(totalStateClaims), fillOpacity: 0.7, weight: 1 }}>
-                    <Popup>
-                      <div className="p-1"><h3 className="font-bold text-base mb-1">{state.state_name}</h3><div className="space-y-1 text-sm"><p><strong>Claims:</strong> {totalStateClaims.toLocaleString()}</p><p><strong>Titles:</strong> {(state.titles_distributed_individual + state.titles_distributed_community).toLocaleString()}</p><p><strong>Land:</strong> {Math.round(state.extent_of_land_acres).toLocaleString()} acres</p></div></div>
-                    </Popup>
-                  </CircleMarker>
-                );
-              })}
+              {geoJsonDataWithAnalytics.features.length > 0 && (
+                <GeoJSON data={geoJsonDataWithAnalytics as any} style={style} onEachFeature={onEachFeature} />
+              )}
             </MapContainer>
             <MapLegend />
           </CardContent>
@@ -177,7 +229,7 @@ const StateWiseAnalytics = () => {
           </Card>
           <Card>
             <CardHeader>
-              <CardTitle>Top 10 States by Claims</CardTitle>
+              <CardTitle>Top States by Claims</CardTitle>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={200}>
