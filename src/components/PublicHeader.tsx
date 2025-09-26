@@ -28,8 +28,6 @@ const PublicHeader = () => {
         <Link to="/" className="text-primary">Home</Link>
         <span className="text-muted-foreground">/</span>
         <Link to="/atlas" className="text-muted-foreground hover:text-foreground">Explore Atlas</Link>
-        <span className="text-muted-foreground">/</span>
-        <Link to="/atlas/analytics" className="text-muted-foreground hover:text-foreground">Analytics</Link>
       </nav>
       <div className="flex items-center space-x-4">
         <div className="relative">

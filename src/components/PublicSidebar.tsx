@@ -38,10 +38,6 @@ const PublicSidebar = () => {
             <Shield className="mr-3 h-5 w-5" />
             FRA Atlas
           </Link>
-          <Link to="/atlas/analytics" className="flex items-center p-3 rounded-md hover:bg-primary-foreground/10">
-            <BarChart2 className="mr-3 h-5 w-5" />
-            Analytics (Public)
-          </Link>
           <Link to="/atlas/state-wise-analytics" className="flex items-center p-3 rounded-md hover:bg-primary-foreground/10">
             <Map className="mr-3 h-5 w-5" />
             National FRA Report Card
