@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { MapContainer, TileLayer, Popup, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
 import { AlertTriangle, Users, MapPin, FileText, TrendingUp, CheckSquare, Award, Percent } from "lucide-react";
 import {
   Bar,
@@ -135,8 +135,7 @@ const StateWiseAnalytics = () => {
   const onEachFeature = (feature: any, layer: Layer) => {
     const analytics = feature.properties.analytics;
     if (analytics) {
-      const popupContent = `<div class="p-1"><h3 class="font-bold text-base mb-1">${analytics.state_name}</h3><p class="text-sm">Click for details</p></div>`;
-      layer.bindPopup(popupContent);
+      layer.bindTooltip(analytics.state_name, { sticky: true });
       layer.on({
         mouseover: (e) => e.target.setStyle({ weight: 3, color: '#444' }),
         mouseout: (e) => e.target.setStyle(style(feature)),

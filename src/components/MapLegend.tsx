@@ -10,7 +10,7 @@ const MapLegend = () => {
   ];
 
   return (
-    <Card className="absolute bottom-4 right-4 p-3 bg-card/80 backdrop-blur-sm z-[1000] w-auto shadow-lg border">
+    <Card className="absolute bottom-4 right-4 p-3 bg-card/80 backdrop-blur-sm z-40 w-auto shadow-lg border">
       <h4 className="font-bold text-sm mb-2 text-center">Claim Volume</h4>
       {legendItems.map((item) => (
         <div key={item.label} className="flex items-center my-1">
