@@ -29,7 +29,7 @@ const Landing = () => {
             </Button>
             <Button asChild variant="outline" size="lg">
               <Link to="/atlas/state-wise-analytics">
-                State Wise Analytics
+                National FRA Report Card
               </Link>
             </Button>
           </div>
