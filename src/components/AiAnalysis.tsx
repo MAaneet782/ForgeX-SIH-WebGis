@@ -1,7 +1,7 @@
 import { generateAiAnalysis } from "@/lib/aiUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { CheckCircle, AlertTriangle, Info, Award } from "lucide-react";
+import { CheckCircle, AlertTriangle, Info, Award, TrendingUp, Droplets, Wheat, CalendarDays } from "lucide-react";
 import SoilCompositionChart from "./SoilCompositionChart";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Badge } from "./ui/badge";
@@ -25,6 +25,14 @@ const AiAnalysis = ({ claimId }: AiAnalysisProps) => {
     <div className="flex justify-between text-sm p-2 bg-muted/50 rounded-md">
       <span className="text-muted-foreground">{label}</span>
       <span className="font-medium">{value} {unit}</span>
+    </div>
+  );
+
+  const CropDetailItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string }) => (
+    <div className="flex items-center text-sm">
+      <Icon className="h-4 w-4 mr-2 text-muted-foreground" />
+      <span className="font-medium mr-2">{label}:</span>
+      <span className="text-muted-foreground">{value}</span>
     </div>
   );
 
@@ -77,14 +85,22 @@ const AiAnalysis = ({ claimId }: AiAnalysisProps) => {
             {analysis.cropRecommendations.map((crop, index) => (
               <AccordionItem value={`item-${index}`} key={index}>
                 <AccordionTrigger>{crop.name} ({crop.season})</AccordionTrigger>
-                <AccordionContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">{crop.notes}</p>
+                <AccordionContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground italic">{crop.notes}</p>
+                  
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 p-3 bg-muted/50 rounded-md">
+                    <CropDetailItem icon={Wheat} label="Est. Yield" value={crop.yield} />
+                    <CropDetailItem icon={Droplets} label="Water Need" value={crop.water_need} />
+                    <CropDetailItem icon={TrendingUp} label="Profit Potential" value={crop.profit_potential} />
+                    <CropDetailItem icon={CalendarDays} label="Sowing Window" value={crop.sowing_window} />
+                  </div>
+
                   {crop.subsidy && (
-                    <div className="flex items-start p-3 bg-blue-50 border border-blue-200 rounded-md">
+                    <div className="flex items-start p-3 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/30 dark:border-blue-700">
                       <Award className="h-5 w-5 mr-3 text-blue-600 flex-shrink-0 mt-1" />
                       <div>
-                        <Badge variant="secondary" className="mb-1 bg-blue-100 text-blue-800">{crop.subsidy.scheme}</Badge>
-                        <p className="text-sm text-blue-700">{crop.subsidy.details}</p>
+                        <Badge variant="secondary" className="mb-1 bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100">{crop.subsidy.scheme}</Badge>
+                        <p className="text-sm text-blue-700 dark:text-blue-300">{crop.subsidy.details}</p>
                       </div>
                     </div>
                   )}

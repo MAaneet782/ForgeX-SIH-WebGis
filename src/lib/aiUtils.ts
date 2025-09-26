@@ -74,18 +74,88 @@ export const generateAiAnalysis = (claimId: string) => {
     ].filter(Boolean) as string[];
 
     const cropRecommendations = [
-        { name: 'Maize', season: 'Kharif', notes: 'Versatile crop with high yield potential.', suitability: parseFloat(soilParams.OM) > 1.0 && parseFloat(soilParams.pH) > 5.8, subsidy: { scheme: "NFSM", details: "50% subsidy on hybrid seeds." } },
-        { name: 'Pulses (Gram)', season: 'Rabi', notes: 'Low water requirement, enhances soil nitrogen.', suitability: parseFloat(soilParams.Rainfall) < 1000, subsidy: { scheme: "NFSM-Pulses", details: "Subsidies on seeds and micronutrients." } },
-        { name: 'Soybean', season: 'Kharif', notes: 'Good source of protein and oil.', suitability: parseFloat(soilParams.Clay) > 20, subsidy: { scheme: "NMOOP", details: "Financial assistance for quality seeds." } },
-        { name: 'Wheat', season: 'Rabi', notes: 'Requires well-drained loamy soils.', suitability: parseFloat(soilParams.Temperature) < 30, subsidy: { scheme: "NFSM", details: "Support for farm machinery and water management." } },
-        { name: 'Cotton', season: 'Kharif', notes: 'Best for black cotton soil, requires significant water.', suitability: parseFloat(soilParams.Clay) > 35, subsidy: { scheme: "Cotton Development Programme", details: "Assistance for pest management." } },
-        { name: 'Millets (Jowar)', season: 'Kharif/Rabi', notes: 'Drought-resistant and suitable for arid regions.', suitability: parseFloat(soilParams.Rainfall) < 800, subsidy: { scheme: "Initiative for Nutritional Security", details: "Distribution of free seed minikits." } },
+        { 
+            name: 'Maize', 
+            season: 'Kharif', 
+            notes: 'Versatile crop with high yield potential. Sensitive to waterlogging in early stages.', 
+            suitability: parseFloat(soilParams.OM) > 1.0 && parseFloat(soilParams.pH) > 5.8, 
+            subsidy: { scheme: "NFSM", details: "50% subsidy on hybrid seeds." },
+            yield: `${(random() * 5 + 15).toFixed(1)} quintals/acre`,
+            water_need: 'Moderate (450-650mm)',
+            profit_potential: `₹${(random() * 5000 + 15000).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / acre`,
+            sowing_window: 'June - July'
+        },
+        { 
+            name: 'Pulses (Gram)', 
+            season: 'Rabi', 
+            notes: 'Low water requirement, enhances soil nitrogen through fixation. Ideal for crop rotation.', 
+            suitability: parseFloat(soilParams.Rainfall) < 1000, 
+            subsidy: { scheme: "NFSM-Pulses", details: "Subsidies on seeds and micronutrients." },
+            yield: `${(random() * 4 + 8).toFixed(1)} quintals/acre`,
+            water_need: 'Low (200-300mm)',
+            profit_potential: `₹${(random() * 6000 + 18000).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / acre`,
+            sowing_window: 'October - November'
+        },
+        { 
+            name: 'Soybean', 
+            season: 'Kharif', 
+            notes: 'Good source of protein and oil. Requires well-drained soil.', 
+            suitability: parseFloat(soilParams.Clay) > 20, 
+            subsidy: { scheme: "NMOOP", details: "Financial assistance for quality seeds." },
+            yield: `${(random() * 6 + 10).toFixed(1)} quintals/acre`,
+            water_need: 'Moderate (450-700mm)',
+            profit_potential: `₹${(random() * 7000 + 20000).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / acre`,
+            sowing_window: 'June - July'
+        },
+        { 
+            name: 'Wheat', 
+            season: 'Rabi', 
+            notes: 'Requires well-drained loamy soils and cooler temperatures during growth.', 
+            suitability: parseFloat(soilParams.Temperature) < 30, 
+            subsidy: { scheme: "NFSM", details: "Support for farm machinery and water management." },
+            yield: `${(random() * 8 + 12).toFixed(1)} quintals/acre`,
+            water_need: 'High (500-700mm)',
+            profit_potential: `₹${(random() * 5000 + 12000).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / acre`,
+            sowing_window: 'November'
+        },
+        { 
+            name: 'Cotton', 
+            season: 'Kharif', 
+            notes: 'Best for black cotton soil, requires a long frost-free period.', 
+            suitability: parseFloat(soilParams.Clay) > 35, 
+            subsidy: { scheme: "Cotton Development Programme", details: "Assistance for pest management." },
+            yield: `${(random() * 3 + 5).toFixed(1)} quintals/acre`,
+            water_need: 'High (700-1200mm)',
+            profit_potential: `₹${(random() * 10000 + 25000).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / acre`,
+            sowing_window: 'May - June'
+        },
+        { 
+            name: 'Millets (Jowar)', 
+            season: 'Kharif/Rabi', 
+            notes: 'Drought-resistant and suitable for arid regions. Highly nutritious.', 
+            suitability: parseFloat(soilParams.Rainfall) < 800, 
+            subsidy: { scheme: "Initiative for Nutritional Security", details: "Distribution of free seed minikits." },
+            yield: `${(random() * 5 + 10).toFixed(1)} quintals/acre`,
+            water_need: 'Very Low (250-400mm)',
+            profit_potential: `₹${(random() * 4000 + 8000).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / acre`,
+            sowing_window: 'June-July (Kharif), Oct-Nov (Rabi)'
+        },
     ].filter(crop => crop.suitability);
 
     return {
         soilComposition: soilParams,
         soilHealth: { status: soilHealth, score: healthScore.toFixed(2) },
         improvementRecommendations: recommendations,
-        cropRecommendations: cropRecommendations.length > 0 ? cropRecommendations : [{ name: 'Millet', season: 'Varies', notes: 'Hardy crop suitable for marginal lands.', suitability: true, subsidy: { scheme: "N/A", details: "No specific subsidy found." } }],
+        cropRecommendations: cropRecommendations.length > 0 ? cropRecommendations : [{ 
+            name: 'Millet', 
+            season: 'Varies', 
+            notes: 'Hardy crop suitable for marginal lands.', 
+            suitability: true, 
+            subsidy: { scheme: "N/A", details: "No specific subsidy found." },
+            yield: `${(random() * 5 + 10).toFixed(1)} quintals/acre`,
+            water_need: 'Very Low (250-400mm)',
+            profit_potential: `₹${(random() * 4000 + 8000).toLocaleString('en-IN', { maximumFractionDigits: 0 })} / acre`,
+            sowing_window: 'June-July (Kharif), Oct-Nov (Rabi)'
+        }],
     };
 };
