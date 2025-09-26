@@ -159,7 +159,13 @@ const StateWiseAnalytics = () => {
   const style = (feature: any) => {
     const analytics = feature.properties.analytics;
     const totalStateClaims = analytics.claims_received_individual + analytics.claims_received_community;
-    return { fillColor: getColor(totalStateClaims), weight: 1, opacity: 1, color: 'white', fillOpacity: 0.7 };
+    return {
+      fillColor: getColor(totalStateClaims),
+      weight: 1.5,
+      opacity: 1,
+      color: '#333',
+      fillOpacity: 0.7
+    };
   };
 
   const onEachFeature = (feature: any, layer: Layer) => {
@@ -167,7 +173,7 @@ const StateWiseAnalytics = () => {
     if (analytics) {
       layer.bindTooltip(analytics.state_name, { sticky: true });
       layer.on({
-        mouseover: (e) => e.target.setStyle({ weight: 3, color: '#444' }),
+        mouseover: (e) => e.target.setStyle({ weight: 3, color: '#000' }),
         mouseout: (e) => e.target.setStyle(style(feature)),
         click: () => {
           setSelectedState(analytics);
