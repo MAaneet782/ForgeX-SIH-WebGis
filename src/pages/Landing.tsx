@@ -27,7 +27,7 @@ const Landing = () => {
                 Explore FRA Atlas <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
+            <Button asChild size="lg">
               <Link to="/atlas/state-wise-analytics">
                 National FRA Report Card
               </Link>
