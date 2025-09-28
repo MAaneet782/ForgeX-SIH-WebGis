@@ -1,8 +1,5 @@
 import { NavLink } from "react-router-dom";
 import {
-  LayoutDashboard,
-  BarChart3, // This icon is no longer used for a direct link in the sidebar
-  Search,
   Shield,
   DollarSign,
   Leaf,
@@ -11,8 +8,6 @@ import {
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useAuth } from "@/context/SessionContext";
-import { showInfo } from "@/utils/toast";
-import { Button } from "./ui/button";
 
 const AtlasSidebar = () => {
   const { user } = useAuth();
@@ -32,17 +27,6 @@ const AtlasSidebar = () => {
       <Icon className="mr-3 h-5 w-5" />
       <span>{text}</span>
     </NavLink>
-  );
-
-  const ActionItem = ({ icon: Icon, text }) => (
-    <Button
-      variant="ghost"
-      onClick={() => showInfo(`${text} feature is coming soon!`)}
-      className={`${baseLinkClasses} ${hoverClasses} w-full justify-start`}
-    >
-      <Icon className="mr-3 h-5 w-5" />
-      <span>{text}</span>
-    </Button>
   );
 
   const SectionTitle = ({ text }: { text: string }) => (
@@ -70,15 +54,9 @@ const AtlasSidebar = () => {
           </div>
         </div>
         <nav className="flex flex-col space-y-1">
-          <SectionTitle text="Roles" />
-          <NavItem icon={LayoutDashboard} text="RFO Dashboard" to="/atlas/rfo-dashboard" />
-
-          <SectionTitle text="Map Tools" />
           <NavItem icon={Map} text="Atlas Dashboard" to="/atlas" end={true} />
-          {/* The 'View Analytics' link is removed from here as per request */}
 
           <SectionTitle text="Patta Holder" />
-          <NavItem icon={Search} text="Find My Parcel" to="/atlas/find-my-parcel" />
           <NavItem icon={Shield} text="Types of Rights" to="/atlas/rights" />
           <NavItem icon={DollarSign} text="Schemes" to="/atlas/schemes" />
           <NavItem icon={Leaf} text="Agriculture" to="/atlas/agriculture" />

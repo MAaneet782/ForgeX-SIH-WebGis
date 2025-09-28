@@ -1,14 +1,18 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Polygon, Popup } from "react-leaflet";
 import { LatLngExpression } from "leaflet";
 import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertTriangle, FileText, CheckCircle, Clock, XCircle } from "lucide-react";
+import { AlertTriangle, FileText, CheckCircle, Clock, XCircle, PlusCircle, Upload, Download, BarChart2, LayoutDashboard, Search as SearchIcon, Filter as FilterIcon } from "lucide-react";
 import ClaimsTable from "@/components/ClaimsTable";
 import MapFlyTo from "@/components/MapFlyTo";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import Papa from "papaparse";
+import { showLoading, showSuccess, showError, dismissToast, showInfo } from "@/utils/toast";
 
 // Define the type for a claim
 interface Claim {
@@ -49,6 +53,9 @@ const Atlas = () => {
     queryFn: fetchClaims,
   });
 
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const getStatusColor = (status: Claim['status']) => {
     switch (status) {
       case 'Approved':
@@ -61,6 +68,95 @@ const Atlas = () => {
         return 'grey';
     }
   };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const toastId = showLoading("Uploading and processing CSV...");
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const parsedData = results.data as any[];
+        
+        if (!parsedData.length || !results.meta.fields?.includes('claim_id')) {
+            dismissToast(toastId);
+            showError("Invalid CSV format. Make sure it has headers and a 'claim_id' column.");
+            return;
+        }
+
+        const claimsToInsert = parsedData.map(row => {
+            try {
+                return {
+                    claim_id: row.claim_id,
+                    holder_name: row.holder_name,
+                    village: row.village,
+                    district: row.district,
+                    state: row.state,
+                    area: parseFloat(row.area),
+                    status: row.status,
+                    soil_type: row.soil_type,
+                    water_availability: row.water_availability,
+                    estimated_crop_value: parseInt(row.estimated_crop_value, 10),
+                    geometry: row.geometry ? JSON.parse(row.geometry) : null,
+                };
+            } catch (e) {
+                console.error("Error parsing row:", row, e);
+                return null;
+            }
+        }).filter(Boolean);
+
+        if (claimsToInsert.length === 0 && parsedData.length > 0) {
+            dismissToast(toastId);
+            showError("Could not parse any rows from the CSV. Check the format, especially the 'geometry' JSON.");
+            return;
+        }
+
+        const { error } = await supabase.from('claims').insert(claimsToInsert);
+
+        dismissToast(toastId);
+
+        if (error) {
+          showError(`Upload failed: ${error.message}`);
+        } else {
+          showSuccess(`${claimsToInsert.length} claims uploaded successfully!`);
+          queryClient.invalidateQueries({ queryKey: ['claims'] });
+        }
+      },
+      error: (error) => {
+        dismissToast(toastId);
+        showError(`CSV parsing error: ${error.message}`);
+      }
+    });
+  };
+
+  const handleExport = () => {
+    if (!claims) {
+      showInfo("No claims to export.");
+      return;
+    }
+    const dataToExport = claims.map(({ id, created_at, geometry, ...rest }) => ({
+        ...rest,
+        geometry: JSON.stringify(geometry)
+    }));
+    const csv = Papa.unparse(dataToExport);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'claims_export.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   if (isLoading) {
     return (
@@ -115,6 +211,47 @@ const Atlas = () => {
       <div>
         <h1 className="text-3xl font-bold text-shadow">WebGIS Dashboard</h1>
         <p className="text-muted-foreground">Live Data from Supabase Database</p>
+      </div>
+
+      {/* New section for action buttons */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <Button asChild>
+          <Link to="/atlas/rfo-dashboard">
+            <LayoutDashboard className="mr-2 h-4 w-4" /> RFO Dashboard
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link to="/atlas/find-my-parcel">
+            <SearchIcon className="mr-2 h-4 w-4" /> Find My Parcel
+          </Link>
+        </Button>
+        <Button asChild>
+          <Link to="/atlas/analytics">
+            <BarChart2 className="mr-2 h-4 w-4" /> Thematic Analytics
+          </Link>
+        </Button>
+        <Button variant="ghost">
+          <FilterIcon className="mr-2 h-4 w-4" /> Apply Filters
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/atlas/add-claim">
+            <PlusCircle className="mr-2 h-4 w-4" /> Add Claim
+          </Link>
+        </Button>
+        <a href="/claims_template.csv" download className="text-sm text-muted-foreground hover:text-primary underline flex items-center">Download Template</a>
+        <Button variant="outline" onClick={handleUploadClick}>
+          <Upload className="mr-2 h-4 w-4" /> Upload CSV
+        </Button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileUpload}
+          className="hidden"
+          accept=".csv"
+        />
+        <Button variant="outline" onClick={handleExport}>
+          <Download className="mr-2 h-4 w-4" /> Export
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

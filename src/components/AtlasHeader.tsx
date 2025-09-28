@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { Bell, Search, LogOut, MapPin, Filter as FilterIcon, BarChart2, RefreshCw, Mail } from "lucide-react";
+import { Bell, Search, LogOut, RefreshCw, Mail } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,17 +32,6 @@ const AtlasHeader = () => {
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        <Button variant="ghost">
-          <MapPin className="mr-2 h-4 w-4" /> My Parcel
-        </Button>
-        <Button variant="ghost">
-          <FilterIcon className="mr-2 h-4 w-4" /> Apply Filters
-        </Button>
-        <Button variant="ghost" asChild>
-          <Link to="/atlas/analytics">
-            <BarChart2 className="mr-2 h-4 w-4" /> Thematic Analytics
-          </Link>
-        </Button>
         <Button variant="ghost" size="icon">
           <RefreshCw className="h-5 w-5" />
         </Button>
