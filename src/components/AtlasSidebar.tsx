@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
-  BarChart3,
+  BarChart3, // This icon is no longer used for a direct link in the sidebar
   Search,
   Shield,
   DollarSign,
@@ -75,15 +75,7 @@ const AtlasSidebar = () => {
 
           <SectionTitle text="Map Tools" />
           <NavItem icon={Map} text="Atlas Dashboard" to="/atlas" end={true} />
-          <NavLink
-            to="/atlas/analytics"
-            className={({ isActive }) =>
-              `${baseLinkClasses} ${hoverClasses} ${isActive ? activeClasses : "bg-sidebar-primary/10 text-sidebar-primary-foreground ring-1 ring-sidebar-primary/50"}`
-            }
-          >
-            <BarChart3 className="mr-3 h-5 w-5" />
-            <span>View Analytics</span>
-          </NavLink>
+          {/* The 'View Analytics' link is removed from here as per request */}
 
           <SectionTitle text="Patta Holder" />
           <NavItem icon={Search} text="Find My Parcel" to="/atlas/find-my-parcel" />
